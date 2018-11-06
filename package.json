@@ -1,0 +1,17 @@
+{
+  "name": "templatize",
+  "version": "0.1.0",
+  "main": "src/templatize.js",
+  "dependencies": {
+    "node-minify": "^3.6.0"
+  },
+  "scripts": {
+    "build": "node compile.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://siml@bitbucket.org/siml/templatize.git"
+  },
+  "author": "Lawrence Sim",
+  "license": "MIT"
+}
