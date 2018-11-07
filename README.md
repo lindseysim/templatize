@@ -237,9 +237,11 @@ Functions are evaluated to determine the returned value. The function is called 
 
     Bob Belcher has 3 children.
 
-Functions fail silently, thus is an error occurs during function call, value is assumed to be empty string. To change this, simply the flag as done below: 
+By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be empty string. To change this, simply the `errorOnFuncFailure` flag to `true`: 
 
     Templatize.errorOnFuncFailure = true;
+
+Depending on your dependency manager, this may or may not affect all references to `Templatize`. Generally speaking, assume `Templatize` is a static reference, so either adjust for all uses, and/or have it reset back to a desired behavior after using it with non-default behavior.
 
 ## Putting it all together ##
 
@@ -302,6 +304,8 @@ Below is a complex example using a bit of everything covered above.
 
     Bob Belcher has 3 children: Tina Belcher (13), Gene Belcher (11), and Louise Belcher (9).
 
-Note that `numChildren` is scoped in the context of the complete data binding, `name.fullName` is scoped within `name`, and `children[].age` are scoped within the individual array items of `children`. However, the functions are called with a `parent` argument allowing access of higher-level scope.
+Note that `numChildrenText` is scoped in the context of the complete data binding, `name.fullName` is scoped within `name`, and `children[].age` are scoped within the individual array items of `children`. 
 
-Finally note for the last child, a unique way of changing scope, which may end up being a cleaner way to avoid repeating a longer and more complex function.
+However, the functions are called with a `parent` parameter supplied allowing access of the next, higher-level scope. In `name.fullName` this is used very unnecessarily just to demonstrate how it works. In `children[].age`, it is used to access a common variable in the parent scope.
+
+For a final demonstration, the `children[].age` function for the last child is differently formatted to take advantage of this, calling a function (`childAge`) on the parent scope. While somewhat contrived in this example, it may end up being a cleaner way to handle it in other situations.
