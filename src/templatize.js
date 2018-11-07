@@ -1,64 +1,58 @@
 !function(root, factory) {
-    // CommonJS-based (e.g. NodeJS) API
     if(typeof module === "object" && module.exports) {
         module.exports = factory();
-    // AMD-based (e.g. RequireJS) API
     } else if(typeof define === "function" && define.amd) {
         define(factory);
-    // Regular instantiation 
     } else {
         root.Templatize = factory();
     }
 }(this, function() {
     return {
-        errorOnFuncFailure: false, 
-        render: function(html, bindings, prefix, parentBinding) {
+        errorOnFuncFailure: false,   // flag for throwing error on function evaluation
+        __objTester: ({}).toString,  // for testing object type (only way to find base obj)
+        render: function(html, bindings) {
+            return this.__render(html, bindings);
+        }, 
+        __render: function(html, bindings, prefix) {
             if(!html) return "";
-            if(prefix) {
-                // in subsection
-                // handle display of section
-                var showSection = !("_display" in bindings) || bindings["_display"];
-                html = this.__renderSection(html, prefix, showSection);
-                // add to prefix
-                prefix += ".";
-            } else {
-                prefix = "";
+            var inSection = prefix !== null && prefix !== undefined;;
+            // render section for subsections as nested objects
+            if(inSection) {
+                var display = !("_display" in bindings) || bindings["_display"];
+                html = this.__renderSection(html, prefix, display);
             }
-            var objTester = ({}).toString;  // for testing base-object / object-literal type
+            // prep prefix for next level
+            prefix = inSection ? prefix + "." : "";
             for(var key in bindings) {
+                // skip reserved values
+                if(key === "_display" || key === "_parent") continue;
                 var value = bindings[key];
                 if(value) {
                     // special cases
-                    switch(objTester.call(value)) {
-                        // if an object literal, recurse using period-separated naming structure
+                    switch(this.__objTester.call(value)) {
+                        // if an object literal, recurse into
                         case "[object Object]":
-                            html = this.render(
-                                html, 
-                                value, 
-                                prefix ? prefix + key : key
-                            );
+                            if(!value._parent) value._parent = bindings;  // add parent context
+                            html = this.__render(html, value, prefix + key);
                             continue;
                         // if an array, treat as repeating section
                         case "[object Array]":
-                            html = this.__renderRepeatingSection(html, key, value, prefix, parentBinding);
+                            if(!value._parent) value._parent = bindings;  // add parent context
+                            html = this.__renderRepeatingSection(html, key, value, prefix);
                             continue;
                         // if a function, use it to evaluate value
                         case "[object Function]":
                             try {
-                                value = value.call(bindings, parentBinding);
+                                value = value.call(bindings);
                             } catch(e) {
                                 if(this.errorOnFuncFailure) throw e;
                                 value = "";
                             }
-                            break;
                     }
                 }
-                // full key name, including subsections
-                var tKey = prefix + key;
-                // check display/hide as section
-                html = this.__renderSection(html, tKey, value, parentBinding);
-                // basic replace with greedy search
-                html = html.replace(
+                var tKey = prefix + key;                         // full key name, including subsections
+                html = this.__renderSection(html, tKey, value);  // check display/hide as section
+                html = html.replace(                             // replace with greedy search
                     new RegExp("{{" + tKey + "}}" , 'g'), 
                     value
                 );
@@ -109,7 +103,7 @@
             }
             return html;
         }, 
-        __renderRepeatingSection: function(html, section, bindings, prefix, parentBinding) {
+        __renderRepeatingSection: function(html, section, bindings, prefix) {
             prefix = prefix ? prefix + "." + section : section;
             var sectionStart = "{{#" + section + "}}", 
                 sectionEnd   = "{{/" + section + "}}", 
@@ -123,7 +117,7 @@
             var insertHtml = "";
             for(var i = 0; i < bindings.length; ++i) {
                 // treat each section like a new render
-                insertHtml += this.render(sectionHtml, bindings[i], prefix, parentBinding);
+                insertHtml += this.__render(sectionHtml, bindings[i], prefix);
             }
             // splice into full template, replacing old section template
             if(iStart === 0) {
@@ -132,6 +126,5 @@
                 return html.slice(0, iStart) + insertHtml + html.slice(iEnd + sectionEnd.length);
             }
         }
-        
     };
 });

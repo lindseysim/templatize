@@ -1,10 +1,10 @@
 # Templatizer #
 
-Basic templating code, similar to Mustache.js. It originally started very simplistic before requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, just a little over 100 lines of code. What it doesn't do quite as well as Mustache.js is caching template bindings. So if it's done repeatedly with the same template, Mustache might be faster.
+Basic templating code, similar to Mustache.js. It originally started very simplistic, hence me creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, the core code just a little over 100 lines. What it doesn't do quite as well as Mustache.js is caching template rendering maps or immediately raising formatting issues. So if it's done repeatedly with the same template, Mustache might be faster.
 
 ## How to Use ##
 
-Import the source or minified. There is only one function you need to know:
+Import the source or minified javascript. There is only one function you need to know:
 
 **`Templatizer.render(html, bindings)`** : Renders template.
 
@@ -28,67 +28,100 @@ Import the source or minified. There is only one function you need to know:
 
 ## Variables ##
 
-Parts related to templates to be encased in double curley braces, with dot notation to traverse nested structures. Example below where above the break is the template and below the data-bindings.
+Parts related to templates to be encased in double curly braces, with dot notation to traverse nested structures. Example below where above the break is the template and below the data-bindings.
 
 &nbsp; *Template:*
 
-    {{name.first}} {{name.last}} is {{age}} years old.
+    {{name.first}} is {{age}} years old.
 
 &nbsp; *Data:*
 
     {
       age: 46, 
-      name: {
-        first: "Bob", 
-        last: "Belcher"
-      }
+      name: { first: "Bob" }
     }
 
 &nbsp; *Outputs:*
 
-    Bob Belcher is 46 years old.
+    Bob is 46 years old.
+
+Generally avoid any data-binding names starting with an underscore (`_`) as some reserved values use the underscore prefix (e.g. `_display` and `_parent`).
 
 ## Sections ##
 
 ### Basic Sections ###
 
-Section (must be unique, that is, can't have multiple sections with same name) marked with start at `#`-prefix and end at `/`-prefix like so: 
+Section are marked with start at `#`-prefix and end at `/`-prefix. By binding section to a `true` or `false` value, they may be shown or removed.
 
 &nbsp; *Template:*
 
-    {{#job}}Is employed{{/job}}
+    {{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
 
 &nbsp; *Data:*
 
-    {job: true}
+    {
+      married: true, 
+      single: false
+    }
 
 &nbsp; *Outputs:*
 
-    Is employed
-
-Alternatively, the above would produce no output if the `job` data-binding was to evaluate to `false`.
+    Is married.
 
 You may also do an inverse section by replacing `#` starting prefix with `^`. Such sections will only be displayed if the section is evaluated to `false`.
 
 &nbsp; *Template:*
 
-    {{^job}}Is unemployed{{/job}}
+    {{^single}}Is not single.{{/single}}
 
 &nbsp; *Data:*
 
-    {job: false}
+    {single: false}
 
 &nbsp; *Outputs:*
 
-    Is unemployed
+    Is not single.
+
+Data may be put inside of a section. E.g.:
+
+&nbsp; *Template:*
+
+    {{#married}}Is married to {{spouse}}.{{/married}}
+
+&nbsp; *Data:*
+
+    {
+      married: true, 
+      spouse: "Linda"
+    }
+
+&nbsp; *Outputs:*
+
+    Is married to Linda.
+
 
 ### Section value evaluation ###
 
-Section value is evaluated as `false` if it is `undefined`, `null`, `false`, an empty string, or a string composed only of whitespace (if you want to add whitespace, use `&nbsp;`). Conversely, a value of `0` is evaluated as `true`.
+Section data may be other values besides boolean. However, evaluation of non-boolean values have minor differences from normal Javascript behavior. Values of `undefined`, `null`, an empty string, or a string composed only of whitespace (if you want to add whitespace, use `&nbsp;`), evaluate to `false`. Conversely, a value of `0` is evaluated as `true`.
+
+If section key does not exist, that section is simply not evaluated in the template, which is a common error. E.g.: 
+
+
+&nbsp; *Template:*
+
+    {{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
+
+&nbsp; *Data:*
+
+    {married: true}
+
+&nbsp; *Outputs:*
+
+    Is married.{{#single}}Is single.{{/single}}
 
 ### Sections with data ###
 
-As long as data-binding for section evaluates to `true` (see above on section value evaluation), it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value:
+As long as data-binding for section evaluates to `true` (see above), it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value:
 
 &nbsp; *Template:*
 
@@ -127,11 +160,16 @@ Or, even better, used a nested structure for the section like below:
       job: {title: "Chef"}
     }
 
-Note that section data (excluding repeating sections) are scoped for the entire template. E.g., give the above example, `{{job.title}}` may be used anywhere in the template inside or outside of the section and will be replaced with `Chef` when rendered.
+Note that section data (excluding repeating sections) are scoped for the entire template. E.g., given the above example, `{{job.title}}` may be used anywhere in the template inside or outside of a `{{#job}}{{/job}}` section and will be replaced with `"Chef"` when rendered.
 
 ### More section behavior ###
 
-Section data may still be filled out but removed if `_display` variable exists and evaluates to  `false`. E.g. the previous templates would have the section removed, given the data binding of:
+Section data may still be filled out but removed/hidden if a `_display` variable exists and evaluates to  `false` (with standard handling -- e.g. unlike for the section value itself, `0` evaluates to `false`). E.g. the previous templates would have the section removed, given the data binding of:
+
+&nbsp; *Template:*
+
+    Occupation: {{#job}}{{job.title}}{/job}} {{^job}}Unemployed{{/job}}<br />
+    Bob is a {{job.title}}
 
 &nbsp; *Data:*
 
@@ -142,11 +180,12 @@ Section data may still be filled out but removed if `_display` variable exists a
       }
     }
 
-Section data used this way is still scoped for entire template. E.g., the above data-binding will still display on the below template, even in a different section. It will also still display even if though `job._display == false` because it is not used within a `job` section, as long as nothing is removing the `occupation` section for the below example.
+&nbsp; *Outputs:*
 
-&nbsp; *Template:*
+    Occupation:  
+    Bob is a chef.
 
-    {{#occupation}}Occupation: {{job.title}}{{/occupation}}
+Note in the above that `_display` does not reverse the behavior of inverse sections (the section `{{^job}}{#job}}` is still hidden as `job` itself is not evaluated to `false`). Also, section data may still be access outside of the section, ignoring the `_display == false` value of the section itself.
 
 ## Repeating Sections ##
 
@@ -172,26 +211,47 @@ For repeating sections, set value to an array of objects, and section html will 
     Child: Gene
     Child: Louise
 
+Note array must be of objects. E.g., the above template with the following data-bindings will error:
+
+
+&nbsp; *Data:*
+
+    {
+      children: ["Tina", "Gene", "Louise"]
+    }
+
 ## Nested Sections ##
 
-Nested sections should behave properly, even mixing regular versus repeating sections, as long as you properly manage the scope. E.g., given the template below: 
+Nested sections should behave as expected, even mixing regular versus repeating sections, as long as you properly manage the scope.
 
 &nbsp; *Template:*
 
     {{#children}}
       {{#children.lastChild}}and {{/children.lastChild}}
-      {{children.firstName}} {{name.last}}
+      {{children.name.first}} {{name.last}}
       {{^children.lastChild}}, {{/children.lastChild}}
     {{/children}}
 
 &nbsp; *Data:*
 
     {
-      name: {first: "Bob", last: "Belcher"}, 
+      name: {
+        first: "Bob", 
+        last: "Belcher"
+      }, 
       children: [
-        {firstName: "Tina", lastChild: false}, 
-        {firstName: "Gene", lastChild: false}, 
-        {firstName: "Louise", lastChild: true}
+        {
+          name: {first: "Tina"},
+          lastChild: false
+        }, 
+        {
+          name: {first: "Gene"},
+          lastChild: false
+        }, 
+        {
+          name: {first: "Louise"},
+          lastChild: true
+        }
       ]
     }
 
@@ -202,28 +262,34 @@ Nested sections should behave properly, even mixing regular versus repeating sec
 A few behaviors to note for the above example:
 
 * Within the template for the repeating section, scope is still from the top level, hence we can render `name.last` within, and subvariables of `children` must be called via dot notation.
-* `children[].lastChild` must be specified as `false` for all array items, as the evaluation for `lastChild` will only happen where such a key exists.
+* `children[].lastChild` must be specified for all array items, as the evaluation for `lastChild` in each repeat of the section will only happen where such a key exists.
 
 ## Functions ##
 
-Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object, however the scope is limited to where it is called.
+Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides.
 
 &nbsp; *Template:*
 
-    {{name.first}} {{name.last}} has {{numChildrenText}}.
+    {{name.full}} has {{numChildrenText}}.
 
 &nbsp; *Data:*
 
     {
-      name: {first: "Bob", last: "Belcher"}, 
+      name: {
+        first: "Bob", 
+        last: "Belcher", 
+        full: function() {
+          return this.first + " " + this._parent.name.last;
+        }
+      }, 
       numChildrenText: function() {
         switch(this.children.length) {
           case 0:
             return "no children"
           case 1:
-            return "one child: "
+            return "one child"
           default:
-            return this.children.length + " children: "
+            return this.children.length + " children"
         }
       }, 
       children: [
@@ -237,6 +303,8 @@ Functions are evaluated to determine the returned value. The function is called 
 
     Bob Belcher has 3 children.
 
+Note `name.full` is called within context of `name`, whereas `numChildrenText` is called within the context of the root data-bindings object. However, each context is given a `_parent` parameter to traverse upwards in scope. In `name.full`, this is used in a somewhat contrived example to traverse up to the full context (before returning back to the same).
+
 By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be empty string. To change this, simply the `errorOnFuncFailure` flag to `true`: 
 
     Templatize.errorOnFuncFailure = true;
@@ -249,10 +317,10 @@ Below is a complex example using a bit of everything covered above.
 
 &nbsp; *Template:*
 
-    {{name.fullName}} has {{numChildrenText}}
+    {{name.full}} has {{numChildrenText}}
     {{#children}}
       {{#children.lastChild}}and {{/children.lastChild}}
-      {{children.firstName}} {{name.last}} ({{children.age}})
+      {{children.firstName}} {{name.last}} (age {{children.age}})
       {{^children.lastChild}}, {{/children.lastChild}}
     {{/children}}.
 
@@ -262,8 +330,8 @@ Below is a complex example using a bit of everything covered above.
       name: {
         first: "Bob", 
         last: "Belcher", 
-        fullName: function(parent) {
-          return this.first + " " + parent.name.last;          
+        full: function() {
+          return this.first + " " + this.last;          
         }
       }, 
       numChildrenText: function() {
@@ -281,31 +349,29 @@ Below is a complex example using a bit of everything covered above.
         {
           firstName: "Tina", 
           born: 2005, 
-          age: function(parent) { return parent.thisYear - this.born; }, 
-          lastChild: false
+          age: function() { return this._parent.thisYear - this.born; }, 
+          lastChild: function() { return this._parent.isLastChild(this); }
         }, 
         {
           firstName: "Gene", 
           born: 2007, 
-          age: function(parent) { return parent.thisYear - this.born; }, 
-          lastChild: false
+          age: function() { return this._parent.thisYear - this.born; }, 
+          lastChild: function() { return this._parent.isLastChild(this); }
         }, 
         {
           firstName: "Louise", 
           born: 2009, 
-          age: function(parent) { return parent.childAge(this); }, 
-          lastChild: true
+          age: function() { return this._parent.thisYear - this.born; }, 
+          lastChild: function() { return this._parent.isLastChild(this); }
         }
       ], 
-      childAge: function(childObj) { return this.thisYear - childObj.born; }
+      isLastChild: function(childObj) {
+        return childObj === this.children[this.children.length-1];
+      }
     }
 
 &nbsp; *Outputs:*
 
-    Bob Belcher has 3 children: Tina Belcher (13), Gene Belcher (11), and Louise Belcher (9).
+    Bob Belcher has 3 children: Tina Belcher (age 13), Gene Belcher (age 11), and Louise Belcher (age 9).
 
-Note that `numChildrenText` is scoped in the context of the complete data binding, `name.fullName` is scoped within `name`, and `children[].age` are scoped within the individual array items of `children`. 
-
-However, the functions are called with a `parent` parameter supplied allowing access of the next, higher-level scope. In `name.fullName` this is used very unnecessarily just to demonstrate how it works. In `children[].age`, it is used to access a common variable in the parent scope.
-
-For a final demonstration, the `children[].age` function for the last child is differently formatted to take advantage of this, calling a function (`childAge`) on the parent scope. While somewhat contrived in this example, it may end up being a cleaner way to handle it in other situations.
+Note that the `children[].lastChild` function calls a function from the parent scope (`isLastChild`) to dynamically determine if it is the last object in the array. Arguably this is  somewhat contrived, and it would easier just to preprocess the children data-bindings object and assign values to each child's attributes, but this is just a demonstration of possible design patterns.
