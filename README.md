@@ -1,4 +1,4 @@
-# Templatizer #
+# Templatize #
 
 Basic templating code, similar to Mustache.js. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, the core code just a little over 100 lines. For a brief comparison versus Mustache, see the last section.
 
@@ -6,7 +6,7 @@ Basic templating code, similar to Mustache.js. It originally started as needing 
 
 Import the source or minified javascript. There is only one function you need to know:
 
-**`Templatizer.render(template, bindings, cleanup)`** : Renders template.
+**`Templatize.render(template, bindings, cleanup)`** : Renders template.
 
 <table>
   <tbody>
@@ -385,13 +385,13 @@ Below is a complex example using a bit of everything covered above.
 
 Note that the `children[].lastChild` function calls a function from the parent scope (`isLastChild`) to dynamically determine if it is the last object in the array. Arguably this is  somewhat contrived, and it would easier just to preprocess the children data-bindings object and assign values to each child's attributes, but this is just a demonstration of possible design patterns.
 
-## Templatizer vs Mustache ##
+## Templatize vs Mustache ##
 
-Minor syntactic differences are evaluation of "truthiness" (e.g. Mustache reads `0` as false when evaluating a section), and scope within sections and when calling functions. Additionally, there is no inherent support for partials (though as Templatizer maps and renders on runtime, a design pattern can easily work around this) and no support for custom delimiters.
+Minor syntactic differences are evaluation of "truthiness" (e.g. Mustache reads `0` as false when evaluating a section), and scope within sections and when calling functions. Additionally, there is no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this) and no support for custom delimiters.
 
 ### Caching ###
 
-Mustache parses templates before rendering, and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatizer is faster in that regard. However, the preprocessed map is cached and all subsequent renders that use the same template in Mustache are greatly improved in speed.
+Mustache parses templates before rendering, and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize is faster in that regard. However, the preprocessed map is cached and all subsequent renders that use the same template in Mustache are greatly improved in speed.
 
 ### Missing Bindings ###
 
