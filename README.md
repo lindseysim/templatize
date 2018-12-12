@@ -1,12 +1,12 @@
 # Templatizer #
 
-Basic templating code, similar to Mustache.js. It originally started very simplistic, hence me creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, the core code just a little over 100 lines. What it doesn't do quite as well as Mustache.js is caching template rendering maps or immediately raising formatting issues. So if it's done repeatedly with the same template, Mustache might be faster.
+Basic templating code, similar to Mustache.js. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, the core code just a little over 100 lines. For a brief comparison versus Mustache, see the last section.
 
 ## How to Use ##
 
 Import the source or minified javascript. There is only one function you need to know:
 
-**`Templatizer.render(html, bindings)`** : Renders template.
+**`Templatizer.render(template, bindings, cleanup)`** : Renders template.
 
 <table>
   <tbody>
@@ -14,10 +14,13 @@ Import the source or minified javascript. There is only one function you need to
       <th>Name</th><th>Type</th><th>Description</th>
     </tr>
     <tr>
-      <td>html</td><td>String</td><td>The template.</td>
+      <td>template</td><td>String</td><td>The template.</td>
     </tr>
     <tr>
       <td>bindings</td><td>Object</td><td>The object literal of data-bindings.</td>
+    </tr>
+    <tr>
+      <td>cleanup</td><td>Boolean</td><td>Whether to cleanup unrendered markups. Defaults to false.</td>
     </tr>
   </tbody>
 </table>
@@ -34,7 +37,7 @@ Parts related to templates to be encased in double curly braces, with dot notati
 
     {{name.first}} is {{age}} years old.
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {
       age: 46, 
@@ -57,7 +60,7 @@ Section are marked with start at `#`-prefix and end at `/`-prefix. By binding se
 
     {{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {
       married: true, 
@@ -74,7 +77,7 @@ You may also do an inverse section by replacing `#` starting prefix with `^`. Su
 
     {{^single}}Is not single.{{/single}}
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {single: false}
 
@@ -88,7 +91,7 @@ Data may be put inside of a section. E.g.:
 
     {{#married}}Is married to {{spouse}}.{{/married}}
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {
       married: true, 
@@ -111,7 +114,7 @@ If section key does not exist, that section is simply not evaluated in the templ
 
     {{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {married: true}
 
@@ -127,7 +130,7 @@ As long as data-binding for section evaluates to `true` (see above), it will be 
 
     {{#job}}Occupation: {{job}}{{/job}}
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {job: "Chef"}
 
@@ -141,7 +144,7 @@ The above though is somewhat messy of an implementation. One alternative is to s
 
     {{#showJob}}Occupation: {{job}}{{/showJob}}
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {
       showJob: true, 
@@ -154,7 +157,7 @@ Or, even better, used a nested structure for the section like below:
 
     {{#job}}Occupation: {{job.title}}{/job}}
  
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {
       job: {title: "Chef"}
@@ -175,7 +178,7 @@ Section data may still be filled out but removed/hidden if a `_display` variable
     Occupation: {{#job}}{{job.title}}{/job}} {{^job}}Unemployed{{/job}}<br />
     Bob is a {{job.title}}
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {
       job: {
@@ -199,7 +202,7 @@ For repeating sections, set the section value to an array of objects and section
 
     {{#children}}Child: {{children.firstName}}<br />{{/children}}
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {
       children: [
@@ -237,7 +240,7 @@ Nested sections should behave as expected, even mixing regular versus repeating 
       {{^children.lastChild}}, {{/children.lastChild}}
     {{/children}}
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {
       name: {
@@ -277,7 +280,7 @@ Functions are evaluated to determine the returned value. The function is called 
 
     {{name.full}} has {{numChildrenText}}.
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {
       name: {
@@ -322,14 +325,14 @@ Below is a complex example using a bit of everything covered above.
 
 &nbsp; *Template:*
 
-    {{name.full}} has {{numChildrenText}}
+    {{name.full}} has {{numChildrenText}}<br />
     {{#children}}
       {{#children.lastChild}}and {{/children.lastChild}}
       {{children.firstName}} {{name.last}} (age {{children.age}})
       {{^children.lastChild}}, {{/children.lastChild}}
     {{/children}}.
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
     {
       name: {
@@ -377,6 +380,37 @@ Below is a complex example using a bit of everything covered above.
 
 &nbsp; *Outputs:*
 
-    Bob Belcher has 3 children: Tina Belcher (age 13), Gene Belcher (age 11), and Louise Belcher (age 9).
+    Bob Belcher has 3 children: 
+    Tina Belcher (age 13), Gene Belcher (age 11), and Louise Belcher (age 9).
 
 Note that the `children[].lastChild` function calls a function from the parent scope (`isLastChild`) to dynamically determine if it is the last object in the array. Arguably this is  somewhat contrived, and it would easier just to preprocess the children data-bindings object and assign values to each child's attributes, but this is just a demonstration of possible design patterns.
+
+## Templatizer vs Mustache ##
+
+Minor syntactic differences are evaluation of "truthiness" (e.g. Mustache reads `0` as false when evaluating a section), and scope within sections and when calling functions. Additionally, there is no inherent support for partials (though as Templatizer maps and renders on runtime, a design pattern can easily work around this) and no support for custom delimiters.
+
+### Caching ###
+
+Mustache parses templates before rendering, and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatizer is faster in that regard. However, the preprocessed map is cached and all subsequent renders that use the same template in Mustache are greatly improved in speed.
+
+### Missing Bindings ###
+
+As aforementioned, templates are not preprocessed to map data-bindings. Instead, templates are rendered at call, using the supplied data bindings, and finding the appropriate, matching markup in the template. Consequently, **missing bindings in the template are rendered as is**. Additionally, formatting issues are not checked and validated. Thus, providing an incomplete data-binding or badly formatted template will result in rendering issues.
+
+&nbsp; *Template:*
+
+    {{name.first}} {{#age}}is {{age}} years old.
+
+&nbsp; *Data:*
+
+    {age: 46}
+
+&nbsp; *Outputs:*
+
+    {{name.first}} {{#age}}is 46 years old.
+
+In the above, `{{name.first}}` is not replaced because the binding does not exist in the supplied data. As well, the use of the `{{#age}}` section is erroneously rendered as the expected closing tag (`{{/age}}`) was not found.
+
+To cleanup any remaining markup, set the `cleanup` parameter in `Templatize.render()` as `true`.
+
+

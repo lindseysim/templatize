@@ -10,8 +10,18 @@
     return {
         errorOnFuncFailure: false,   // flag for throwing error on function evaluation
         __objTester: ({}).toString,  // for testing object type (only way to find base obj)
-        render: function(html, bindings) {
-            return this.__render(html, bindings);
+        render: function(html, bindings, cleanup) {
+            var rendered = this.__render(html, bindings);
+            if(cleanup) {
+                var iCleanupStart = rendered.indexOf("{{");
+                while(~iCleanupStart) {
+                    var iCleanupEnd = rendered.indexOf("}}", iCleanupStart);
+                    if(!~iCleanupEnd) break;
+                    rendered = rendered.slice(0, iCleanupStart) + rendered.slice(iCleanupEnd+2);
+                    iCleanupStart = rendered.indexOf("{{");
+                }
+            }
+            return rendered;
         }, 
         __render: function(html, bindings, prefix) {
             if(!html) return "";
