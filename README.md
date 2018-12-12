@@ -159,12 +159,16 @@ Or, even better, used a nested structure for the section like below:
     {
       job: {title: "Chef"}
     }
+    // or conversely, which will hide the entire section..
+    {
+      job: false
+    }
 
 Note that section data (excluding repeating sections) are scoped for the entire template. E.g., given the above example, `{{job.title}}` may be used anywhere in the template inside or outside of a `{{#job}}{{/job}}` section and will be replaced with `"Chef"` when rendered.
 
 ### More section behavior ###
 
-Section data may still be filled out but removed/hidden if a `_display` variable exists and evaluates to  `false` (with standard handling -- e.g. unlike for the section value itself, `0` evaluates to `false`). E.g. the previous templates would have the section removed, given the data binding of:
+Section data may still be filled out but removed/hidden if a `_display` variable exists and evaluates to  `false` (this behavior evaluates "truthiness" in a standard fashion -- e.g. unlike for the section value itself, `0` evaluates to `false`).
 
 &nbsp; *Template:*
 
@@ -182,14 +186,14 @@ Section data may still be filled out but removed/hidden if a `_display` variable
 
 &nbsp; *Outputs:*
 
-    Occupation:  
+    Occupation: 
     Bob is a chef.
 
-Note in the above that `_display` does not reverse the behavior of inverse sections (the section `{{^job}}{#job}}` is still hidden as `job` itself is not evaluated to `false`). Also, section data may still be access outside of the section, ignoring the `_display == false` value of the section itself.
+Note in the above that `_display` does not reverse the behavior of inverse sections (the section `{{^job}}{#job}}` is still hidden as `job` itself is not evaluated to `false`). Also, nested section data may still be accessed and rendered outside of the section, even if the section itself is set not to display.
 
 ## Repeating Sections ##
 
-For repeating sections, set value to an array of objects, and section html will be repeated. May still use `_display` to not use particular array item. Values within any array item are limited in scope only to that section given that array item.
+For repeating sections, set the section value to an array of objects and section html will be repeated. May still use `_display` to not use particular array item. Values within any array item are limited in scope only to that section given that array item.
 
 &nbsp; *Template:*
 
@@ -210,8 +214,9 @@ For repeating sections, set value to an array of objects, and section html will 
     Child: Tina
     Child: Gene
     Child: Louise
+    
 
-Note array must be of objects. E.g., the above template with the following data-bindings will error:
+Note value must be an array of objects. E.g., the above template with the following data-bindings will error:
 
 
 &nbsp; *Data:*
