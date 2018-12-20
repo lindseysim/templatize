@@ -2,6 +2,21 @@
 
 Basic templating code, similar to Mustache.js. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, the core code just a little over 100 lines. For a brief comparison versus Mustache, see the last section.
 
+## Contents ##
+
+* [How to Use](#how-to-use)
+* [Variables](#variables)
+* [Sections](#sections)
+    * [Basic sections](#basic-sections)
+    * [Section value evaluation](#section-value-evaluation)
+    * [Sections with data](#sections-with-data)
+    * [More section behavior](#more-section-behavior)
+* [Repeating Sections](#repeating-sections)
+* [Nested Sections](#nested-sections)
+* [Functions](#functions)
+* [Putting it all together](#putting-it-all-together)
+* [Templatize vs Mustache](#templatize-vs-mustache)
+
 ## How to Use ##
 
 Import the source or minified javascript. There is only one function you need to know:
