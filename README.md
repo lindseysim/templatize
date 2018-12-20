@@ -279,7 +279,7 @@ Nested sections should behave as expected, even mixing regular versus repeating 
 
 &nbsp; *Template:*
 
-```javascript
+```
 {{#children}}
   {{#children.lastChild}}and {{/children.lastChild}}
   {{children.name.first}} {{name.last}}
