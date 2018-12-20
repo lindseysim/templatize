@@ -11,7 +11,7 @@ Import the source or minified javascript. There is only one function you need to
 | Name | Type | Description |
 | --- | --- | :--- |
 | `template` | `String` | The template. |
-| `bindings` | `Object|test` | The object literal of data-bindings. |
+| `bindings` | `Object` | The object literal of data-bindings. |
 | `cleanup` | `Boolean` | Whether to cleanup unrendered markups. Defaults to false. |
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
@@ -24,18 +24,24 @@ Parts related to templates to be encased in double curly braces, with dot notati
 
 &nbsp; *Template:*
 
-    {{name.first}} is {{age}} years old.
+```javascript
+{{name.first}} is {{age}} years old.
+```
 
 &nbsp; *Bindings:*
 
-    {
-      age: 46, 
-      name: { first: "Bob" }
-    }
+```javascript
+{
+  age: 46, 
+  name: { first: "Bob" }
+}
+```
 
 &nbsp; *Outputs:*
 
-    Bob is 46 years old.
+```
+Bob is 46 years old.
+```
 
 Generally avoid any data-binding names starting with an underscore (`_`) as some reserved values use the underscore prefix (e.g. `_display` and `_parent`).
 
@@ -47,32 +53,44 @@ Section are marked with start at `#`-prefix and end at `/`-prefix. By binding se
 
 &nbsp; *Template:*
 
-    {{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
+```javascript
+{{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
+```
 
 &nbsp; *Bindings:*
 
-    {
-      married: true, 
-      single: false
-    }
+```javascript
+{
+  married: true, 
+  single: false
+}
+```
 
 &nbsp; *Outputs:*
 
-    Is married.
+```
+Is married.
+```
 
 You may also do an inverse section by replacing `#` starting prefix with `^`. Such sections will only be displayed if the section is evaluated to `false`.
 
 &nbsp; *Template:*
 
-    {{^single}}Is not single.{{/single}}
+```html
+{{^single}}Is not single.{{/single}}
+```
 
 &nbsp; *Bindings:*
 
-    {single: false}
+```javascript
+{single: false}
+```
 
 &nbsp; *Outputs:*
 
-    Is not single.
+```
+Is not single.
+```
 
 Data may be put inside of a section. E.g.:
 
