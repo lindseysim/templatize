@@ -24,7 +24,7 @@ Parts related to templates to be encased in double curly braces, with dot notati
 
 &nbsp; *Template:*
 
-```javascript
+```
 {{name.first}} is {{age}} years old.
 ```
 
@@ -53,7 +53,7 @@ Section are marked with start at `#`-prefix and end at `/`-prefix. By binding se
 
 &nbsp; *Template:*
 
-```javascript
+```
 {{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
 ```
 
@@ -76,7 +76,7 @@ You may also do an inverse section by replacing `#` starting prefix with `^`. Su
 
 &nbsp; *Template:*
 
-```html
+```
 {{^single}}Is not single.{{/single}}
 ```
 
@@ -96,19 +96,24 @@ Data may be put inside of a section. E.g.:
 
 &nbsp; *Template:*
 
-    {{#married}}Is married to {{spouse}}.{{/married}}
+```javascript
+{{#married}}Is married to {{spouse}}.{{/married}}
+```
 
 &nbsp; *Bindings:*
 
-    {
-      married: true, 
-      spouse: "Linda"
-    }
+```
+{
+  married: true, 
+  spouse: "Linda"
+}
+```
 
 &nbsp; *Outputs:*
 
-    Is married to Linda.
-
+```
+Is married to Linda.
+```
 
 ### Section value evaluation ###
 
@@ -119,15 +124,21 @@ If section key does not exist, that section is simply not evaluated in the templ
 
 &nbsp; *Template:*
 
-    {{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
+```
+{{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
+```
 
 &nbsp; *Bindings:*
 
-    {married: true}
+```javascript
+{married: true}
+```
 
 &nbsp; *Outputs:*
 
-    Is married.{{#single}}Is single.{{/single}}
+```
+Is married.{{#single}}Is single.{{/single}}
+```
 
 ### Sections with data ###
 
@@ -135,44 +146,58 @@ As long as data-binding for section evaluates to `true` (see above), it will be 
 
 &nbsp; *Template:*
 
-    {{#job}}Occupation: {{job}}{{/job}}
+```
+{{#job}}Occupation: {{job}}{{/job}}
+```
 
 &nbsp; *Bindings:*
 
-    {job: "Chef"}
+```javascript
+{job: "Chef"}
+```
 
 &nbsp; *Outputs:*
 
-    Occupation: Chef
+```
+Occupation: Chef
+```
 
 The above though is somewhat messy of an implementation. One alternative is to separate a "display" variable like so:
 
 &nbsp; *Template:*
 
-    {{#showJob}}Occupation: {{job}}{{/showJob}}
+```
+{{#showJob}}Occupation: {{job}}{{/showJob}}
+```
 
 &nbsp; *Bindings:*
 
-    {
-      showJob: true, 
-      job: "Chef"
-    }
+```javascript
+{
+  showJob: true, 
+  job: "Chef"
+}
+```
 
 Or, even better, used a nested structure for the section like below:
 
 &nbsp; *Template:*
 
-    {{#job}}Occupation: {{job.title}}{/job}}
+```
+{{#job}}Occupation: {{job.title}}{/job}}
+```
  
 &nbsp; *Bindings:*
 
-    {
-      job: {title: "Chef"}
-    }
-    // or conversely, which will hide the entire section..
-    {
-      job: false
-    }
+```javascript
+{
+  job: {title: "Chef"}
+}
+// or conversely, which will hide the entire section..
+{
+  job: false
+}
+```
 
 Note that section data (excluding repeating sections) are scoped for the entire template. E.g., given the above example, `{{job.title}}` may be used anywhere in the template inside or outside of a `{{#job}}{{/job}}` section and will be replaced with `"Chef"` when rendered.
 
@@ -182,22 +207,28 @@ Section data may still be filled out but removed/hidden if a `_display` variable
 
 &nbsp; *Template:*
 
-    Occupation: {{#job}}{{job.title}}{/job}} {{^job}}Unemployed{{/job}}<br />
-    Bob is a {{job.title}}
+```
+Occupation: {{#job}}{{job.title}}{/job}} {{^job}}Unemployed{{/job}}<br />
+Bob is a {{job.title}}
+```
 
 &nbsp; *Bindings:*
 
-    {
-      job: {
-        title: "Chef", 
-        _display: false
-      }
-    }
+```javascript
+{
+  job: {
+    title: "Chef", 
+    _display: false
+  }
+}
+```
 
 &nbsp; *Outputs:*
 
-    Occupation: 
-    Bob is a chef.
+```
+Occupation: 
+Bob is a chef.
+```
 
 Note in the above that `_display` does not reverse the behavior of inverse sections (the section `{{^job}}{#job}}` is still hidden as `job` itself is not evaluated to `false`). Also, nested section data may still be accessed and rendered outside of the section, even if the section itself is set not to display.
 
@@ -207,33 +238,40 @@ For repeating sections, set the section value to an array of objects and section
 
 &nbsp; *Template:*
 
-    {{#children}}Child: {{children.firstName}}<br />{{/children}}
+```
+{{#children}}Child: {{children.firstName}}<br />{{/children}}
+```
 
 &nbsp; *Bindings:*
 
-    {
-      children: [
-        {firstName: "Tina"}, 
-        {firstName: "Gene"}, 
-        {firstName: "Louise"}
-      ]
-    }
+```javascript
+{
+  children: [
+    {firstName: "Tina"}, 
+    {firstName: "Gene"}, 
+    {firstName: "Louise"}
+  ]
+}
+```
 
 &nbsp; *Outputs:*
 
-    Child: Tina
-    Child: Gene
-    Child: Louise
-    
+```javascript
+Child: Tina
+Child: Gene
+Child: Louise
+```
 
 Note value must be an array of objects. E.g., the above template with the following data-bindings will error:
 
 
 &nbsp; *Data:*
 
-    {
-      children: ["Tina", "Gene", "Louise"]
-    }
+```javascript
+{
+  children: ["Tina", "Gene", "Louise"]
+}
+```
 
 ## Nested Sections ##
 
@@ -241,38 +279,44 @@ Nested sections should behave as expected, even mixing regular versus repeating 
 
 &nbsp; *Template:*
 
-    {{#children}}
-      {{#children.lastChild}}and {{/children.lastChild}}
-      {{children.name.first}} {{name.last}}
-      {{^children.lastChild}}, {{/children.lastChild}}
-    {{/children}}
+```javascript
+{{#children}}
+  {{#children.lastChild}}and {{/children.lastChild}}
+  {{children.name.first}} {{name.last}}
+  {{^children.lastChild}}, {{/children.lastChild}}
+{{/children}}
+```
 
 &nbsp; *Bindings:*
 
+```javascript
+{
+  name: {
+    first: "Bob", 
+    last: "Belcher"
+  }, 
+  children: [
     {
-      name: {
-        first: "Bob", 
-        last: "Belcher"
-      }, 
-      children: [
-        {
-          name: {first: "Tina"},
-          lastChild: false
-        }, 
-        {
-          name: {first: "Gene"},
-          lastChild: false
-        }, 
-        {
-          name: {first: "Louise"},
-          lastChild: true
-        }
-      ]
+      name: {first: "Tina"},
+      lastChild: false
+    }, 
+    {
+      name: {first: "Gene"},
+      lastChild: false
+    }, 
+    {
+      name: {first: "Louise"},
+      lastChild: true
     }
+  ]
+}
+```
 
 &nbsp; *Outputs:*
 
-    Tina Belcher, Gene Belcher, and Louise Belcher.
+```javascript
+Tina Belcher, Gene Belcher, and Louise Belcher.
+```
 
 A few behaviors to note for the above example:
 
@@ -285,44 +329,52 @@ Functions are evaluated to determine the returned value. The function is called 
 
 &nbsp; *Template:*
 
-    {{name.full}} has {{numChildrenText}}.
+```
+{{name.full}} has {{numChildrenText}}.
+```
 
 &nbsp; *Bindings:*
 
-    {
-      name: {
-        first: "Bob", 
-        last: "Belcher", 
-        full: function() {
-          return this.first + " " + this._parent.name.last;
-        }
-      }, 
-      numChildrenText: function() {
-        switch(this.children.length) {
-          case 0:
-            return "no children"
-          case 1:
-            return "one child"
-          default:
-            return this.children.length + " children"
-        }
-      }, 
-      children: [
-        {firstName: "Tina"}, 
-        {firstName: "Gene"}, 
-        {firstName: "Louise"}
-      ]
+```javascript
+{
+  name: {
+    first: "Bob", 
+    last: "Belcher", 
+    full: function() {
+      return this.first + " " + this._parent.name.last;
     }
+  }, 
+  numChildrenText: function() {
+    switch(this.children.length) {
+      case 0:
+        return "no children"
+      case 1:
+        return "one child"
+      default:
+        return this.children.length + " children"
+    }
+  }, 
+  children: [
+    {firstName: "Tina"}, 
+    {firstName: "Gene"}, 
+    {firstName: "Louise"}
+  ]
+}
+```
 
 &nbsp; *Outputs:*
 
-    Bob Belcher has 3 children.
+```
+Bob Belcher has 3 children.
+```
 
 Note `name.full` is called within context of `name`, whereas `numChildrenText` is called within the context of the root data-bindings object. However, each context is given a `_parent` parameter to traverse upwards in scope. In `name.full`, this is used in a somewhat contrived example to traverse up to the full context (before returning back to the same).
 
 By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be empty string. To change this, simply the `errorOnFuncFailure` flag to `true`: 
 
-    Templatize.errorOnFuncFailure = true;
+```javascript
+Templatize.errorOnFuncFailure = true;
+```
 
 Depending on your dependency manager, this may or may not affect all references to `Templatize`. Generally speaking, assume `Templatize` is a static reference, so either adjust for all uses, and/or have it reset back to a desired behavior after using it with non-default behavior.
 
@@ -332,63 +384,69 @@ Below is a complex example using a bit of everything covered above.
 
 &nbsp; *Template:*
 
-    {{name.full}} has {{numChildrenText}}<br />
-    {{#children}}
-      {{#children.lastChild}}and {{/children.lastChild}}
-      {{children.firstName}} {{name.last}} (age {{children.age}})
-      {{^children.lastChild}}, {{/children.lastChild}}
-    {{/children}}.
+```javascript
+{{name.full}} has {{numChildrenText}}<br />
+{{#children}}
+  {{#children.lastChild}}and {{/children.lastChild}}
+  {{children.firstName}} {{name.last}} (age {{children.age}})
+  {{^children.lastChild}}, {{/children.lastChild}}
+{{/children}}.
+```
 
 &nbsp; *Bindings:*
 
-    {
-      name: {
-        first: "Bob", 
-        last: "Belcher", 
-        full: function() {
-          return this.first + " " + this.last;          
-        }
-      }, 
-      numChildrenText: function() {
-        switch(this.children.length) {
-          case 0:
-            return "no children"
-          case 1:
-            return "one child: "
-          default:
-            return this.children.length + " children: "
-        }
-      }, 
-      thisYear: 2018, 
-      children: [
-        {
-          firstName: "Tina", 
-          born: 2005, 
-          age: function() { return this._parent.thisYear - this.born; }, 
-          lastChild: function() { return this._parent.isLastChild(this); }
-        }, 
-        {
-          firstName: "Gene", 
-          born: 2007, 
-          age: function() { return this._parent.thisYear - this.born; }, 
-          lastChild: function() { return this._parent.isLastChild(this); }
-        }, 
-        {
-          firstName: "Louise", 
-          born: 2009, 
-          age: function() { return this._parent.thisYear - this.born; }, 
-          lastChild: function() { return this._parent.isLastChild(this); }
-        }
-      ], 
-      isLastChild: function(childObj) {
-        return childObj === this.children[this.children.length-1];
-      }
+```javascript
+{
+  name: {
+    first: "Bob", 
+    last: "Belcher", 
+    full: function() {
+      return this.first + " " + this.last;          
     }
+  }, 
+  numChildrenText: function() {
+    switch(this.children.length) {
+      case 0:
+        return "no children"
+      case 1:
+        return "one child: "
+      default:
+        return this.children.length + " children: "
+    }
+  }, 
+  thisYear: 2018, 
+  children: [
+    {
+      firstName: "Tina", 
+      born: 2005, 
+      age: function() { return this._parent.thisYear - this.born; }, 
+      lastChild: function() { return this._parent.isLastChild(this); }
+    }, 
+    {
+      firstName: "Gene", 
+      born: 2007, 
+      age: function() { return this._parent.thisYear - this.born; }, 
+      lastChild: function() { return this._parent.isLastChild(this); }
+    }, 
+    {
+      firstName: "Louise", 
+      born: 2009, 
+      age: function() { return this._parent.thisYear - this.born; }, 
+      lastChild: function() { return this._parent.isLastChild(this); }
+    }
+  ], 
+  isLastChild: function(childObj) {
+    return childObj === this.children[this.children.length-1];
+  }
+}
+```
 
 &nbsp; *Outputs:*
 
-    Bob Belcher has 3 children: 
-    Tina Belcher (age 13), Gene Belcher (age 11), and Louise Belcher (age 9).
+```
+Bob Belcher has 3 children: 
+Tina Belcher (age 13), Gene Belcher (age 11), and Louise Belcher (age 9).
+```
 
 Note that the `children[].lastChild` function calls a function from the parent scope (`isLastChild`) to dynamically determine if it is the last object in the array. Arguably this is  somewhat contrived, and it would easier just to preprocess the children data-bindings object and assign values to each child's attributes, but this is just a demonstration of possible design patterns.
 
@@ -406,15 +464,21 @@ As aforementioned, templates are not preprocessed to map data-bindings. Instead,
 
 &nbsp; *Template:*
 
-    {{name.first}} {{#age}}is {{age}} years old.
+```
+{{name.first}} {{#age}}is {{age}} years old.
+```
 
 &nbsp; *Data:*
 
-    {age: 46}
+```javascript
+{age: 46}
+```
 
 &nbsp; *Outputs:*
 
-    {{name.first}} {{#age}}is 46 years old.
+```
+{{name.first}} {{#age}}is 46 years old.
+```
 
 In the above, `{{name.first}}` is not replaced because the binding does not exist in the supplied data. As well, the use of the `{{#age}}` section is erroneously rendered as the expected closing tag (`{{/age}}`) was not found.
 
