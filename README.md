@@ -8,22 +8,11 @@ Import the source or minified javascript. There is only one function you need to
 
 **`Templatize.render(template, bindings, cleanup)`** : Renders template.
 
-<table>
-  <tbody>
-    <tr>
-      <th>Name</th><th>Type</th><th>Description</th>
-    </tr>
-    <tr>
-      <td>template</td><td>String</td><td>The template.</td>
-    </tr>
-    <tr>
-      <td>bindings</td><td>Object</td><td>The object literal of data-bindings.</td>
-    </tr>
-    <tr>
-      <td>cleanup</td><td>Boolean</td><td>Whether to cleanup unrendered markups. Defaults to false.</td>
-    </tr>
-  </tbody>
-</table>
+| Name | Type | Description |
+| --- | --- | :--- |
+| `template` | `String` | The template. |
+| `bindings` | `Object|test` | The object literal of data-bindings. |
+| `cleanup` | `Boolean` | Whether to cleanup unrendered markups. Defaults to false. |
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
 
