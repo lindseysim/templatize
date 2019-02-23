@@ -290,12 +290,13 @@ Note value must be an array of objects. E.g., the above template with the follow
 }
 ```
 
-Unlike regular sections, repeating sections are limited in scope to it's own section. Thus, variables within a repeating section's data bindings will not evaluate outside the portion of the template within the repeating section. Values from outside, however, can be scoped within the repeating section.
+Unlike regular sections, repeating sections are limited in scope to its own section. Thus, variables within a repeating section's data bindings will not evaluate outside the portion of the template within the repeating section. Values from outside, however, can be scoped within the repeating section.
 
 &nbsp; *Template:*
 
 ```
-{{#children}}Child: {{children.firstName}} {{lastName}}<br />{{/children}}<br />
+{{#children}}Child: {{children.firstName}} {{lastName}}<br />{{/children}}
+<br />
 These won't evaluate: {{children}} {{children.firstName}} {{children[0].firstName}}
 ```
 
