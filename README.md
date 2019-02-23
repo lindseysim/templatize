@@ -273,7 +273,7 @@ For repeating sections, set the section value to an array of objects and section
 
 &nbsp; *Outputs:*
 
-```javascript
+```
 Child: Tina
 Child: Gene
 Child: Louise
@@ -288,6 +288,38 @@ Note value must be an array of objects. E.g., the above template with the follow
 {
   children: ["Tina", "Gene", "Louise"]
 }
+```
+
+Unlike regular sections, repeating sections are limited in scope to it's own section. Thus, variables within a repeating section's data bindings will not evaluate outside the portion of the template within the repeating section. Values from outside, however, can be scoped within the repeating section.
+
+&nbsp; *Template:*
+
+```
+{{#children}}Child: {{children.firstName}} {{lastName}}<br />{{/children}}<br />
+These won't evaluate: {{children}} {{children.firstName}} {{children[0].firstName}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  lastName: "Belcher", 
+  children: [
+    {firstName: "Tina"}, 
+    {firstName: "Gene"}, 
+    {firstName: "Louise"}
+  ]
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+Child: Tina Belcher
+Child: Gene Belcher
+Child: Louise Belcher
+
+These won't evaluate: {{children}} {{children.firstName}} {{children[0].firstName}}
 ```
 
 ## Nested Sections ##
@@ -331,7 +363,7 @@ Nested sections should behave as expected, even mixing regular versus repeating 
 
 &nbsp; *Outputs:*
 
-```javascript
+```
 Tina Belcher, Gene Belcher, and Louise Belcher.
 ```
 
