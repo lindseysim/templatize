@@ -7,6 +7,12 @@
         root.Templatize = factory();
     }
 }(this, function() {
+    if(!String.prototype.endsWith) {
+        String.prototype.endsWith = function(search, this_len) {
+            if(this_len === undefined || this_len > this.length) this_len = this.length;
+            return this.substring(this_len - search.length, this_len) === search;
+        };
+    }
     return {
         errorOnFuncFailure: false,   // flag for throwing error on function evaluation
         __objTester: ({}).toString,  // for testing object type (only way to find base obj)
@@ -114,7 +120,7 @@
             return html;
         }, 
         __renderRepeatingSection: function(html, section, bindings, prefix) {
-            prefix = prefix ? prefix + "." + section : section;
+            section = prefix ? prefix + (prefix.endsWith(".") ? "" : ".") + section : section;
             var sectionStart = "{{#" + section + "}}", 
                 sectionEnd   = "{{/" + section + "}}", 
                 iStart       = html.indexOf(sectionStart), 
@@ -126,8 +132,9 @@
             // build HTML for repeating sections
             var insertHtml = "";
             for(var i = 0; i < bindings.length; ++i) {
+                if(!bindings[i]._parent) bindings[i]._parent = bindings._parent;  // add parent context
                 // treat each section like a new render
-                insertHtml += this.__render(sectionHtml, bindings[i], prefix);
+                insertHtml += this.__render(sectionHtml, bindings[i], section);
             }
             // splice into full template, replacing old section template
             if(iStart === 0) {

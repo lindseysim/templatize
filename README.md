@@ -2,6 +2,8 @@
 
 Basic templating code, similar to Mustache.js. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, the core code just a little over 100 lines. For a brief comparison versus Mustache, see the last section.
 
+Lawrence Sim © 2019
+
 ## Contents ##
 
 * [How to Use](#how-to-use)
@@ -475,7 +477,9 @@ Mustache parses templates before rendering, and maps all recognized markup locat
 
 ### Missing Bindings ###
 
-As aforementioned, templates are not preprocessed to map data-bindings. Instead, templates are rendered at call, using the supplied data bindings, and finding the appropriate, matching markup in the template. Consequently, **missing bindings in the template are rendered as is**. Additionally, formatting issues are not checked and validated. Thus, providing an incomplete data-binding or badly formatted template will result in rendering issues.
+As aforementioned, templates are not preprocessed to map data-bindings. Instead, templates are rendered at call, using the supplied data bindings, and finding the appropriate, matching markup in the template. Consequently, **missing bindings in the template are rendered as is**. This may be particularly tricky when using inverse sections. The binding must still exist, even if it evaluates to `false` -- if undefined, the section syntax is ignored in the template.
+
+Additionally, formatting issues are not checked and validated. Thus, providing an incomplete data-binding or badly formatted template will result in rendering issues.
 
 &nbsp; *Template:*
 
