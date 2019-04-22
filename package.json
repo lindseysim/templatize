@@ -1,8 +1,9 @@
 {
-  "name": "templatize",
-  "version": "0.1.1",
-  "main": "src/templatize.js",
-  "dependencies": {
+  "name": "@lawrencesim/templatize",
+  "version": "0.1.2",
+  "main": "dist/templatize.min.js", 
+  "description": "Basic templating code, similar to Mustache.js. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, the core code just a little over 100 lines.", 
+  "devDependencies": {
     "node-minify": "^3.6.0"
   },
   "scripts": {
@@ -10,8 +11,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://siml@bitbucket.org/siml/templatize.git"
+    "url": "git+https://github.com/lawrencesim/templatize.git"
   },
   "author": "Lawrence Sim",
-  "license": "MIT"
+  "license": "MIT", 
+  "homepage": "https://github.com/lawrencesim/templatize"
 }
