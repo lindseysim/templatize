@@ -50,11 +50,13 @@
                         case "[object Object]":
                             if(!value._parent) value._parent = bindings;  // add parent context
                             html = this.__render(html, value, prefix + key);
+                            delete value._parent;
                             continue;
                         // if an array, treat as repeating section
                         case "[object Array]":
                             if(!value._parent) value._parent = bindings;  // add parent context
                             html = this.__renderRepeatingSection(html, key, value, prefix);
+                            delete value._parent;
                             continue;
                         // if a function, use it to evaluate value
                         case "[object Function]":
@@ -135,6 +137,7 @@
                 if(!bindings[i]._parent) bindings[i]._parent = bindings._parent;  // add parent context
                 // treat each section like a new render
                 insertHtml += this.__render(sectionHtml, bindings[i], section);
+                delete bindings[i]._parent;
             }
             // splice into full template, replacing old section template
             if(iStart === 0) {

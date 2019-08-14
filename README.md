@@ -247,7 +247,7 @@ Occupation:
 Bob is a chef.
 ```
 
-Note in the above that `_display` does not reverse the behavior of inverse sections (the section `{{^job}}{#job}}` is still hidden as `job` itself is not evaluated to `false`). Also, nested section data may still be accessed and rendered outside of the section, even if the section itself is set not to display.
+Note in the above that `_display` does not reverse the behavior of inverse sections (the section `{{^job}}Unemployed{/job}}` is still hidden as `job` itself is not evaluated to `false`). Also, nested section data may still be accessed and rendered outside of the section, even if the section itself is set not to display.
 
 ## Repeating Sections ##
 
@@ -420,7 +420,7 @@ Bob Belcher has 3 children.
 
 Note `name.full` is called within context of `name`, whereas `numChildrenText` is called within the context of the root data-bindings object. However, each context is given a `_parent` parameter to traverse upwards in scope. In `name.full`, this is used in a somewhat contrived example to traverse up to the full context (before returning back to the same).
 
-By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be empty string. To change this, simply the `errorOnFuncFailure` flag to `true`: 
+By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply the `errorOnFuncFailure` flag to `true`: 
 
 ```javascript
 Templatize.errorOnFuncFailure = true;
