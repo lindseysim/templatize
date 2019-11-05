@@ -21,7 +21,7 @@ Lawrence Sim © 2019
 
 ## How to Use ##
 
-Import the source or minified javascript. There is only one function you need to know:
+Import the source or minified javascript. If regular script import, uses name `Templatize`. There is only one function you need to know:
 
 **`Templatize.render(template, bindings, cleanup)`** : Renders template.
 
