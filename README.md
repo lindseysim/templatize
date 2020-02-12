@@ -2,7 +2,7 @@
 
 Basic templating code, similar to Mustache.js. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, the core code just a little over 100 lines. For a brief comparison versus Mustache, see the last section.
 
-Lawrence Sim © 2019
+Lawrence Sim © 2020
 
 ## Contents ##
 
@@ -475,7 +475,7 @@ Bob Belcher has 3 children.
 
 Note `name.full` is called within context of `name`, whereas `numChildrenText` is called within the context of the root data-bindings object. However, each context is given a `_parent` parameter to traverse upwards in scope. In `name.full`, this is used in a somewhat contrived example to traverse up to the full context (before returning back to the same).
 
-By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply the `errorOnFuncFailure` flag to `true`: 
+By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `errorOnFuncFailure` flag to `true`: 
 
 ```javascript
 Templatize.errorOnFuncFailure = true;
@@ -524,24 +524,24 @@ Below is a complex example using a bit of everything covered above.
   children: [
     {
       firstName: "Tina", 
-      born: 2005, 
-      age: function() { return this._parent.thisYear - this.born; }, 
-      lastChild: function() { return this._parent.isLastChild(this); }
-    }, 
-    {
-      firstName: "Gene", 
       born: 2007, 
       age: function() { return this._parent.thisYear - this.born; }, 
       lastChild: function() { return this._parent.isLastChild(this); }
     }, 
     {
-      firstName: "Louise", 
+      firstName: "Gene", 
       born: 2009, 
+      age: function() { return this._parent.thisYear - this.born; }, 
+      lastChild: function() { return this._parent.isLastChild(this); }
+    }, 
+    {
+      firstName: "Louise", 
+      born: 2011, 
       age: function() { return this._parent.thisYear - this.born; }, 
       lastChild: function() { return this._parent.isLastChild(this); }
     }
   ],  
-  thisYear: 2018, 
+  thisYear: 2020, 
   isLastChild: function(childObj) {
     return childObj === this.children[this.children.length-1];
   }
