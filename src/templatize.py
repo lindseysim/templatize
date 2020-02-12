@@ -137,9 +137,12 @@ def __render_list(html, section, bindings):
     list_str = None
     if num == 0:
         list_str = ""
+    elif num == 1:
+        list_str = "{0}".format(bindings[0])
     elif num == 2:
         list_str = "{0} and {1}".format(bindings[0], bindings[1])
     else:
+        list_str = ""
         for i, item in enumerate(bindings):
             if list_str is None:
                 list_str = "{0}".format(item)

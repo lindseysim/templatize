@@ -8,6 +8,7 @@ Lawrence Sim © 2019
 
 * [How to Use](#how-to-use)
 * [Variables](#variables)
+* [Lists](#lists)
 * [Sections](#sections)
     * [Basic sections](#basic-sections)
     * [Section value evaluation](#section-value-evaluation)
@@ -61,6 +62,32 @@ Bob is 46 years old.
 ```
 
 Generally avoid any data-binding names starting with an underscore (`_`) as some reserved values use the underscore prefix (e.g. `_display` and `_parent`).
+
+## Lists ##
+
+Lists are marked with a `&`-prefix and can only take in an array. The output is english formatted with appropriate use of commas and 'and'-conjunction, as dicated by the length of the list. No other dynamic text or subsections should be nested within a list, and array values should be strings or numbers.
+
+&nbsp; *Template:*
+
+```
+{{&name}} sells {{&sells}} with {{&with}}. 
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  name: ["Bob"], 
+  sells: ["burgers", "sodas", "fries"], 
+  with: ["his wife", "kids"]
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+Bob sells burgers, sodas, and fries with his wife and kids.
+```
 
 ## Sections ##
 
@@ -290,6 +317,8 @@ Note value must be an array of objects. E.g., the above template with the follow
 }
 ```
 
+However, the above case makes sense with [lists](#lists).
+
 Unlike regular sections, repeating sections are limited in scope to its own section. Thus, variables within a repeating section's data bindings will not evaluate outside the portion of the template within the repeating section. Values from outside, however, can be scoped within the repeating section.
 
 &nbsp; *Template:*
@@ -435,12 +464,13 @@ Below is a complex example using a bit of everything covered above.
 &nbsp; *Template:*
 
 ```javascript
-{{name.full}} has {{numChildrenText}}<br />
+{{name.full}} has {{numChildrenText}}: {{&childrenList}}.<br />
 {{#children}}
-  {{#children.lastChild}}and {{/children.lastChild}}
-  {{children.firstName}} {{name.last}} (age {{children.age}})
-  {{^children.lastChild}}, {{/children.lastChild}}
-{{/children}}.
+  {{#children.lastChild}}and{{/children.lastChild}}
+  {{children.firstName}} {{name.last}} is {{children.age}}
+  {{^children.lastChild}}; {{/children.lastChild}}
+  {{#children.lastChild}}.{{/children.lastChild}}
+{{/children}}
 ```
 
 &nbsp; *Bindings:*
@@ -459,11 +489,13 @@ Below is a complex example using a bit of everything covered above.
       case 0:
         return "no children"
       case 1:
-        return "one child: "
+        return "one child"
       default:
-        return this.children.length + " children: "
+        return this.children.length + " children"
     }
   }, 
+  childrenList: ["Tina", "Gene", "Louise"], 
+  birthYears: [2005, 2007, 2009], 
   thisYear: 2018, 
   children: [
     {
@@ -494,8 +526,8 @@ Below is a complex example using a bit of everything covered above.
 &nbsp; *Outputs:*
 
 ```
-Bob Belcher has 3 children: 
-Tina Belcher (age 13), Gene Belcher (age 11), and Louise Belcher (age 9).
+Bob Belcher has 3 children: Tina, Gene, and Louise.
+Tina Belcher is 13; Gene Belcher is 11; and Louise Belcher is 9.
 ```
 
 Note that the `children[].lastChild` function calls a function from the parent scope (`isLastChild`) to dynamically determine if it is the last object in the array. Arguably this is  somewhat contrived, and it would easier just to preprocess the children data-bindings object and assign values to each child's attributes, but this is just a demonstration of possible design patterns.

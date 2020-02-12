@@ -45,7 +45,7 @@ export default {
                     // if an object literal, recurse into
                     case "[object Object]":
                         if(!value._parent) value._parent = bindings;  // add parent context
-                        html = this.__render(html, value, tkey);
+                        html = this.__render(html, value, tKey);
                         delete value._parent;
                         continue;
                     // if an array, treat as repeating section
@@ -145,13 +145,16 @@ export default {
         var listStr = false;
         return html.replace(new RegExp("{{&"+section+"}}" , 'g'), () => {
             if(listStr === false) {
-                if(!bindings) {
+                if(!bindings || !bindings.length) {
                     listStr = "";
+                } else if(bindings.length === 1) {
+                    listStr = bindings[0];
                 } else if(bindings.length === 2) {
                     listStr = `${bindings[0]} and ${bindings[1]}`;
                 } else {
+                    listStr = "";
                     bindings.forEach((item, i) => {
-                        listStr += `${i ? ", " : ""} ${i+1 === bindings.length ? "and" : ""} ${item}`;
+                        listStr += `${i ? ", " : ""}${i+1 === bindings.length ? "and " : ""}${item}`;
                     });
                 }
             }
