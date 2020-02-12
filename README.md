@@ -8,6 +8,7 @@ Lawrence Sim © 2019
 
 * [How to Use](#how-to-use)
 * [Variables](#variables)
+    * [Escaping](#escaping)
 * [Lists](#lists)
 * [Sections](#sections)
     * [Basic sections](#basic-sections)
@@ -63,6 +64,8 @@ Bob is 46 years old.
 
 Generally avoid any data-binding names starting with an underscore (`_`) as some reserved values use the underscore prefix (e.g. `_display` and `_parent`).
 
+### Escaping ###
+
 Escaping is simply done by prefixing the key with a bang (`!`).
 
 &nbsp; *Template:*
@@ -88,7 +91,7 @@ Bob is {{age}} years old.
 
 ## Lists ##
 
-Lists are marked with a `&`-prefix and can only take in an array. The output is english formatted with appropriate use of commas and 'and'-conjunction, as dicated by the length of the list. No other dynamic text or subsections should be nested within a list, and array values should be strings or numbers.
+Lists are marked with a `&`-prefix and can only take in an array. The output is grammatically formatted with appropriate use of commas and/or the 'and'-conjunction, as dicated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.
 
 &nbsp; *Template:*
 
@@ -209,7 +212,7 @@ Is married.{{#single}}Is single.{{/single}}
 
 ### Sections with data ###
 
-As long as data-binding for section evaluates to `true` (see above), it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value:
+As long as data-binding for section evaluates to `true` ([see above](#section-value-evaluation)), it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value:
 
 &nbsp; *Template:*
 
@@ -556,13 +559,13 @@ Note that the `children[].lastChild` function calls a function from the parent s
 
 ## Templatize vs Mustache ##
 
-The support for grammatically formatted [lists](#lists) are unique to Templatize.
+The support for grammatically formatted [lists](#lists) and escaping with `!` are unique to Templatize.
 
-Minor syntactic differences are evaluation of "truthiness" (e.g. Mustache reads `0` as false when evaluating a section), and scope within sections and when calling functions. Additionally, there is no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this) and no support for custom delimiters.
+Minor syntactic differences are [evaluation of "truthiness"](#section-value-evaluation) (e.g. Mustache reads `0` as false when evaluating a section whereas Templatize treats 0 as a valid value), and scope within sections and when calling functions. Additionally, there is no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this) and no support for custom delimiters.
 
 ### Caching ###
 
-Mustache parses templates before rendering, and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize is faster in that regard. However, the preprocessed map is cached and all subsequent renders that use the same template in Mustache are greatly improved in speed. If the same template is reused multiple times and speed is of the essence, Mustache may be a better choice.
+Mustache parses templates before rendering and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize is faster in that regard. However, the preprocessed map is cached in Mustache and all subsequent renders that use the same template are greatly improved in speed. If the same template is reused multiple times and speed is of the essence, Mustache may be a better choice.
 
 ### Missing Bindings ###
 
