@@ -84,6 +84,7 @@ Escaping is simply done by prefixing the key with a bang (`!`).
 
 ```
 Bob is {{!age}} years old.
+```
 
 ## Lists ##
 
