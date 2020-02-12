@@ -31,7 +31,7 @@ def __render(html, bindings, prefix=None):
         # skip reserved values
         if key == "_display" or key == "_parent":
             continue
-        tkey = prefix+key
+        tkey = "{0}{1}".format(prefix, key)
         if value:
             # if a dictionary, recurse into
             if isinstance(value, dict):
@@ -59,8 +59,10 @@ def __render(html, bindings, prefix=None):
                     if error_on_func_failure:
                         raise e
                     value = ""
+        value = "{0}".format(value)
         html = __render_section(html, tkey, value)          # check display/hide as section
-        html = re.sub(r'{{0\}}'.format(tkey), value, html)  # replace with greedy search
+        html = re.sub(r'{{{{{0}}}}}'.format(tkey), value, html)  # replace with greedy search
+        html = re.sub(r'{{{{!{0}}}}}'.format(tkey), '{{{{{0}}}}}'.format(tkey), html)  # replace with greedy search
     return html
 
 
@@ -150,4 +152,4 @@ def __render_list(html, section, bindings):
                 list_str = ", and {0}".format(item)
             else:
                 list_str = ", {0}".format(item)
-    html = re.sub(r'{{&0\}}'.format(section), value, html)
+    html = re.sub(r'{{{{&{0}}}}}'.format(section), value, html)

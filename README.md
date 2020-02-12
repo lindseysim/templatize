@@ -63,6 +63,28 @@ Bob is 46 years old.
 
 Generally avoid any data-binding names starting with an underscore (`_`) as some reserved values use the underscore prefix (e.g. `_display` and `_parent`).
 
+Escaping is simply done by prefixing the key with a bang (`!`).
+
+&nbsp; *Template:*
+
+```
+{{name.first}} is {{!age}} years old.
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  age: 46, 
+  name: { first: "Bob" }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+Bob is {{!age}} years old.
+
 ## Lists ##
 
 Lists are marked with a `&`-prefix and can only take in an array. The output is english formatted with appropriate use of commas and 'and'-conjunction, as dicated by the length of the list. No other dynamic text or subsections should be nested within a list, and array values should be strings or numbers.
@@ -464,11 +486,11 @@ Below is a complex example using a bit of everything covered above.
 &nbsp; *Template:*
 
 ```javascript
-{{name.full}} has {{numChildrenText}}: {{&childrenList}}.<br />
+{{name.full}} has {{numChildrenText}}: {{&childrenNames}}.<br />
 {{#children}}
   {{#children.lastChild}}and{{/children.lastChild}}
   {{children.firstName}} {{name.last}} is {{children.age}}
-  {{^children.lastChild}}; {{/children.lastChild}}
+  {{^children.lastChild}}, {{/children.lastChild}}
   {{#children.lastChild}}.{{/children.lastChild}}
 {{/children}}
 ```
@@ -494,9 +516,7 @@ Below is a complex example using a bit of everything covered above.
         return this.children.length + " children"
     }
   }, 
-  childrenList: ["Tina", "Gene", "Louise"], 
-  birthYears: [2005, 2007, 2009], 
-  thisYear: 2018, 
+  childrenNames: ["Tina", "Gene", "Louise"], 
   children: [
     {
       firstName: "Tina", 
@@ -516,7 +536,8 @@ Below is a complex example using a bit of everything covered above.
       age: function() { return this._parent.thisYear - this.born; }, 
       lastChild: function() { return this._parent.isLastChild(this); }
     }
-  ], 
+  ],  
+  thisYear: 2018, 
   isLastChild: function(childObj) {
     return childObj === this.children[this.children.length-1];
   }
@@ -527,18 +548,20 @@ Below is a complex example using a bit of everything covered above.
 
 ```
 Bob Belcher has 3 children: Tina, Gene, and Louise.
-Tina Belcher is 13; Gene Belcher is 11; and Louise Belcher is 9.
+Tina Belcher is 13, Gene Belcher is 11, and Louise Belcher is 9.
 ```
 
-Note that the `children[].lastChild` function calls a function from the parent scope (`isLastChild`) to dynamically determine if it is the last object in the array. Arguably this is  somewhat contrived, and it would easier just to preprocess the children data-bindings object and assign values to each child's attributes, but this is just a demonstration of possible design patterns.
+Note that the `children[].lastChild` function calls a function from the parent scope (`isLastChild`) to dynamically determine if it is the last object in the array. This is somewhat contrived, and it would easier just to preprocess the children data-bindings object and assign values to each child's attributes, but this is just a demonstration of possible design patterns.
 
 ## Templatize vs Mustache ##
+
+The support for grammatically formatted [lists](#lists) are unique to Templatize.
 
 Minor syntactic differences are evaluation of "truthiness" (e.g. Mustache reads `0` as false when evaluating a section), and scope within sections and when calling functions. Additionally, there is no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this) and no support for custom delimiters.
 
 ### Caching ###
 
-Mustache parses templates before rendering, and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize is faster in that regard. However, the preprocessed map is cached and all subsequent renders that use the same template in Mustache are greatly improved in speed.
+Mustache parses templates before rendering, and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize is faster in that regard. However, the preprocessed map is cached and all subsequent renders that use the same template in Mustache are greatly improved in speed. If the same template is reused multiple times and speed is of the essence, Mustache may be a better choice.
 
 ### Missing Bindings ###
 

@@ -65,8 +65,10 @@ export default {
                         }
                 }
             }
-            html = this.__renderSection(html, tKey, value)                 // check display/hide as section
-                       .replace(new RegExp("{{"+tKey+"}}" , 'g'), value);  // replace with greedy search
+            let tag = `{{${tKey}}}`;
+            html = this.__renderSection(html, tKey, value)                // check display/hide as section
+                       .replace(new RegExp(tag , 'g'), value)             // replace with greedy search
+                       .replace(new RegExp("{{!"+tKey+"}}" , 'g'), tag);  // replace escaped
         }
         return html;
     }, 
