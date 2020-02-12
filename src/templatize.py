@@ -31,13 +31,14 @@ def __render(html, bindings, prefix=None):
         # skip reserved values
         if key == "_display" or key == "_parent":
             continue
+        tkey = prefix+key
         if value:
             # if a dictionary, recurse into
             if isinstance(value, dict):
                 # add parent context
                 if "_parent" not in value:
                     value["_parent"] = bindings
-                html = __render(html, value, prefix+key)
+                html = __render(html, value, tkey)
                 del value["_parent"]
                 continue
             # if a list/tuple/iterable, treat as repeating section
@@ -45,7 +46,9 @@ def __render(html, bindings, prefix=None):
                 # add parent context
                 if "_parent" not in value:
                     value["_parent"] = bindings
-                html = __render_repeating_section(html, key, value, prefix)
+                html = __render_list(html, tkey, value)
+                html = __render_repeating_section(html, tkey, value)
+                del value["_parent"]
                 continue
             # if a function, use it to evaluate value
             elif callable(value):
@@ -56,7 +59,6 @@ def __render(html, bindings, prefix=None):
                     if error_on_func_failure:
                         raise e
                     value = ""
-        tkey = prefix+key                                   # full key nae, including subsections
         html = __render_section(html, tkey, value)          # check display/hide as section
         html = re.sub(r'{{0\}}'.format(tkey), value, html)  # replace with greedy search
     return html
@@ -105,8 +107,7 @@ def __render_section(html, section, display):
     return html
 
 
-def __render_repeating_section(html, section, bindings, prefix):
-    section = prefix + ("" if prefix.endswith(".") else ".") + section if prefix else section
+def __render_repeating_section(html, section, bindings):
     section_start = "{{#" + section + "}}"
     section_end   = "{{/" + section + "}}"
     i_start       = html.find(section_start)
@@ -129,3 +130,21 @@ def __render_repeating_section(html, section, bindings, prefix):
         return insert_html + html[i_end+len(section_end):]
     else:
         return html[0:i_start] + insert_html + html[i_end+len(section_end):]
+
+
+def __render_list(html, section, bindings):
+    num = len(bindings)
+    list_str = None
+    if num == 0:
+        list_str = ""
+    elif num == 2:
+        list_str = "{0} and {1}".format(bindings[0], bindings[1])
+    else:
+        for i, item in enumerate(bindings):
+            if list_str is None:
+                list_str = "{0}".format(item)
+            elif i+1 == num:
+                list_str = ", and {0}".format(item)
+            else:
+                list_str = ", {0}".format(item)
+    html = re.sub(r'{{&0\}}'.format(section), value, html)

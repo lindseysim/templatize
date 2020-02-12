@@ -37,20 +37,22 @@ export default {
         for(var key in bindings) {
             // skip reserved values
             if(key === "_display" || key === "_parent") continue;
-            var value = bindings[key];
+            let tKey = prefix + key,
+                value = bindings[key];
             if(value) {
                 // special cases
                 switch(this.__objTester.call(value)) {
                     // if an object literal, recurse into
                     case "[object Object]":
                         if(!value._parent) value._parent = bindings;  // add parent context
-                        html = this.__render(html, value, prefix + key);
+                        html = this.__render(html, value, tkey);
                         delete value._parent;
                         continue;
                     // if an array, treat as repeating section
                     case "[object Array]":
                         if(!value._parent) value._parent = bindings;  // add parent context
-                        html = this.__renderRepeatingSection(html, key, value, prefix);
+                        html = this.__renderList(html, tKey, value);
+                        html = this.__renderRepeatingSection(html, tKey, value);
                         delete value._parent;
                         continue;
                     // if a function, use it to evaluate value
@@ -63,7 +65,6 @@ export default {
                         }
                 }
             }
-            var tKey = prefix + key;                                       // full key name, including subsections
             html = this.__renderSection(html, tKey, value)                 // check display/hide as section
                        .replace(new RegExp("{{"+tKey+"}}" , 'g'), value);  // replace with greedy search
         }
@@ -115,8 +116,7 @@ export default {
         return html;
     }, 
 
-    __renderRepeatingSection: function(html, section, bindings, prefix) {
-        section = prefix ? prefix + (prefix.endsWith(".") ? "" : ".") + section : section;
+    __renderRepeatingSection: function(html, section, bindings) {
         var sectionStart = "{{#" + section + "}}", 
             sectionEnd   = "{{/" + section + "}}", 
             iStart       = html.indexOf(sectionStart), 
@@ -139,6 +139,24 @@ export default {
         } else {
             return html.slice(0, iStart) + insertHtml + html.slice(iEnd + sectionEnd.length);
         }
+    }, 
+
+    __renderList: function(html, section, bindings) {
+        var listStr = false;
+        return html.replace(new RegExp("{{&"+section+"}}" , 'g'), () => {
+            if(listStr === false) {
+                if(!bindings) {
+                    listStr = "";
+                } else if(bindings.length === 2) {
+                    listStr = `${bindings[0]} and ${bindings[1]}`;
+                } else {
+                    bindings.forEach((item, i) => {
+                        listStr += `${i ? ", " : ""} ${i+1 === bindings.length ? "and" : ""} ${item}`;
+                    });
+                }
+            }
+            return listStr;
+        });
     }
 
 };
