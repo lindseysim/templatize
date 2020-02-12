@@ -2,12 +2,14 @@
 
 Basic templating code, similar to Mustache.js. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, the core code just a little over 100 lines. For a brief comparison versus Mustache, see the last section.
 
-Lawrence Sim © 2019
+Lawrence Sim © 2020
 
 ## Contents ##
 
 * [How to Use](#how-to-use)
 * [Variables](#variables)
+    * [Escaping](#escaping)
+* [Lists](#lists)
 * [Sections](#sections)
     * [Basic sections](#basic-sections)
     * [Section value evaluation](#section-value-evaluation)
@@ -61,6 +63,57 @@ Bob is 46 years old.
 ```
 
 Generally avoid any data-binding names starting with an underscore (`_`) as some reserved values use the underscore prefix (e.g. `_display` and `_parent`).
+
+### Escaping ###
+
+Escaping is simply done by prefixing the key with a bang (`!`).
+
+&nbsp; *Template:*
+
+```
+{{name.first}} is {{!age}} years old.
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  age: 46, 
+  name: { first: "Bob" }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+Bob is {{age}} years old.
+```
+
+## Lists ##
+
+Lists are marked with a `&`-prefix and can only take in an array. The output is grammatically formatted with appropriate use of commas and/or the 'and'-conjunction, as dicated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.
+
+&nbsp; *Template:*
+
+```
+{{&name}} sells {{&sells}} with {{&with}}. 
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  name: ["Bob"], 
+  sells: ["burgers", "sodas", "fries"], 
+  with: ["his wife", "kids"]
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+Bob sells burgers, sodas, and fries with his wife and kids.
+```
 
 ## Sections ##
 
@@ -159,7 +212,7 @@ Is married.{{#single}}Is single.{{/single}}
 
 ### Sections with data ###
 
-As long as data-binding for section evaluates to `true` (see above), it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value:
+As long as data-binding for section evaluates to `true` ([see above](#section-value-evaluation)), it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value:
 
 &nbsp; *Template:*
 
@@ -289,6 +342,8 @@ Note value must be an array of objects. E.g., the above template with the follow
   children: ["Tina", "Gene", "Louise"]
 }
 ```
+
+However, the above case makes sense with [lists](#lists).
 
 Unlike regular sections, repeating sections are limited in scope to its own section. Thus, variables within a repeating section's data bindings will not evaluate outside the portion of the template within the repeating section. Values from outside, however, can be scoped within the repeating section.
 
@@ -420,7 +475,7 @@ Bob Belcher has 3 children.
 
 Note `name.full` is called within context of `name`, whereas `numChildrenText` is called within the context of the root data-bindings object. However, each context is given a `_parent` parameter to traverse upwards in scope. In `name.full`, this is used in a somewhat contrived example to traverse up to the full context (before returning back to the same).
 
-By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply the `errorOnFuncFailure` flag to `true`: 
+By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `errorOnFuncFailure` flag to `true`: 
 
 ```javascript
 Templatize.errorOnFuncFailure = true;
@@ -435,12 +490,13 @@ Below is a complex example using a bit of everything covered above.
 &nbsp; *Template:*
 
 ```javascript
-{{name.full}} has {{numChildrenText}}<br />
+{{name.full}} has {{numChildrenText}}: {{&childrenNames}}.<br />
 {{#children}}
-  {{#children.lastChild}}and {{/children.lastChild}}
-  {{children.firstName}} {{name.last}} (age {{children.age}})
+  {{#children.lastChild}}and{{/children.lastChild}}
+  {{children.firstName}} {{name.last}} is {{children.age}}
   {{^children.lastChild}}, {{/children.lastChild}}
-{{/children}}.
+  {{#children.lastChild}}.{{/children.lastChild}}
+{{/children}}
 ```
 
 &nbsp; *Bindings:*
@@ -459,32 +515,33 @@ Below is a complex example using a bit of everything covered above.
       case 0:
         return "no children"
       case 1:
-        return "one child: "
+        return "one child"
       default:
-        return this.children.length + " children: "
+        return this.children.length + " children"
     }
   }, 
-  thisYear: 2018, 
+  childrenNames: ["Tina", "Gene", "Louise"], 
   children: [
     {
       firstName: "Tina", 
-      born: 2005, 
-      age: function() { return this._parent.thisYear - this.born; }, 
-      lastChild: function() { return this._parent.isLastChild(this); }
-    }, 
-    {
-      firstName: "Gene", 
       born: 2007, 
       age: function() { return this._parent.thisYear - this.born; }, 
       lastChild: function() { return this._parent.isLastChild(this); }
     }, 
     {
-      firstName: "Louise", 
+      firstName: "Gene", 
       born: 2009, 
       age: function() { return this._parent.thisYear - this.born; }, 
       lastChild: function() { return this._parent.isLastChild(this); }
+    }, 
+    {
+      firstName: "Louise", 
+      born: 2011, 
+      age: function() { return this._parent.thisYear - this.born; }, 
+      lastChild: function() { return this._parent.isLastChild(this); }
     }
-  ], 
+  ],  
+  thisYear: 2020, 
   isLastChild: function(childObj) {
     return childObj === this.children[this.children.length-1];
   }
@@ -494,19 +551,21 @@ Below is a complex example using a bit of everything covered above.
 &nbsp; *Outputs:*
 
 ```
-Bob Belcher has 3 children: 
-Tina Belcher (age 13), Gene Belcher (age 11), and Louise Belcher (age 9).
+Bob Belcher has 3 children: Tina, Gene, and Louise.
+Tina Belcher is 13, Gene Belcher is 11, and Louise Belcher is 9.
 ```
 
-Note that the `children[].lastChild` function calls a function from the parent scope (`isLastChild`) to dynamically determine if it is the last object in the array. Arguably this is  somewhat contrived, and it would easier just to preprocess the children data-bindings object and assign values to each child's attributes, but this is just a demonstration of possible design patterns.
+Note that the `children[].lastChild` function calls a function from the parent scope (`isLastChild`) to dynamically determine if it is the last object in the array. This is somewhat contrived, and it would easier just to preprocess the children data-bindings object and assign values to each child's attributes, but this is just a demonstration of possible design patterns.
 
 ## Templatize vs Mustache ##
 
-Minor syntactic differences are evaluation of "truthiness" (e.g. Mustache reads `0` as false when evaluating a section), and scope within sections and when calling functions. Additionally, there is no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this) and no support for custom delimiters.
+The support for grammatically formatted [lists](#lists) and escaping with `!` are unique to Templatize.
+
+Minor syntactic differences are [evaluation of "truthiness"](#section-value-evaluation) (e.g. Mustache reads `0` as false when evaluating a section whereas Templatize treats 0 as a valid value), and scope within sections and when calling functions. Additionally, there is no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this) and no support for custom delimiters.
 
 ### Caching ###
 
-Mustache parses templates before rendering, and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize is faster in that regard. However, the preprocessed map is cached and all subsequent renders that use the same template in Mustache are greatly improved in speed.
+Mustache parses templates before rendering and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize is faster in that regard. However, the preprocessed map is cached in Mustache and all subsequent renders that use the same template are greatly improved in speed. If the same template is reused multiple times and speed is of the essence, Mustache may be a better choice.
 
 ### Missing Bindings ###
 
