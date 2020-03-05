@@ -137,10 +137,12 @@ export default {
         }
         // splice into full template, replacing old section template
         if(iStart === 0) {
-            return insertHtml + html.slice(iEnd + sectionEnd.length);
+            html = insertHtml + html.slice(iEnd + sectionEnd.length);
         } else {
-            return html.slice(0, iStart) + insertHtml + html.slice(iEnd + sectionEnd.length);
+            html = html.slice(0, iStart) + insertHtml + html.slice(iEnd + sectionEnd.length);
         }
+        // repeat until no more sections found
+        return this.__renderRepeatingSection(html, section, bindings);
     }, 
 
     __renderList: function(html, section, bindings) {
