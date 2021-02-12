@@ -68,7 +68,7 @@ export default {
             let tag = `{{${tKey}}}`;
             html = this.__renderSection(html, tKey, value)                // check display/hide as section
                        .replace(new RegExp(tag , 'g'), value)             // replace with greedy search
-                       .replace(new RegExp("{{!"+tKey+"}}" , 'g'), tag);  // replace escaped
+                       .replace(new RegExp(`{{!${tKey}}}` , 'g'), tag);  // replace escaped
         }
         return html;
     }, 
@@ -77,9 +77,9 @@ export default {
         // value that evaluate to false but treated as true is 0, vice versa for whitespace-only string
         display = display === 0 || (display && (typeof display !== "string" || display.trim().length));
             // section tags
-        var sectionIncludeStart = "{{#" + section + "}}", 
-            sectionExcludeStart = "{{^" + section + "}}", 
-            sectionEnd          = "{{/" + section + "}}", 
+        var sectionIncludeStart = `{{#${section}}}`, 
+            sectionExcludeStart = `{{^${section}}}`, 
+            sectionEnd          = `{{/${section}}}`, 
             // to optimize not searching over parts already passed or when string isn't long enough anyways
             searchFromIndex     = 0, 
             minHtmlLength       = sectionIncludeStart.length + sectionEnd.length;
@@ -119,8 +119,8 @@ export default {
     }, 
 
     __renderRepeatingSection: function(html, section, bindings) {
-        var sectionStart = "{{#" + section + "}}", 
-            sectionEnd   = "{{/" + section + "}}", 
+        var sectionStart = `{{#${section}}}`, 
+            sectionEnd   = `{{/${section}}}`, 
             iStart       = html.indexOf(sectionStart), 
             iEnd         = ~iStart ? html.indexOf(sectionEnd, iStart) : false;
         // both parts must be found and in correct order
@@ -147,7 +147,7 @@ export default {
 
     __renderList: function(html, section, bindings) {
         var listStr = false;
-        return html.replace(new RegExp("{{&"+section+"}}" , 'g'), () => {
+        return html.replace(new RegExp(`{{&${section}}}` , 'g'), () => {
             if(listStr === false) {
                 if(!bindings || !bindings.length) {
                     listStr = "";
