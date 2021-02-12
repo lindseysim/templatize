@@ -2,7 +2,7 @@
 
 Basic templating code, similar to Mustache.js. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, the core code just a little over 100 lines. For a brief comparison versus Mustache, see the last section.
 
-Lawrence Sim © 2020
+Lawrence Sim © 2021
 
 ## Contents ##
 
