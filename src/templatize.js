@@ -1,9 +1,12 @@
+import * as d3 from "d3-format";
+
 if(!String.prototype.endsWith) {
     String.prototype.endsWith = function(search, this_len) {
         if(this_len === undefined || this_len > this.length) this_len = this.length;
         return this.substring(this_len - search.length, this_len) === search;
     };
 }
+
 export default {
     // flag for throwing error on function evaluation
     errorOnFuncFailure: false, 
@@ -26,21 +29,22 @@ export default {
 
     __render: function(html, bindings, prefix) {
         if(!html) return "";
-        var inSection = prefix !== null && prefix !== undefined;;
         // render section for subsections as nested objects
-        if(inSection) {
-            var display = !("_display" in bindings) || bindings["_display"];
+        let inSection = false;
+        if(prefix !== null && prefix !== undefined) {
+            inSection = true;
+            let display = !("_display" in bindings) || bindings["_display"];
             html = this.__renderSection(html, prefix, display);
         }
         // prep prefix for next level
-        prefix = inSection ? prefix + "." : "";
-        for(var key in bindings) {
+        let usePrefix = inSection ? prefix + "." : "";
+        for(let key in bindings) {
             // skip reserved values
             if(key === "_display" || key === "_parent") continue;
-            let tKey = prefix + key,
+            let tKey = usePrefix + key, 
                 value = bindings[key];
+            // special cases
             if(value) {
-                // special cases
                 switch(this.__objTester.call(value)) {
                     // if an object literal, recurse into
                     case "[object Object]":
@@ -55,20 +59,31 @@ export default {
                         html = this.__renderRepeatingSection(html, tKey, value);
                         delete value._parent;
                         continue;
-                    // if a function, use it to evaluate value
+                    // if a function, use it to evaluate value, then recurse to apply by result type
                     case "[object Function]":
                         try {
-                            value = value.call(bindings);
+                            // duplicate function result as if it were 
+                            let rebind = {};
+                            rebind[key] = value.call(bindings);
+                            if(!rebind._parent) rebind._parent = bindings;  // add parent context
+                            html = this.__render(html, rebind, prefix);
+                            continue;
                         } catch(e) {
                             if(this.errorOnFuncFailure) throw e;
                             value = "";
                         }
                 }
             }
-            let tag = `{{${tKey}}}`;
-            html = this.__renderSection(html, tKey, value)                // check display/hide as section
-                       .replace(new RegExp(tag , 'g'), value)             // replace with greedy search
-                       .replace(new RegExp(`{{!${tKey}}}` , 'g'), tag);  // replace escaped
+                       // display/hide section with this tage
+            html = this.__renderSection(html, tKey, value)
+                       // replace standard with optional formatting
+                       .replace(new RegExp(`{{(${tKey})(?::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
+                            return this.__format(value, format);
+                       })
+                       // replace escaped with optional formatting
+                       .replace(new RegExp(`{{!(${tKey})(?::)?([^:}]*)?}}` , 'g'), match => {
+                            return match.replace("!", "");
+                       });
         }
         return html;
     }, 
@@ -147,23 +162,42 @@ export default {
 
     __renderList: function(html, section, bindings) {
         var listStr = false;
-        return html.replace(new RegExp(`{{&${section}}}` , 'g'), () => {
-            if(listStr === false) {
-                if(!bindings || !bindings.length) {
-                    listStr = "";
-                } else if(bindings.length === 1) {
-                    listStr = bindings[0];
-                } else if(bindings.length === 2) {
-                    listStr = `${bindings[0]} and ${bindings[1]}`;
-                } else {
-                    listStr = "";
-                    bindings.forEach((item, i) => {
-                        listStr += `${i ? ", " : ""}${i+1 === bindings.length ? "and " : ""}${item}`;
-                    });
-                }
+        return html.replace(new RegExp(`{{(&${section})(?::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
+            if(listStr !== false) return listStr;
+            if(!bindings || !bindings.length) return listStr = "";
+            let values = bindings.map(val => this.__format(val, format));
+            if(values.length === 1) {
+                listStr = values[0];
+            } else if(values.length === 2) {
+                listStr = `${values[0]} and ${values[1]}`;
+            } else {
+                listStr = "";
+                values.forEach((item, i) => {
+                    listStr += `${i ? ", " : ""}${i+1 === values.length ? "and " : ""}${item}`;
+                });
             }
             return listStr;
         });
+    }, 
+
+    __format: function(value, format) {
+        if(!format) return value;
+        if(this.__isNumber(value)) return d3.format(format)(value);
+        switch(format) {
+            case "upper":
+                return value.toString().toUpperCase();
+            case "lower":
+                return value.toString().toLowerCase();
+            case "capitalize":
+                return value.toString().replace(/(?:^|[^\w])[a-z]/g, match => {
+                    return match === "'s" ? match : match.toUpperCase();
+                });
+        }
+        return value;
+    }, 
+
+    __isNumber: function(value) {
+        return !isNaN(value) && !isNaN(parseFloat(value));
     }
 
 };

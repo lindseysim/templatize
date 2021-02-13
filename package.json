@@ -1,6 +1,6 @@
 {
   "name": "@lawrencesim/templatize",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "author": "Lawrence Sim",
   "license": "MIT",
   "homepage": "https://github.com/lawrencesim/templatize",
@@ -17,5 +17,7 @@
     "webpack": "^4.46.0",
     "webpack-cli": "^3.3.12"
   },
-  "dependencies": {}
+  "dependencies": {
+    "d3-format": "^2.0.0"
+  }
 }

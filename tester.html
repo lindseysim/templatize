@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Templatize</title>
+    <style>
+      body {
+        font-size: 0.9em;
+        font-family: arial, san-serif;
+      }
+      #container {
+        display: flex;
+        flex-direction: column;
+        margin: auto;
+        width: 80%;
+        max-width: 600px;
+        align-items: center;
+        padding: 2em 0;
+      }
+      .spacer {
+        flex: 0 0 auto;
+        height: 1em;
+      }
+      label {
+        flex: 0 0 auto;
+        width: 100%;
+        font-weight: bold;
+      }
+      textarea {
+        flex: 0 0 auto;
+        width: 100%;
+        resize: none;
+        margin: 1em;
+        margin-top: 0;
+        display: block;
+        padding: 0.4em;
+        background: #363d4a;
+        color: #fff;
+      }
+      #input-template {
+        height: 90px;
+      }
+      #input-bindings {
+        height: 280px;
+      }
+      #output {
+        width: 100%;
+        min-height: 3em;
+        box-sizing: border-box;
+        border: 1px solid #444;
+        border-radius: 2px;
+        padding: 1em;
+      }
+      .error {
+        font-family: monospace;
+        color: #d01;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <label>Template:</label>
+      <textarea id="input-template">{{name.first}} {{name.last}} sells {{&items}} with {{&family}}.</textarea>
+      <div class="spacer"></div>
+      <label>Bindings:</label>
+      <textarea id="input-bindings">{
+  name: {
+    first: "Bob", 
+    last: "Belcher"
+  }, 
+  items: ["burgers", "fires"], 
+  wife: {name: "Linda"}, 
+  kids: [
+    {name: "Tina"}, 
+    {name: "Gene"}, 
+    {name: "Louise"}
+  ],
+  family: function() {
+    return [this.wife.name].concat(this.kids.map(kid => kid.name));
+  }
+}</textarea>
+      <div class="spacer"></div>
+      <label>Output:</label>
+      <div id="output"></div>
+    <div>
+    <script src="./dist/templatize.min.js"></script>
+    <script>
+      window.onload = () => {
+        var inputTemplate = document.querySelector("#input-template"), 
+            inputBindings = document.querySelector("#input-bindings"), 
+            output = document.querySelector("#output"), 
+            bindings;
+        Templatize.errorOnFuncFailure = true;
+        function render() {
+          try {
+            bindings = window.Function("let window=null;return "+inputBindings.value+";")();
+            output.innerHTML = Templatize.render(inputTemplate.value, bindings);
+          } catch(e) {
+            output.innerHTML = "<span class='error'>"+e.message+"</span>";
+          }
+        };
+        render();
+        inputTemplate.addEventListener("input", render);
+        inputBindings.addEventListener("input", render);
+      };
+    </script>
+  </body>
+</html>
