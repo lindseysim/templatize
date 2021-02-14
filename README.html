@@ -1063,6 +1063,7 @@ body .markdown-body
 <li><a href="#how-to-use">How to Use</a></li>
 <li><a href="#variables">Variables</a><ul>
 <li><a href="#escaping">Escaping</a></li>
+<li><a href="#formatting">Formatting</a></li>
 </ul>
 </li>
 <li><a href="#lists">Lists</a></li>
@@ -1078,12 +1079,20 @@ body .markdown-body
 <li><a href="#functions">Functions</a><ul>
 <li><a href="#context-and-parent">Context and parent</a></li>
 <li><a href="#nesting">Nesting</a></li>
-<li><a href="#edge-cases-of-function-within-functions">Edge cases</a></li>
 <li><a href="#error-handling">Error handling</a></li>
+<li>[Functions within functions][#functions-within-functions]</li>
 </ul>
 </li>
 <li><a href="#putting-it-all-together">Putting it all together</a></li>
+<li><a href="#more">More</a><ul>
 <li><a href="#templatize-vs-mustache">Templatize vs Mustache</a></li>
+<li><a href="#caching">Caching</a></li>
+<li><a href="#missing-bindings">Missing bindings</a></li>
+<li><a href="#formatting-lists-and-functions">Formatting lists and functions</a></li>
+<li><a href="#scoping-of-function-within-functions">Scoping of functions within functions</a></li>
+</ul>
+</li>
+<li><a href="#acknowledgments">Acknowledgments</a></li>
 </ul>
 <h2 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link"></a></h2>
 <p>Import the source or minified javascript. If regular script import, uses name <code>Templatize</code>. There is only one function you need to know:</p>
@@ -1152,7 +1161,26 @@ body .markdown-body
 <div class="codehilite"><pre>Bob is {{age}} years old.
 </pre></div>
 
-<p>&nbsp; </p>
+<h2 id="formatting">Formatting<a class="headerlink" href="#formatting" title="Permanent link"></a></h2>
+<p>Formatting options are also available by suffixing the property name in the template code with a colon and format directive. For strings, accepted directives are &lsquo;upper&rsquo;, &lsquo;lower&rsquo;, and &lsquo;capitalize&rsquo;. For numbers, Templatize uses the <a href="https://github.com/d3/d3-format">d3-format library</a>. See documentation there for various formatting options.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{name:capitalize}} lives in {{locale:capitalize}} and sells burgers for {{price.burger:$.2f}}.
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;bob&quot;</span><span class="p">,</span> 
+  <span class="nx">locale</span><span class="o">:</span> <span class="s2">&quot;new england&quot;</span><span class="p">,</span> 
+  <span class="nx">price</span><span class="o">:</span> <span class="p">{</span> <span class="nx">burger</span><span class="o">:</span> <span class="mi">5</span> <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>Bob lives in New England and sells burgers for $5.00.
+</pre></div>
+
+<p>Formatting also works for <a href="#lists">lists</a> and <a href="#functions">functions</a>, an example is shown in the section <a href="#formatting-lists-and-functions">Formatting lists and functions</a>.</p>
+<p>&nbsp;</p>
 <h2 id="lists">Lists<a class="headerlink" href="#lists" title="Permanent link"></a></h2>
 <p>Lists are marked with a <code>&amp;</code>-prefix and can only take in an array. The output is grammatically formatted with appropriate use of commas and/or the &lsquo;and&rsquo;-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.</p>
 <p>&nbsp; <em>Template:</em></p>
@@ -1161,7 +1189,7 @@ body .markdown-body
 
 <p>&nbsp; <em>Bindings:</em></p>
 <div class="codehilite"><pre><span class="p">{</span>
-  <span class="nx">name</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;Bob&quot;</span><span class="p">],</span> 
+  <span class="nx">name</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;bob&quot;</span><span class="p">],</span> 
   <span class="nx">sells</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;burgers&quot;</span><span class="p">,</span> <span class="s2">&quot;sodas&quot;</span><span class="p">,</span> <span class="s2">&quot;fries&quot;</span><span class="p">],</span> 
   <span class="kd">with</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;his wife&quot;</span><span class="p">,</span> <span class="s2">&quot;kids&quot;</span><span class="p">]</span>
 <span class="p">}</span>
@@ -1193,7 +1221,7 @@ body .markdown-body
 <div class="codehilite"><pre>Is married.
 </pre></div>
 
-<p>You may also do an inverse section by replacing <code>#</code> starting prefix with <code>^</code>. Such sections will only be displayed if the section is evaluated to <code>false</code>.</p>
+<p>You may also use an inverse section by replacing <code>#</code> starting prefix with <code>^</code>. Such sections will only be displayed if the section is evaluated to <code>false</code>.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>{{^single}}Is not single.{{/single}}
 </pre></div>
@@ -1516,59 +1544,8 @@ Louise is {{kidsAges.Louise}} years old
 Louise is 9 years old
 </pre></div>
 
-<h3 id="edge-cases-of-function-within-functions">Edge cases of function within functions<a class="headerlink" href="#edge-cases-of-function-within-functions" title="Permanent link"></a></h3>
-<p>Finally, there is the special case of calling a function within a function. While this is easily done, all inner functions that are manually called require careful monitoring of the <code>this</code> context as it will not be automatically handled. You may at times need to explicitly set the <code>this</code> context (e.g. by using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call"><em>Function</em>.prototype.call()</a>). </p>
-<p>As well, <code>this._parent</code> will not be automatically created, if needed.</p>
-<p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>The kids are {{&amp;ages}} years old.
-</pre></div>
-
-<p>&nbsp; <em>Bindings:</em></p>
-<div class="codehilite"><pre><span class="p">{</span>
-  <span class="nx">year</span><span class="o">:</span> <span class="mi">2021</span><span class="p">,</span> 
-  <span class="nx">calcAge</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">born</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">year</span> <span class="o">-</span> <span class="nx">born</span><span class="p">;</span>
-  <span class="p">},</span> 
-  <span class="nx">children</span><span class="o">:</span> <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Tina&quot;</span><span class="p">,</span> 
-      <span class="nx">born</span><span class="o">:</span> <span class="mi">2008</span><span class="p">,</span> 
-      <span class="nx">age</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">calcAge</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">);</span>
-      <span class="p">}</span>
-    <span class="p">},</span> 
-    <span class="p">{</span>
-      <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Gene&quot;</span><span class="p">,</span> 
-      <span class="nx">born</span><span class="o">:</span> <span class="mi">2010</span><span class="p">,</span> 
-      <span class="nx">age</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">calcAge</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">);</span>
-      <span class="p">}</span>
-    <span class="p">},</span> 
-    <span class="p">{</span>
-      <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Louise&quot;</span><span class="p">,</span> 
-      <span class="nx">born</span><span class="o">:</span> <span class="mi">2012</span><span class="p">,</span> 
-      <span class="nx">age</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">calcAge</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">);</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
-  <span class="p">],</span> 
-  <span class="nx">ages</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">child</span> <span class="o">=&gt;</span> <span class="p">{</span>
-      <span class="nx">child</span><span class="p">.</span><span class="nx">_parent</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
-      <span class="k">return</span> <span class="nx">child</span><span class="p">.</span><span class="nx">age</span><span class="p">();</span>
-    <span class="p">});</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>The kids are 13, 11, and 9 years old.
-</pre></div>
-
-<p>There&rsquo;s a lot going on here, so let&rsquo;s break it down step by step. First, we defined the function <code>calcAge</code>, which uses its <code>this</code> context to access <code>year</code>. Note that as it takes in an input parameter, it cannot be called directly by Templatize which can&rsquo;t know how to pass said parameter (using <code>{{calcAge}}</code> in the template would result in &ldquo;NaN&rdquo;).</p>
-<p>This function is called by the function <code>age</code> within each instance of <code>children</code>. In <code>age</code>, the <code>this</code> context is used to pass each child&rsquo;s <code>born</code> property as an input parameter to <code>calcAge</code>. Because the scope is nested, it uses <code>this._parent</code> to access <code>calcAge</code>. When <code>calcAge</code> is called here, because it is called from the scope of <code>_parent</code>, the <code>this</code> context within <code>calcAge</code> still has access to <code>this.year</code>.</p>
-<p>Finally, the function <code>ages</code> maps each item in <code>children</code> to the result of the <code>age</code> function to create an array of just the ages. However, because we are manually calling a function within a function, and the inner function relies on <code>this._parent</code>, we need to supply <code>this._parent</code> as that variable is not automatically added in a manual function call.</p>
-<p>Confused yet? Don&rsquo;t worry, the above case is a very contrived scenario to create a somewhat ridiculous but pronounced case for demonstration. There are many cleaner and more efficient solutions to the above example that avoid such scoping problems. E.g. the map function could simply return <code>this.year - child.born</code>.</p>
+<h3 id="functions-within-functions">Functions within functions<a class="headerlink" href="#functions-within-functions" title="Permanent link"></a></h3>
+<p>Finally, there is the special case of calling a function within a function. While this is easily done using the <code>this</code> context, all inner functions that are manually triggered require careful monitoring of the context as nested function calls get triggered. For a detailed explanation and example of how this works, see <a href="#scoping-of-function-within-functions">Scoping of functions within functions</a>.</p>
 <h3 id="error-handling">Error handling<a class="headerlink" href="#error-handling" title="Permanent link"></a></h3>
 <p>By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the <code>errorOnFuncFailure</code> flag to <code>true</code>: </p>
 <div class="codehilite"><pre><span class="nx">Templatize</span><span class="p">.</span><span class="nx">errorOnFuncFailure</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
@@ -1638,12 +1615,25 @@ His wife is Linda Belcher. His rival is Jimmy Pesto.
 </pre></div>
 
 <p>&nbsp;</p>
-<h2 id="templatize-vs-mustache">Templatize vs Mustache<a class="headerlink" href="#templatize-vs-mustache" title="Permanent link"></a></h2>
-<p>The support for grammatically formatted <a href="#lists">lists</a> and escaping with <code>!</code> are unique to Templatize.</p>
-<p>Minor syntactic differences are <a href="#section-value-evaluation">evaluation of &ldquo;truthiness&rdquo;</a> (e.g. Mustache reads <code>0</code> as false when evaluating a section whereas Templatize treats 0 as a valid value), and scope within sections and when calling functions. Additionally, there is no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this) and no support for custom delimiters.</p>
+<h2 id="more">More<a class="headerlink" href="#more" title="Permanent link"></a></h2>
+<h3 id="templatize-vs-mustache">Templatize vs Mustache<a class="headerlink" href="#templatize-vs-mustache" title="Permanent link"></a></h3>
+<p>The support for grammatically formatted <a href="#lists">lists</a>, escaping with <code>!</code> are unique to Templatize.</p>
+<p>Syntactic differences include:</p>
+<ul>
+<li><a href="#section-value-evaluation">Evaluation of &ldquo;truthiness&rdquo;</a>. Mustache reads <code>0</code> as false when evaluating a section whereas Templatize treats 0 as a valid value.</li>
+<li>Scope within repeating sections. Mustache treats templates within a repeating section as scoped within (not requiring dot notation to grab an element within that section). Templatize still uses dot notation to grab data within a repeating section.</li>
+<li>Scope within functions. In Templatize the <code>this</code> scope </li>
+</ul>
+<p>Functional differences include:</p>
+<ul>
+<li>Templatize has no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this).</li>
+<li>Templatize currently has no support for custom delimiters.</li>
+</ul>
+<p>&nbsp;</p>
 <h3 id="caching">Caching<a class="headerlink" href="#caching" title="Permanent link"></a></h3>
 <p>Mustache parses templates before rendering and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize is faster in that regard. However, the preprocessed map is cached in Mustache and all subsequent renders that use the same template are greatly improved in speed. If the same template is reused multiple times and speed is of the essence, Mustache may be a better choice.</p>
-<h3 id="missing-bindings">Missing Bindings<a class="headerlink" href="#missing-bindings" title="Permanent link"></a></h3>
+<p>&nbsp;</p>
+<h3 id="missing-bindings">Missing bindings<a class="headerlink" href="#missing-bindings" title="Permanent link"></a></h3>
 <p>As aforementioned, templates are not preprocessed to map data-bindings. Instead, templates are rendered at call, using the supplied data bindings, and finding the appropriate, matching markup in the template. Consequently, <strong>missing bindings in the template are rendered as is</strong>. This may be particularly tricky when using inverse sections. The binding must still exist, even if it evaluates to <code>false</code> &ndash; if undefined, the section syntax is ignored in the template.</p>
 <p>Additionally, formatting issues are not checked and validated. Thus, providing an incomplete data-binding or badly formatted template will result in rendering issues.</p>
 <p>&nbsp; <em>Template:</em></p>
@@ -1659,4 +1649,102 @@ His wife is Linda Belcher. His rival is Jimmy Pesto.
 </pre></div>
 
 <p>In the above, <code>{{name.first}}</code> is not replaced because the binding does not exist in the supplied data. As well, the use of the <code>{{#age}}</code> section is erroneously rendered as the expected closing tag (<code>{{/age}}</code>) was not found.</p>
-<p>To cleanup any remaining markup, set the <code>cleanup</code> parameter in <code>Templatize.render()</code> as <code>true</code>.</p></article></body></html>
+<p>To cleanup any remaining markup, set the <code>cleanup</code> parameter in <code>Templatize.render()</code> as <code>true</code>.</p>
+<p>&nbsp;</p>
+<h3 id="formatting-lists-and-functions">Formatting lists and functions<a class="headerlink" href="#formatting-lists-and-functions" title="Permanent link"></a></h3>
+<p>The formatting feature also applies to lists and functions.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>Order:&lt;br /&gt;
+{{#order}}-{{order.name}}&lt;br /&gt;{{/order}}
+Item prices: {{&amp;prices:$.2f}}&lt;br /&gt;
+Sale tax: {{salesTax:.0%}}&lt;br /&gt;
+Total (w/ tax): {{total:$.2f}}
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="nx">order</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;BURGER&quot;</span><span class="p">,</span> <span class="nx">price</span><span class="o">:</span> <span class="mi">5</span><span class="p">},</span> 
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;FRIES&quot;</span><span class="p">,</span> <span class="nx">price</span><span class="o">:</span> <span class="mi">2</span><span class="p">}</span>
+  <span class="p">],</span> 
+  <span class="nx">ticket</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">order</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">item</span> <span class="o">=&gt;</span> <span class="nx">item</span><span class="p">.</span><span class="nx">price</span><span class="o">*</span><span class="p">(</span><span class="mf">1.0</span><span class="o">+</span><span class="k">this</span><span class="p">.</span><span class="nx">salesTax</span><span class="p">));</span>
+  <span class="p">},</span> 
+  <span class="nx">prices</span><span class="o">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> 
+  <span class="nx">salesTax</span><span class="o">:</span> <span class="mf">0.05</span><span class="p">,</span> 
+  <span class="nx">total</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">order</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">item</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="nx">sum</span> <span class="o">+=</span> <span class="nx">item</span><span class="p">.</span><span class="nx">price</span><span class="o">*</span><span class="p">(</span><span class="mf">1.0</span><span class="o">+</span><span class="k">this</span><span class="p">.</span><span class="nx">salesTax</span><span class="p">);</span>
+    <span class="p">});</span>
+    <span class="k">return</span> <span class="nx">sum</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>Order:
+-BURGER
+-FRIES
+Item prices: $5.00 and $2.00
+Sale tax: 5%
+Total (w/ tax): $7.35
+</pre></div>
+
+<p>&nbsp;</p>
+<h3 id="scoping-of-function-within-functions">Scoping of function within functions<a class="headerlink" href="#scoping-of-function-within-functions" title="Permanent link"></a></h3>
+<p>When calling a function manually within another function, the <code>this</code> context as it will not be automatically handled. You may at times need to explicitly set the <code>this</code> context (e.g. by using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call"><em>Function</em>.prototype.call()</a>). As well, <code>this._parent</code> will not be automatically created, if needed.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>The kids are {{&amp;ages}} years old.
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="nx">year</span><span class="o">:</span> <span class="mi">2021</span><span class="p">,</span> 
+  <span class="nx">calcAge</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">born</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">year</span> <span class="o">-</span> <span class="nx">born</span><span class="p">;</span>
+  <span class="p">},</span> 
+  <span class="nx">children</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Tina&quot;</span><span class="p">,</span> 
+      <span class="nx">born</span><span class="o">:</span> <span class="mi">2008</span><span class="p">,</span> 
+      <span class="nx">age</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">calcAge</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">},</span> 
+    <span class="p">{</span>
+      <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Gene&quot;</span><span class="p">,</span> 
+      <span class="nx">born</span><span class="o">:</span> <span class="mi">2010</span><span class="p">,</span> 
+      <span class="nx">age</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">calcAge</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">},</span> 
+    <span class="p">{</span>
+      <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Louise&quot;</span><span class="p">,</span> 
+      <span class="nx">born</span><span class="o">:</span> <span class="mi">2012</span><span class="p">,</span> 
+      <span class="nx">age</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">calcAge</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">],</span> 
+  <span class="nx">ages</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">child</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="nx">child</span><span class="p">.</span><span class="nx">_parent</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+      <span class="k">return</span> <span class="nx">child</span><span class="p">.</span><span class="nx">age</span><span class="p">();</span>
+    <span class="p">});</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>The kids are 13, 11, and 9 years old.
+</pre></div>
+
+<p>There&rsquo;s a lot going on here, so let&rsquo;s break it down step by step. First, we defined the function <code>calcAge</code>, which uses its <code>this</code> context to access <code>year</code>. Note that as it takes in an input parameter, it cannot be called directly by Templatize which can&rsquo;t know how to pass said parameter (using <code>{{calcAge}}</code> in the template would result in &ldquo;NaN&rdquo;).</p>
+<p>This function is called by the function <code>age</code> within each instance of <code>children</code>. In <code>age</code>, the <code>this</code> context is used to pass each child&rsquo;s <code>born</code> property as an input parameter to <code>calcAge</code>. Because the scope is nested, it uses <code>this._parent</code> to access <code>calcAge</code>. When <code>calcAge</code> is called here, because it is called from the scope of <code>_parent</code>, the <code>this</code> context within <code>calcAge</code> still has access to <code>this.year</code>.</p>
+<p>Finally, the function <code>ages</code> maps each item in <code>children</code> to the result of the <code>age</code> function to create an array of just the ages. However, because we are manually calling a function within a function, and the inner function relies on <code>this._parent</code>, we need to supply <code>this._parent</code> as that variable is not automatically added in a manual function call.</p>
+<p>Confused yet? Don&rsquo;t worry, the above case is a very contrived scenario to create a somewhat ridiculous but pronounced case for demonstration. There are many cleaner and more efficient solutions to the above example that avoid such scoping problems. E.g. the map function could simply return <code>this.year - child.born</code>.</p>
+<hr />
+<p>&nbsp;</p>
+<h3 id="acknowledgments">Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permanent link"></a></h3>
+<p>Number formatting using the <a href="https://github.com/d3/d3-format">d3-format</a> module, which is Copyright under Mike Bostock. <a href="https://github.com/d3/d3-format/blob/master/LICENSE">The full license can be found here</a>.</p></article></body></html>

@@ -62,7 +62,7 @@ export default {
                     // if a function, use it to evaluate value, then recurse to apply by result type
                     case "[object Function]":
                         try {
-                            // duplicate function result as if it were 
+                            // duplicate function result as if it were in binding
                             let rebind = {};
                             rebind[key] = value.call(bindings);
                             if(!rebind._parent) rebind._parent = bindings;  // add parent context
@@ -74,16 +74,9 @@ export default {
                         }
                 }
             }
-                       // display/hide section with this tage
-            html = this.__renderSection(html, tKey, value)
-                       // replace standard with optional formatting
-                       .replace(new RegExp(`{{(${tKey})(?::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
-                            return this.__format(value, format);
-                       })
-                       // replace escaped with optional formatting
-                       .replace(new RegExp(`{{!(${tKey})(?::)?([^:}]*)?}}` , 'g'), match => {
-                            return match.replace("!", "");
-                       });
+            // display/hide section with this tag first
+            html = this.__renderSection(html, tKey, value);
+            html = this.__renderValue(html, tKey, value);
         }
         return html;
     }, 
@@ -145,10 +138,16 @@ export default {
         // build HTML for repeating sections
         var insertHtml = "";
         for(var i = 0; i < bindings.length; ++i) {
-            if(!bindings[i]._parent) bindings[i]._parent = bindings._parent;  // add parent context
-            // treat each section like a new render
-            insertHtml += this.__render(sectionHtml, bindings[i], section);
-            delete bindings[i]._parent;
+            if(this.__objTester.call(bindings[i]) === "[object Object]") {
+                // if an object literal, treat like a new render
+                if(!bindings[i]._parent) bindings[i]._parent = bindings._parent;  // add parent context
+                // treat each section like a new render
+                insertHtml += this.__render(sectionHtml, bindings[i], section);
+                delete bindings[i]._parent;
+            } else {
+                // try to print value as is
+                insertHtml += this.__renderValue(sectionHtml, `${section}.`, bindings[i]);
+            }
         }
         // splice into full template, replacing old section template
         if(iStart === 0) {
@@ -180,9 +179,22 @@ export default {
         });
     }, 
 
+    __renderValue: function(html, tag, value) {
+            // replace with optional formatting
+       return html.replace(new RegExp(`{{(${tag})(?::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
+                return this.__format(value, format);
+            })
+            // replace escaped
+            .replace(new RegExp(`{{!(${tag})(?::)?([^:}]*)?}}` , 'g'), match => {
+                return match.replace("!", "");
+            });
+    }, 
+
     __format: function(value, format) {
         if(!format) return value;
-        if(this.__isNumber(value)) return d3.format(format)(value);
+        if(!isNaN(value) && !isNaN(parseFloat(value))) {
+            return d3.format(format)(value);
+        }
         switch(format) {
             case "upper":
                 return value.toString().toUpperCase();
@@ -194,10 +206,6 @@ export default {
                 });
         }
         return value;
-    }, 
-
-    __isNumber: function(value) {
-        return !isNaN(value) && !isNaN(parseFloat(value));
     }
 
 };

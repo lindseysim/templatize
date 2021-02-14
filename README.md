@@ -21,10 +21,15 @@ Lawrence Sim © 2021
 * [Functions](#functions)
     * [Context and parent](#context-and-parent)
     * [Nesting](#nesting)
-    * [Edge cases](#edge-cases-of-function-within-functions)
     * [Error handling](#error-handling)
+    * [Functions within functions][#functions-within-functions]
 * [Putting it all together](#putting-it-all-together)
-* [Templatize vs Mustache](#templatize-vs-mustache)
+* [More](#more)
+    * [Templatize vs Mustache](#templatize-vs-mustache)
+    * [Caching](#caching)
+    * [Missing bindings](#missing-bindings)
+    * [Formatting lists and functions](#formatting-lists-and-functions)
+    * [Scoping of functions within functions](#scoping-of-function-within-functions)
 * [Acknowledgments](#acknowledgments)
 
 ## How to Use ##
@@ -104,7 +109,7 @@ Formatting options are also available by suffixing the property name in the temp
 &nbsp; *Template:*
 
 ```
-{{name:capitalize}} sells burgers for {{price.burger:$.2f}}.
+{{name:capitalize}} lives in {{locale:capitalize}} and sells burgers for {{price.burger:$.2f}}.
 ```
 
 &nbsp; *Bindings:*
@@ -112,6 +117,7 @@ Formatting options are also available by suffixing the property name in the temp
 ```javascript
 {
   name: "bob", 
+  locale: "new england", 
   price: { burger: 5 }
 }
 ```
@@ -119,10 +125,12 @@ Formatting options are also available by suffixing the property name in the temp
 &nbsp; *Outputs:*
 
 ```
-Bob sells burgers for $5.00.
+Bob lives in New England and sells burgers for $5.00.
 ```
 
-Formatting also works for [lists]{#lists} and [functions](#functions).
+Formatting also works for [lists](#lists) and [functions](#functions), an example is shown in the section [Formatting lists and functions](#formatting-lists-and-functions).
+
+&nbsp;
 
 ## Lists ##
 
@@ -138,7 +146,7 @@ Lists are marked with a `&`-prefix and can only take in an array. The output is 
 
 ```javascript
 {
-  name: ["Bob"], 
+  name: ["bob"], 
   sells: ["burgers", "sodas", "fries"], 
   with: ["his wife", "kids"]
 }
@@ -181,7 +189,7 @@ Section are marked with start at `#`-prefix and end at `/`-prefix. By binding se
 Is married.
 ```
 
-You may also do an inverse section by replacing `#` starting prefix with `^`. Such sections will only be displayed if the section is evaluated to `false`.
+You may also use an inverse section by replacing `#` starting prefix with `^`. Such sections will only be displayed if the section is evaluated to `false`.
 
 &nbsp; *Template:*
 
@@ -372,7 +380,7 @@ Note in the above that `_display` does not reverse the behavior of inverse secti
 
 ## Repeating Sections ##
 
-For repeating sections, set the section value to an array of objects and section html will be repeated. May still use `_display` to not use particular array item. Values within any array item are limited in scope only to that section given that array item.
+For repeating sections, set the section value to an array of objects and section will be repeated for as many items exists in the array. May still use `_display` to not use particular array item. Values within the repeating section must still be called via dot notation within the section.
 
 &nbsp; *Template:*
 
@@ -400,10 +408,15 @@ Child: Gene
 Child: Louise
 ```
 
-Note value must be an array of objects. E.g., the above template with the following data-bindings will error:
+Note above cases uses an array of objects. If a flat array of values is used, may simply use dot notation ending with the dot.
 
+&nbsp; *Template:*
 
-&nbsp; *Data:*
+```
+{{#children}}Child: {{children.}}<br />{{/children}}
+```
+
+&nbsp; *Bindings:*
 
 ```javascript
 {
@@ -411,7 +424,46 @@ Note value must be an array of objects. E.g., the above template with the follow
 }
 ```
 
-However, the above case makes sense with [lists](#lists).
+&nbsp; *Outputs:*
+
+```
+Child: Tina
+Child: Gene
+Child: Louise
+```
+
+However, the above case makes more sense with [lists](#lists).
+
+Note there is currently no support for nested arrays or an array of functions. It must either be an array of objects or printable values. Within said objects as items, however, may be more nested arrays or functions.
+
+
+&nbsp; *Template:*
+
+```
+{{#a}}{{#a.b}}{{a.b.c}}{{/a.b}}{{/a}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+// this is hard to think of a good example so gonna go real basic/abstract
+{
+  a: [
+    {
+      b: [{c: 1}, {c: 2}]
+    }, 
+    {
+      b: [{c: 3}, {c: 4}]
+    }
+  ]
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+1234
+```
 
 Unlike regular sections, repeating sections are limited in scope to its own section. Thus, variables within a repeating section's data bindings will not evaluate outside the portion of the template within the repeating section. Values from outside, however, can be scoped within the repeating section.
 
@@ -617,71 +669,9 @@ Bob's kids are Tina, Gene, and Louise
 Louise is 9 years old
 ```
 
-### Edge cases of function within functions ###
+### Functions within functions ###
 
-Finally, there is the special case of calling a function within a function. While this is easily done, all inner functions that are manually called require careful monitoring of the `this` context as it will not be automatically handled. You may at times need to explicitly set the `this` context (e.g. by using [*Function*.prototype.call()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call)). 
-
-As well, `this._parent` will not be automatically created, if needed.
-
-&nbsp; *Template:*
-
-```
-The kids are {{&ages}} years old.
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  year: 2021, 
-  calcAge: function(born) {
-    return this.year - born;
-  }, 
-  children: [
-    {
-      name: "Tina", 
-      born: 2008, 
-      age: function() {
-        return this._parent.calcAge(this.born);
-      }
-    }, 
-    {
-      name: "Gene", 
-      born: 2010, 
-      age: function() {
-        return this._parent.calcAge(this.born);
-      }
-    }, 
-    {
-      name: "Louise", 
-      born: 2012, 
-      age: function() {
-        return this._parent.calcAge(this.born);
-      }
-    }
-  ], 
-  ages: function() {
-    return this.children.map(child => {
-      child._parent = this;
-      return child.age();
-    });
-  }
-}
-```
-
-&nbsp; *Outputs:*
-
-```
-The kids are 13, 11, and 9 years old.
-```
-
-There's a lot going on here, so let's break it down step by step. First, we defined the function `calcAge`, which uses its `this` context to access `year`. Note that as it takes in an input parameter, it cannot be called directly by Templatize which can't know how to pass said parameter (using `{{calcAge}}` in the template would result in "NaN").
-
-This function is called by the function `age` within each instance of `children`. In `age`, the `this` context is used to pass each child's `born` property as an input parameter to `calcAge`. Because the scope is nested, it uses `this._parent` to access `calcAge`. When `calcAge` is called here, because it is called from the scope of `_parent`, the `this` context within `calcAge` still has access to `this.year`.
-
-Finally, the function `ages` maps each item in `children` to the result of the `age` function to create an array of just the ages. However, because we are manually calling a function within a function, and the inner function relies on `this._parent`, we need to supply `this._parent` as that variable is not automatically added in a manual function call.
-
-Confused yet? Don't worry, the above case is a very contrived scenario to create a somewhat ridiculous but pronounced case for demonstration. There are many cleaner and more efficient solutions to the above example that avoid such scoping problems. E.g. the map function could simply return `this.year - child.born`.
+Finally, there is the special case of calling a function within a function. While this is easily done using the `this` context, all inner functions that are manually triggered require careful monitoring of the context as nested function calls get triggered. For a detailed explanation and example of how this works, see [Scoping of functions within functions](#scoping-of-function-within-functions).
 
 ### Error handling ###
 
@@ -766,17 +756,34 @@ His wife is Linda Belcher. His rival is Jimmy Pesto.
 
 &nbsp;
 
-## Templatize vs Mustache ##
+## More ##
 
-The support for grammatically formatted [lists](#lists) and escaping with `!` are unique to Templatize.
+### Templatize vs Mustache ###
 
-Minor syntactic differences are [evaluation of "truthiness"](#section-value-evaluation) (e.g. Mustache reads `0` as false when evaluating a section whereas Templatize treats 0 as a valid value), and scope within sections and when calling functions. Additionally, there is no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this) and no support for custom delimiters.
+The support for grammatically formatted [lists](#lists) and built-in formatters are unique to Templatize.
+
+Major syntax/usage differences include:
+
+* [Evaluation of "truthiness"](#section-value-evaluation). Mustache reads `0` as false when evaluating a section whereas Templatize treats 0 as a valid value.
+* Repeating section: 
+    * Templatize requires repeating section to be an array of objects. In Mustache, an array of flat values can be rendered within a repeating section with `{{.}}`.
+    * Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab an element within that section). Templatize still uses dot notation to grab data within a repeating section.
+    * Functions called within a repeating section are given the `this` context of the item in the repeating section.
+
+Functional differences include:
+
+* Templatize has no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this).
+* Templatize currently has no support for custom delimiters.
+
+&nbsp;
 
 ### Caching ###
 
 Mustache parses templates before rendering and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize is faster in that regard. However, the preprocessed map is cached in Mustache and all subsequent renders that use the same template are greatly improved in speed. If the same template is reused multiple times and speed is of the essence, Mustache may be a better choice.
 
-### Missing Bindings ###
+&nbsp;
+
+### Missing bindings ###
 
 As aforementioned, templates are not preprocessed to map data-bindings. Instead, templates are rendered at call, using the supplied data bindings, and finding the appropriate, matching markup in the template. Consequently, **missing bindings in the template are rendered as is**. This may be particularly tricky when using inverse sections. The binding must still exist, even if it evaluates to `false` -- if undefined, the section syntax is ignored in the template.
 
@@ -803,6 +810,124 @@ Additionally, formatting issues are not checked and validated. Thus, providing a
 In the above, `{{name.first}}` is not replaced because the binding does not exist in the supplied data. As well, the use of the `{{#age}}` section is erroneously rendered as the expected closing tag (`{{/age}}`) was not found.
 
 To cleanup any remaining markup, set the `cleanup` parameter in `Templatize.render()` as `true`.
+
+&nbsp;
+
+### Formatting lists and functions ###
+
+The formatting feature also applies to lists and functions.
+
+&nbsp; *Template:*
+
+```
+Order:<br />
+{{#order}}-{{order.name}}<br />{{/order}}
+Item prices: {{&prices:$.2f}}<br />
+Sale tax: {{salesTax:.0%}}<br />
+Total (w/ tax): {{total:$.2f}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  order: [
+    {name: "BURGER", price: 5}, 
+    {name: "FRIES", price: 2}
+  ], 
+  ticket: function() {
+    return this.order.map(item => item.price*(1.0+this.salesTax));
+  }, 
+  prices: [5, 2], 
+  salesTax: 0.05, 
+  total: function() {
+    var sum = 0;
+    this.order.forEach(item => {
+      sum += item.price*(1.0+this.salesTax);
+    });
+    return sum;
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+Order:
+-BURGER
+-FRIES
+Item prices: $5.00 and $2.00
+Sale tax: 5%
+Total (w/ tax): $7.35
+```
+
+&nbsp;
+
+### Scoping of function within functions ###
+
+When calling a function manually within another function, the `this` context as it will not be automatically handled. You may at times need to explicitly set the `this` context (e.g. by using [*Function*.prototype.call()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call)). As well, `this._parent` will not be automatically created, if needed.
+
+&nbsp; *Template:*
+
+```
+The kids are {{&ages}} years old.
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  year: 2021, 
+  calcAge: function(born) {
+    return this.year - born;
+  }, 
+  children: [
+    {
+      name: "Tina", 
+      born: 2008, 
+      age: function() {
+        return this._parent.calcAge(this.born);
+      }
+    }, 
+    {
+      name: "Gene", 
+      born: 2010, 
+      age: function() {
+        return this._parent.calcAge(this.born);
+      }
+    }, 
+    {
+      name: "Louise", 
+      born: 2012, 
+      age: function() {
+        return this._parent.calcAge(this.born);
+      }
+    }
+  ], 
+  ages: function() {
+    return this.children.map(child => {
+      child._parent = this;
+      return child.age();
+    });
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+The kids are 13, 11, and 9 years old.
+```
+
+There's a lot going on here, so let's break it down step by step. First, we defined the function `calcAge`, which uses its `this` context to access `year`. Note that as it takes in an input parameter, it cannot be called directly by Templatize which can't know how to pass said parameter (using `{{calcAge}}` in the template would result in "NaN").
+
+This function is called by the function `age` within each instance of `children`. In `age`, the `this` context is used to pass each child's `born` property as an input parameter to `calcAge`. Because the scope is nested, it uses `this._parent` to access `calcAge`. When `calcAge` is called here, because it is called from the scope of `_parent`, the `this` context within `calcAge` still has access to `this.year`.
+
+Finally, the function `ages` maps each item in `children` to the result of the `age` function to create an array of just the ages. However, because we are manually calling a function within a function, and the inner function relies on `this._parent`, we need to supply `this._parent` as that variable is not automatically added in a manual function call.
+
+Confused yet? Don't worry, the above case is a very contrived scenario to create a somewhat ridiculous but pronounced case for demonstration. There are many cleaner and more efficient solutions to the above example that avoid such scoping problems. E.g. the map function could simply return `this.year - child.born`.
+
+-----
 
 &nbsp;
 
