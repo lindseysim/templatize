@@ -14,15 +14,15 @@ Lawrence Sim © 2021
 * [Sections](#sections)
     * [Basic sections](#basic-sections)
     * [Section value evaluation](#section-value-evaluation)
-    * [Sections with data](#sections-with-data)
     * [More section behavior](#more-section-behavior)
 * [Repeating Sections](#repeating-sections)
 * [Nested Sections](#nested-sections)
 * [Functions](#functions)
     * [Context and parent](#context-and-parent)
     * [Nesting](#nesting)
-    * [Error handling](#error-handling)
     * [Functions within functions][#functions-within-functions]
+    * [Passing parameters to functions](#passing-parameters-to-functions)
+    * [Error handling](#error-handling)
 * [Putting it all together](#putting-it-all-together)
 * [More](#more)
     * [Templatize vs Mustache](#templatize-vs-mustache)
@@ -173,53 +173,16 @@ Bob sells burgers, sodas, and fries with his wife and kids.
 
 Section are marked with start at `#`-prefix and end at `/`-prefix. By binding section to a `true` or `false` value, they may be shown or removed.
 
-&nbsp; *Template:*
-
-```
-{{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  married: true, 
-  single: false
-}
-```
-
-&nbsp; *Outputs:*
-
-```
-Is married.
-```
-
 You may also use an inverse section by replacing `#` starting prefix with `^`. Such sections will only be displayed if the section is evaluated to `false`.
 
-&nbsp; *Template:*
-
-```
-{{^single}}Is not single.{{/single}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{single: false}
-```
-
-&nbsp; *Outputs:*
-
-```
-Is not single.
-```
-
-Data may be put inside of a section. E.g.:
+Data may be put inside of a section.
 
 &nbsp; *Template:*
 
 ```
-{{#married}}Is married to {{spouse}}.{{/married}}
+Bob is {{#married}}married{{/married}}{{#single}}single{{/single}}.<br />
+{{#married}}Bob is married to {{spouse}}.{{/married}}<br />
+Bob has {{^haspets}}no pets{{/haspets}}{{#haspets}}pets{{/haspets}}.
 ```
 
 &nbsp; *Bindings:*
@@ -227,22 +190,26 @@ Data may be put inside of a section. E.g.:
 ```javascript
 {
   married: true, 
-  spouse: "Linda"
+  single: false, 
+  spouse: "Linda", 
+  haspets: false
 }
 ```
 
 &nbsp; *Outputs:*
 
 ```
-Is married to Linda.
+Bob is married.
+Bob is married to Linda.
+Bob has no pets.
 ```
 
-If the section key does not exist, that section is simply not evaluated in the template, which is a common error. E.g.: 
+If the section key does not exist, that section is simply not evaluated in the template, which is a common error.
 
 &nbsp; *Template:*
 
 ```
-{{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
+Bob is {{#married}}married.{{/married}}{{#single}}single.{{/single}}
 ```
 
 &nbsp; *Bindings:*
@@ -254,7 +221,7 @@ If the section key does not exist, that section is simply not evaluated in the t
 &nbsp; *Outputs:*
 
 ```
-Is married.{{#single}}Is single.{{/single}}
+Bob is married{{#single}}single{{/single}}.
 ```
 
 ### Section value evaluation ###
@@ -265,9 +232,9 @@ Section data may be other values besides boolean. However, evaluation of non-boo
 
 ```
 Profit:<br />
-Monday - {{#monday}}${{monday}}{{/monday}}{{^monday}}Closed{{/monday}}<br />
-Sunday - {{#sunday}}${{sunday}}{{/sunday}}{{^sunday}}Closed{{/sunday}}<br />
-Saturday - {{#saturday}}${{saturday}}{{/saturday}}{{^saturday}}Closed{{/saturday}}<br />
+Monday - {{#monday}}{{monday::$.2f}}{{/monday}}{{^monday}}Closed{{/monday}}<br />
+Sunday - {{#sunday}}{{sunday::$.2f}}{{/sunday}}{{^sunday}}Closed{{/sunday}}<br />
+Saturday - {{#saturday}}{{saturday::$.2f}}{{/saturday}}{{^saturday}}Closed{{/saturday}}<br />
 ```
 
 &nbsp; *Bindings:*
@@ -285,13 +252,11 @@ Saturday - {{#saturday}}${{saturday}}{{/saturday}}{{^saturday}}Closed{{/saturday
 ```
 Profit:
 Monday - Closed
-Sunday - $0
-Saturday - $122
+Sunday - $0.00
+Saturday - $122.00
 ```
 
-### Sections with data ###
-
-As long as data-binding for section evaluates to `true` ([see above](#section-value-evaluation)), it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value:
+As long as data-binding for section evaluates to `true`, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value.
 
 &nbsp; *Template:*
 
@@ -311,7 +276,7 @@ As long as data-binding for section evaluates to `true` ([see above](#section-va
 Occupation: Chef
 ```
 
-The above though is somewhat messy of an implementation. One alternative is to separate a "display" variable like so:
+The above though is somewhat messy of an implementation. One alternative is to separate a "display" variable.
 
 &nbsp; *Template:*
 
@@ -328,7 +293,7 @@ The above though is somewhat messy of an implementation. One alternative is to s
 }
 ```
 
-Or, even better, used a nested structure for the section like below:
+Or, even better, used a nested structure for the section like below.
 
 &nbsp; *Template:*
 
@@ -385,7 +350,7 @@ Note in the above that `_display` does not reverse the behavior of inverse secti
 
 ## Repeating Sections ##
 
-For repeating sections, set the section value to an array of objects and section will be repeated for as many items exists in the array. May still use `_display` to not use particular array item. Values within the repeating section must still be called via dot notation within the section.
+For repeating sections, set the section value to an array and the section will be repeated for as many items exists in the array. May still use `_display` to not use particular array item. Values within the repeating section must still be called via dot notation within the section.
 
 &nbsp; *Template:*
 
@@ -400,7 +365,8 @@ For repeating sections, set the section value to an array of objects and section
   children: [
     {firstName: "Tina"}, 
     {firstName: "Gene"}, 
-    {firstName: "Louise"}
+    {firstName: "Louise"}, 
+    {firstName: "Kuchi-Kopi", _display: false}
   ]
 }
 ```
@@ -413,7 +379,7 @@ Child: Gene
 Child: Louise
 ```
 
-Note above cases uses an array of objects. If a flat array of values is used, may simply use dot notation ending with the dot.
+Note above example uses an array of objects. If a flat array of values is used, may simply use dot notation ending with the dot to display the value.
 
 &nbsp; *Template:*
 
@@ -437,15 +403,12 @@ Child: Gene
 Child: Louise
 ```
 
-However, the above case makes more sense with [lists](#lists).
-
-Note there is currently no support for nested arrays or an array of functions. It must either be an array of objects or printable values. Within said objects as items, however, may be more nested arrays or functions.
-
+Note there is currently no support for multidimensional-arrays or an array of functions. It must either be an array of objects or printable values. With and array of objects however, there may be more nested arrays or functions within each item.
 
 &nbsp; *Template:*
 
 ```
-{{#a}}{{#a.b}}{{a.b.c}}{{/a.b}}{{/a}}
+{{#a}}{{#a.b}}[{{a.b.c}}]{{/a.b}}<br />{{/a}}
 ```
 
 &nbsp; *Bindings:*
@@ -467,10 +430,11 @@ Note there is currently no support for nested arrays or an array of functions. I
 &nbsp; *Outputs:*
 
 ```
-1234
+[1][2]
+[3][4]
 ```
 
-Unlike regular sections, repeating sections are limited in scope to its own section. Thus, variables within a repeating section's data bindings will not evaluate outside the portion of the template within the repeating section. Values from outside, however, can be scoped within the repeating section.
+Unlike regular sections, access to variables within repeating section's array are limited in scope to where in the template the section is used. Thus, variables within a repeating section's data bindings will not evaluate outside the portion of the template within the repeating section. Values from outside, however, can be scoped within the repeating section.
 
 &nbsp; *Template:*
 
@@ -547,7 +511,7 @@ Nested sections should behave as expected, even mixing regular versus repeating 
 &nbsp; *Outputs:*
 
 ```
-Tina Belcher, Gene Belcher, and Louise Belcher.
+Tina Belcher , Gene Belcher , and Louise Belcher
 ```
 
 A few behaviors to note for the above example:
@@ -678,6 +642,10 @@ Louise is 9 years old
 
 Finally, there is the special case of calling a function within a function. While this is easily done using the `this` context, all inner functions that are manually triggered require careful monitoring of the context as nested function calls get triggered. For a detailed explanation and example of how this works, see [Scoping of functions within functions](#scoping-of-function-within-functions).
 
+### Passing parameters to functions
+
+You may want to pass parameters to functions dynamically, for example, within a repeating section.
+
 ### Error handling ###
 
 By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `errorOnFuncFailure` flag to `true`: 
@@ -770,15 +738,14 @@ The support for grammatically formatted [lists](#lists) and built-in formatters 
 Major syntax/usage differences include:
 
 * [Evaluation of "truthiness"](#section-value-evaluation). Mustache reads `0` as false when evaluating a section whereas Templatize treats 0 as a valid value.
-* Repeating section: 
-    * Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab values from each list item within that section). Templatize still uses dot notation to grab data within a repeating section.
-    * Functions called within a repeating section are given the `this` context of the item in the repeating section.
+* Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab values from each list item within that section). Templatize still requires the full dot notation to grab data within a repeating section.
+* In Mustache, functions called within a section are given the `this` context of the data-binding of the section. Thus calling a function in a repeating section changes the context to the item per iteration. In Templatize, you must instead pass the item as a parameter to the section. (See [Passing parameters to functions](#passing-parameters-to-functions)).
 
 Functional differences include:
 
-* Templatize does not implement caching of templates, all templates are parsed and render at call.
-* Templatize has no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this).
 * Templatize currently has no support for custom delimiters.
+* Templatize does not implement caching of templates. All templates are parsed and render at call.
+* Templatize has no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this).
 
 &nbsp;
 
@@ -930,7 +897,7 @@ This function is called by the function `age` within each instance of `children`
 
 Finally, the function `ages` maps each item in `children` to the result of the `age` function to create an array of just the ages. However, because we are manually calling a function within a function, and the inner function relies on `this._parent`, we need to supply `this._parent` as that variable is not automatically added in a manual function call.
 
-Confused yet? Don't worry, the above case is a very contrived scenario to create a somewhat ridiculous but pronounced case for demonstration. There are many cleaner and more efficient solutions to the above example that avoid such scoping problems. E.g. the map function could simply return `this.year - child.born`.
+Confused yet? Don't worry, the above case is a very contrived scenario to force the issue for demonstration. There are many cleaner and more efficient solutions to the above example that avoid such scoping problems. E.g. the map function could simply return `this.year - child.born`, or the template could dynamically pass the repeating section's item of iteration of the function.
 
 -----
 

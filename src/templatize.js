@@ -146,10 +146,11 @@ export default {
         for(let i = 0; i < bindings.length; ++i) {
             if(this.__objTester.call(bindings[i]) === "[object Object]") {
                 // if an object literal, treat like a new render
-                if(!bindings[i]._parent) bindings[i]._parent = bindings._parent;  // add parent context
-                // treat each section like a new render
-                insertHtml += this.__render(sectionHtml, bindings[i], section);
-                delete bindings[i]._parent;
+                if(!("_display" in bindings[i]) || bindings[i]["_display"]) {
+                    bindings[i]._parent = bindings._parent;  // add parent context
+                    insertHtml += this.__render(sectionHtml, bindings[i], section);
+                    delete bindings[i]._parent;
+                }
             } else {
                 // try to print value as is
                 insertHtml += this.__renderValue(sectionHtml, `${section}.`, bindings[i]);
@@ -167,7 +168,7 @@ export default {
 
     __renderList: function(html, section, bindings) {
         let listStr = false;
-        return html.replace(new RegExp(`(?<!!){{(&${section})(?::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
+        return html.replace(new RegExp(`(?<!!){{(&${section})(?:::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
             if(listStr !== false) return listStr;
             if(!bindings || !bindings.length) return listStr = "";
             let values = bindings.map(val => this.__format(val, format));
@@ -194,7 +195,7 @@ export default {
     }, 
 
     __renderValue: function(html, tag, value) {
-       return html.replace(new RegExp(`(?<!!){{(${tag})(?::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
+       return html.replace(new RegExp(`(?<!!){{(${tag})(?:::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
             return this.__format(value, format);
         });
     }, 

@@ -60,24 +60,53 @@
   <body>
     <div id="container">
       <label>Template:</label>
-      <textarea id="input-template">{{name.first}} {{name.last}} sells {{&items}} with {{&family}}.</textarea>
+      <textarea id="input-template">{{name.full}} has {{numChildrenText}}.<br />
+{{&kidsNamesAndAges}}.
+<br /><br />
+{{#relations}}His {{relations.relation}} is {{relations.name}}. {{/relations}}</textarea>
       <div class="spacer"></div>
       <label>Bindings:</label>
       <textarea id="input-bindings">{
+  familyName: "Belcher", 
   name: {
     first: "Bob", 
-    last: "Belcher"
+    full: function() {
+      return this.first + " " + this._parent.familyName;          
+    }
   }, 
-  items: ["burgers", "fires"], 
-  wife: {name: "Linda"}, 
-  kids: [
-    {name: "Tina"}, 
-    {name: "Gene"}, 
-    {name: "Louise"}
-  ],
-  family: function() {
-    return [this.wife.name].concat(this.kids.map(kid => kid.name));
-  }
+  children: [
+    {name: "Tina", born: 2008}, 
+    {name: "Gene", born: 2010}, 
+    {name: "Louise", born: 2012}
+  ],  
+  numChildrenText: function() {
+    switch(this.children.length) {
+      case 0:
+        return "no children"
+      case 1:
+        return "one child"
+      default:
+        return this.children.length + " children"
+    }
+  }, 
+  year: 2021, 
+  kidsNamesAndAges: function() {
+    return this.children.map(child => {
+      var fullname = child.name + " " + this.familyName, 
+          age = this.year - child.born;
+      return fullname + " is " + age + " years old";
+    });
+  }, 
+  relations: [
+    {
+      relation: "wife", 
+      name: function() { return "Linda " + this._parent.familyName; }
+    }, 
+    {
+      relation: "rival", 
+      name: "Jimmy Pesto"
+    }
+  ]
 }</textarea>
       <div class="spacer"></div>
       <label>Output:</label>

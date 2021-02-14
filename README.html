@@ -1070,7 +1070,6 @@ body .markdown-body
 <li><a href="#sections">Sections</a><ul>
 <li><a href="#basic-sections">Basic sections</a></li>
 <li><a href="#section-value-evaluation">Section value evaluation</a></li>
-<li><a href="#sections-with-data">Sections with data</a></li>
 <li><a href="#more-section-behavior">More section behavior</a></li>
 </ul>
 </li>
@@ -1162,11 +1161,11 @@ body .markdown-body
 </pre></div>
 
 <h2 id="formatting">Formatting<a class="headerlink" href="#formatting" title="Permanent link"></a></h2>
-<p>Formatting options are also available by suffixing the property name in the template code with a colon and format directive. For strings, accepted directives are &lsquo;upper&rsquo;, &lsquo;lower&rsquo;, and &lsquo;capitalize&rsquo;. For numbers, Templatize uses the <a href="https://github.com/d3/d3-format">d3-format library</a>. See documentation there for various formatting options.</p>
+<p>Formatting options are also available by suffixing the property name in the template code with a double-colon and format directive. For strings, accepted directives are &lsquo;upper&rsquo;, &lsquo;lower&rsquo;, and &lsquo;capitalize&rsquo;. For numbers, Templatize uses the <a href="https://github.com/d3/d3-format">d3-format library</a>. See documentation there for various formatting options.</p>
 <p>The format directive &lsquo;encode&rsquo; will also encode HTML special characters such as pointed brackets, ampersands, and quotes. You can also preface another format directive with a &ldquo;^&rdquo; to achieve the same in addition to the chosen directive.</p>
 <p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{name:capitalize}} lives in {{locale:capitalize}} and sells burgers for {{price.burger:$.2f}}.
-{{break}}{{break:encode}}{{break:^upper}}{{break:^}}
+<div class="codehilite"><pre>{{name:capitalize}} lives in {{locale::capitalize}} and sells burgers for {{price.burger::$.2f}}.
+{{break}}{{break::encode}}{{break::^upper}}{{break::^}}
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>
@@ -1210,53 +1209,32 @@ body .markdown-body
 <h2 id="sections">Sections<a class="headerlink" href="#sections" title="Permanent link"></a></h2>
 <h3 id="basic-sections">Basic Sections<a class="headerlink" href="#basic-sections" title="Permanent link"></a></h3>
 <p>Section are marked with start at <code>#</code>-prefix and end at <code>/</code>-prefix. By binding section to a <code>true</code> or <code>false</code> value, they may be shown or removed.</p>
-<p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
-</pre></div>
-
-<p>&nbsp; <em>Bindings:</em></p>
-<div class="codehilite"><pre><span class="p">{</span>
-  <span class="nx">married</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> 
-  <span class="nx">single</span><span class="o">:</span> <span class="kc">false</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>Is married.
-</pre></div>
-
 <p>You may also use an inverse section by replacing <code>#</code> starting prefix with <code>^</code>. Such sections will only be displayed if the section is evaluated to <code>false</code>.</p>
+<p>Data may be put inside of a section.</p>
 <p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{^single}}Is not single.{{/single}}
-</pre></div>
-
-<p>&nbsp; <em>Bindings:</em></p>
-<div class="codehilite"><pre><span class="p">{</span><span class="nx">single</span><span class="o">:</span> <span class="kc">false</span><span class="p">}</span>
-</pre></div>
-
-<p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>Is not single.
-</pre></div>
-
-<p>Data may be put inside of a section. E.g.:</p>
-<p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{#married}}Is married to {{spouse}}.{{/married}}
+<div class="codehilite"><pre>Bob is {{#married}}married{{/married}}{{#single}}single{{/single}}.&lt;br /&gt;
+{{#married}}Bob is married to {{spouse}}.{{/married}}&lt;br /&gt;
+Bob has {{^haspets}}no pets{{/haspets}}{{#haspets}}pets{{/haspets}}.
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>
 <div class="codehilite"><pre><span class="p">{</span>
   <span class="nx">married</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> 
-  <span class="nx">spouse</span><span class="o">:</span> <span class="s2">&quot;Linda&quot;</span>
+  <span class="nx">single</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span> 
+  <span class="nx">spouse</span><span class="o">:</span> <span class="s2">&quot;Linda&quot;</span><span class="p">,</span> 
+  <span class="nx">haspets</span><span class="o">:</span> <span class="kc">false</span>
 <span class="p">}</span>
 </pre></div>
 
 <p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>Is married to Linda.
+<div class="codehilite"><pre>Bob is married.
+Bob is married to Linda.
+Bob has no pets.
 </pre></div>
 
-<p>If the section key does not exist, that section is simply not evaluated in the template, which is a common error. E.g.: </p>
+<p>If the section key does not exist, that section is simply not evaluated in the template, which is a common error.</p>
 <p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
+<div class="codehilite"><pre>Bob is {{#married}}married.{{/married}}{{#single}}single.{{/single}}
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>
@@ -1264,16 +1242,16 @@ body .markdown-body
 </pre></div>
 
 <p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>Is married.{{#single}}Is single.{{/single}}
+<div class="codehilite"><pre>Bob is married{{#single}}single{{/single}}.
 </pre></div>
 
 <h3 id="section-value-evaluation">Section value evaluation<a class="headerlink" href="#section-value-evaluation" title="Permanent link"></a></h3>
 <p>Section data may be other values besides boolean. However, evaluation of non-boolean values have minor differences from normal Javascript behavior. Values of <code>undefined</code>, <code>null</code>, an empty string, or a string composed only of whitespace (if you want to add whitespace, use <code>&amp;nbsp;</code>), evaluate to <code>false</code>. Conversely, a value of <code>0</code> is evaluated as <code>true</code>.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>Profit:&lt;br /&gt;
-Monday - {{#monday}}${{monday}}{{/monday}}{{^monday}}Closed{{/monday}}&lt;br /&gt;
-Sunday - {{#sunday}}${{sunday}}{{/sunday}}{{^sunday}}Closed{{/sunday}}&lt;br /&gt;
-Saturday - {{#saturday}}${{saturday}}{{/saturday}}{{^saturday}}Closed{{/saturday}}&lt;br /&gt;
+Monday - {{#monday}}{{monday::$.2f}}{{/monday}}{{^monday}}Closed{{/monday}}&lt;br /&gt;
+Sunday - {{#sunday}}{{sunday::$.2f}}{{/sunday}}{{^sunday}}Closed{{/sunday}}&lt;br /&gt;
+Saturday - {{#saturday}}{{saturday::$.2f}}{{/saturday}}{{^saturday}}Closed{{/saturday}}&lt;br /&gt;
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>
@@ -1287,12 +1265,11 @@ Saturday - {{#saturday}}${{saturday}}{{/saturday}}{{^saturday}}Closed{{/saturday
 <p>&nbsp; <em>Outputs:</em></p>
 <div class="codehilite"><pre>Profit:
 Monday - Closed
-Sunday - $0
-Saturday - $122
+Sunday - $0.00
+Saturday - $122.00
 </pre></div>
 
-<h3 id="sections-with-data">Sections with data<a class="headerlink" href="#sections-with-data" title="Permanent link"></a></h3>
-<p>As long as data-binding for section evaluates to <code>true</code> (<a href="#section-value-evaluation">see above</a>), it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value:</p>
+<p>As long as data-binding for section evaluates to <code>true</code>, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>{{#job}}Occupation: {{job}}{{/job}}
 </pre></div>
@@ -1305,7 +1282,7 @@ Saturday - $122
 <div class="codehilite"><pre>Occupation: Chef
 </pre></div>
 
-<p>The above though is somewhat messy of an implementation. One alternative is to separate a &ldquo;display&rdquo; variable like so:</p>
+<p>The above though is somewhat messy of an implementation. One alternative is to separate a &ldquo;display&rdquo; variable.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>{{#showJob}}Occupation: {{job}}{{/showJob}}
 </pre></div>
@@ -1317,7 +1294,7 @@ Saturday - $122
 <span class="p">}</span>
 </pre></div>
 
-<p>Or, even better, used a nested structure for the section like below:</p>
+<p>Or, even better, used a nested structure for the section like below.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>{{#job}}Occupation: {{job.title}}{/job}}
 </pre></div>
@@ -1357,7 +1334,7 @@ Bob is a chef.
 <p>Note in the above that <code>_display</code> does not reverse the behavior of inverse sections (the section <code>{{^job}}Unemployed{/job}}</code> is still hidden as <code>job</code> itself is not evaluated to <code>false</code>). Also, nested section data may still be accessed and rendered outside of the section, even if the section itself is set not to display.</p>
 <p>&nbsp;</p>
 <h2 id="repeating-sections">Repeating Sections<a class="headerlink" href="#repeating-sections" title="Permanent link"></a></h2>
-<p>For repeating sections, set the section value to an array of objects and section will be repeated for as many items exists in the array. May still use <code>_display</code> to not use particular array item. Values within the repeating section must still be called via dot notation within the section.</p>
+<p>For repeating sections, set the section value to an array and the section will be repeated for as many items exists in the array. May still use <code>_display</code> to not use particular array item. Values within the repeating section must still be called via dot notation within the section.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>{{#children}}Child: {{children.firstName}}&lt;br /&gt;{{/children}}
 </pre></div>
@@ -1367,7 +1344,8 @@ Bob is a chef.
   <span class="nx">children</span><span class="o">:</span> <span class="p">[</span>
     <span class="p">{</span><span class="nx">firstName</span><span class="o">:</span> <span class="s2">&quot;Tina&quot;</span><span class="p">},</span> 
     <span class="p">{</span><span class="nx">firstName</span><span class="o">:</span> <span class="s2">&quot;Gene&quot;</span><span class="p">},</span> 
-    <span class="p">{</span><span class="nx">firstName</span><span class="o">:</span> <span class="s2">&quot;Louise&quot;</span><span class="p">}</span>
+    <span class="p">{</span><span class="nx">firstName</span><span class="o">:</span> <span class="s2">&quot;Louise&quot;</span><span class="p">},</span> 
+    <span class="p">{</span><span class="nx">firstName</span><span class="o">:</span> <span class="s2">&quot;Kuchi-Kopi&quot;</span><span class="p">,</span> <span class="nx">_display</span><span class="o">:</span> <span class="kc">false</span><span class="p">}</span>
   <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -1378,7 +1356,7 @@ Child: Gene
 Child: Louise
 </pre></div>
 
-<p>Note above cases uses an array of objects. If a flat array of values is used, may simply use dot notation ending with the dot.</p>
+<p>Note above example uses an array of objects. If a flat array of values is used, may simply use dot notation ending with the dot to display the value.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>{{#children}}Child: {{children.}}&lt;br /&gt;{{/children}}
 </pre></div>
@@ -1395,10 +1373,9 @@ Child: Gene
 Child: Louise
 </pre></div>
 
-<p>However, the above case makes more sense with <a href="#lists">lists</a>.</p>
-<p>Note there is currently no support for nested arrays or an array of functions. It must either be an array of objects or printable values. Within said objects as items, however, may be more nested arrays or functions.</p>
+<p>Note there is currently no support for multidimensional-arrays or an array of functions. It must either be an array of objects or printable values. With and array of objects however, there may be more nested arrays or functions within each item.</p>
 <p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{#a}}{{#a.b}}{{a.b.c}}{{/a.b}}{{/a}}
+<div class="codehilite"><pre>{{#a}}{{#a.b}}[{{a.b.c}}]{{/a.b}}&lt;br /&gt;{{/a}}
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>
@@ -1416,10 +1393,11 @@ Child: Louise
 </pre></div>
 
 <p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>1234
+<div class="codehilite"><pre>[1][2]
+[3][4]
 </pre></div>
 
-<p>Unlike regular sections, repeating sections are limited in scope to its own section. Thus, variables within a repeating section&rsquo;s data bindings will not evaluate outside the portion of the template within the repeating section. Values from outside, however, can be scoped within the repeating section.</p>
+<p>Unlike regular sections, access to variables within repeating section&rsquo;s array are limited in scope to where in the template the section is used. Thus, variables within a repeating section&rsquo;s data bindings will not evaluate outside the portion of the template within the repeating section. Values from outside, however, can be scoped within the repeating section.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>{{#children}}Child: {{children.firstName}} {{lastName}}&lt;br /&gt;{{/children}}
 &lt;br /&gt;
@@ -1480,7 +1458,7 @@ These won&#39;t evaluate: {{children}} {{children.firstName}} {{children[0].firs
 </pre></div>
 
 <p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>Tina Belcher, Gene Belcher, and Louise Belcher.
+<div class="codehilite"><pre>Tina Belcher , Gene Belcher , and Louise Belcher
 </pre></div>
 
 <p>A few behaviors to note for the above example:</p>
@@ -1658,11 +1636,8 @@ His wife is Linda Belcher. His rival is Jimmy Pesto.
 <p>Major syntax/usage differences include:</p>
 <ul>
 <li><a href="#section-value-evaluation">Evaluation of &ldquo;truthiness&rdquo;</a>. Mustache reads <code>0</code> as false when evaluating a section whereas Templatize treats 0 as a valid value.</li>
-<li>Repeating section: <ul>
-<li>Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab values from each list item within that section). Templatize still uses dot notation to grab data within a repeating section.</li>
-<li>Functions called within a repeating section are given the <code>this</code> context of the item in the repeating section.</li>
-</ul>
-</li>
+<li>Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab values from each list item within that section). Templatize still requires the full dot notation to grab data within a repeating section.</li>
+<li>In Mustache, functions called within a section are given the <code>this</code> context of the data-binding of the section. Thus calling a function in a repeating section changes the context to the item per iteration.</li>
 </ul>
 <p>Functional differences include:</p>
 <ul>
