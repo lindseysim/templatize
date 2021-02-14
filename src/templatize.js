@@ -14,7 +14,7 @@ export default {
     __objTester: ({}).toString, 
 
     render: function(html, bindings, cleanup) {
-        var rendered = this.__render(html, bindings)
+        var rendered = this.__render(html, bindings, null, bindings)
                            .replace(new RegExp(`(?<!!){{![^}]*}}` , 'g'), "");  // cleanup comments
         if(cleanup) {
             var iCleanupStart = rendered.indexOf("{{");
@@ -33,7 +33,7 @@ export default {
         return rendered;
     }, 
 
-    __render: function(html, bindings, prefix) {
+    __render: function(html, bindings, prefix, root) {
         if(!html) return "";
         // render section for subsections as nested objects
         let inSection = false;
@@ -55,26 +55,39 @@ export default {
                     // if an object literal, recurse into
                     case "[object Object]":
                         if(!value._parent) value._parent = bindings;  // add parent context
-                        html = this.__render(html, value, tKey);
+                        // render item as object after rendering any object as function context
+                        html = this.__render(
+                            this.__renderFunctionContext(html, tKey, value, root), 
+                            value, 
+                            tKey, 
+                            root
+                        );
                         delete value._parent;
                         continue;
                     // if an array, treat as repeating section
                     case "[object Array]":
                         if(!value._parent) value._parent = bindings;  // add parent context
-                        html = this.__renderList(html, tKey, value);
-                        html = this.__renderRepeatingSection(html, tKey, value);
+                        html = this.__renderRepeatingSection(
+                            this.__renderList(html, tKey, value),  // list formatting
+                            tKey, 
+                            value, 
+                            root
+                        );
                         delete value._parent;
                         continue;
                     // if a function, use it to evaluate value, then recurse to apply by result type
                     case "[object Function]":
                         try {
-                            // duplicate function result as if it were in binding
+                            // skip naked evaluation if marked as contextual only
+                            if(key.startsWith("~")) continue;
+                            // duplicate function result into emulated binding
                             let rebind = {};
                             rebind[key] = value.call(bindings);
-                            if(!rebind._parent) rebind._parent = bindings;  // add parent context
-                            html = this.__render(html, rebind, prefix);
+                            if(!rebind._parent) rebind._parent = bindings;
+                            html = this.__render(html, rebind, null, root);
                             continue;
                         } catch(e) {
+                            // set error if functions errors, otherwise continue with blank to remove tags
                             if(this.errorOnFuncFailure) throw e;
                             value = "";
                         }
@@ -82,6 +95,7 @@ export default {
             }
             // display/hide section with this tag first
             html = this.__renderSection(html, tKey, value);
+            // render simple tags
             html = this.__renderValue(html, tKey, value);
         }
         return html;
@@ -133,7 +147,7 @@ export default {
         return html;
     }, 
 
-    __renderRepeatingSection: function(html, section, bindings) {
+    __renderRepeatingSection: function(html, section, bindings, root) {
         let sectionStart = `{{#${section}}}`, 
             sectionEnd   = `{{/${section}}}`, 
             iStart       = this.__indexOf(html, sectionStart), 
@@ -147,8 +161,15 @@ export default {
             if(this.__objTester.call(bindings[i]) === "[object Object]") {
                 // if an object literal, treat like a new render
                 if(!("_display" in bindings[i]) || bindings[i]["_display"]) {
-                    bindings[i]._parent = bindings._parent;  // add parent context
-                    insertHtml += this.__render(sectionHtml, bindings[i], section);
+                    // add parent context
+                    bindings[i]._parent = bindings._parent;
+                    // render item as object after rendering any object as function context
+                    insertHtml += this.__render(
+                        this.__renderFunctionContext(sectionHtml, section, bindings[i], root), 
+                        bindings[i], 
+                        section, 
+                        root
+                    );
                     delete bindings[i]._parent;
                 }
             } else {
@@ -168,7 +189,7 @@ export default {
 
     __renderList: function(html, section, bindings) {
         let listStr = false;
-        return html.replace(new RegExp(`(?<!!){{(&${section})(?:::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
+        return this.__renderValue(html, '&'+section, (match, tag, format) => {
             if(listStr !== false) return listStr;
             if(!bindings || !bindings.length) return listStr = "";
             let values = bindings.map(val => this.__format(val, format));
@@ -183,7 +204,7 @@ export default {
                 });
             }
             return listStr;
-        });
+        })
     }, 
 
     __indexOf: function(html, search, indexStart) {
@@ -195,9 +216,13 @@ export default {
     }, 
 
     __renderValue: function(html, tag, value) {
-       return html.replace(new RegExp(`(?<!!){{(${tag})(?:::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
-            return this.__format(value, format);
-        });
+        tag = this.__regexClean(tag);
+        return html.replace(
+            new RegExp(`(?<!!){{(${tag})(?:::)?([^:}]*)?}}` , 'g'), 
+            typeof value === "function" ? value : (match, tag, format) => {
+                return this.__format(value, format);
+            }
+        );
     }, 
 
     __format: function(value, format) {
@@ -234,6 +259,29 @@ export default {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }, 
+
+    __renderFunctionContext: function(html, tag, context, root) {
+        tag = this.__regexClean(tag);
+        return html.replace(
+            new RegExp(`(?<!!){{(${tag})(?:~)([^:}]*)(?:::)?([^:}]*)?}}` , 'g'), 
+            (match, tag, funcPath, format) => {
+                try {
+                    let path = funcPath.split("."), 
+                        func = root;
+                    path.forEach((sub,i) => {
+                        func = func[path[i]] || func["~"+path[i]];
+                    });
+                    return this.__format(func.call(context), format);
+                } catch {
+                    return "";
+                }
+            }
+        );
+    }, 
+
+    __regexClean(value) {
+        return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
     }
 
 };

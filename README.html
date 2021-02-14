@@ -1078,8 +1078,9 @@ body .markdown-body
 <li><a href="#functions">Functions</a><ul>
 <li><a href="#context-and-parent">Context and parent</a></li>
 <li><a href="#nesting">Nesting</a></li>
+<li><a href="#functions-within-functions">Functions within functions</a></li>
+<li><a href="#dynamically-scoping-functions">Dynamically scoping functions</a></li>
 <li><a href="#error-handling">Error handling</a></li>
-<li>[Functions within functions][#functions-within-functions]</li>
 </ul>
 </li>
 <li><a href="#putting-it-all-together">Putting it all together</a></li>
@@ -1463,7 +1464,7 @@ These won&#39;t evaluate: {{children}} {{children.firstName}} {{children[0].firs
 
 <p>A few behaviors to note for the above example:</p>
 <ul>
-<li>Within the template for the repeating section, scope is still from the top level, hence we can render <code>name.last</code> within, and subvariables of <code>children</code> must be called via dot notation.</li>
+<li>Within the template for the repeating section, scope is still from the top level, hence we can render <code>name.last</code> within, and sub-variables of <code>children</code> must be called via dot notation.</li>
 <li><code>children[].lastChild</code> must be specified for all array items, as the evaluation for <code>lastChild</code> in each repeat of the section will only happen where such a key exists.</li>
 </ul>
 <p>&nbsp; </p>
@@ -1561,6 +1562,87 @@ Louise is 9 years old
 
 <h3 id="functions-within-functions">Functions within functions<a class="headerlink" href="#functions-within-functions" title="Permanent link"></a></h3>
 <p>Finally, there is the special case of calling a function within a function. While this is easily done using the <code>this</code> context, all inner functions that are manually triggered require careful monitoring of the context as nested function calls get triggered. For a detailed explanation and example of how this works, see <a href="#scoping-of-function-within-functions">Scoping of functions within functions</a>.</p>
+<h3 id="dynamically-scoping-functions">Dynamically scoping functions<a class="headerlink" href="#dynamically-scoping-functions" title="Permanent link"></a></h3>
+<p>You may want set the context of the functions dynamically, for example, within a repeating section. By calling a function with the tilde (<code>~</code>), the function will be called with the context as specified before the tilde.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{#family.children}}{{family.children.name}} is {{family.children~calcAge}}. {{/family.children}}
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="nx">family</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">children</span><span class="o">:</span> <span class="p">[</span>
+      <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Tina&quot;</span><span class="p">,</span> <span class="nx">born</span><span class="o">:</span> <span class="mi">2008</span><span class="p">},</span> 
+      <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Gene&quot;</span><span class="p">,</span> <span class="nx">born</span><span class="o">:</span> <span class="mi">2010</span><span class="p">},</span> 
+      <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Louise&quot;</span><span class="p">,</span> <span class="nx">born</span><span class="o">:</span> <span class="mi">2012</span><span class="p">}</span>
+    <span class="p">]</span>
+  <span class="p">},</span> 
+  <span class="nx">calcAge</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="mi">2021</span> <span class="o">-</span> <span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>Bob is 47.
+</pre></div>
+
+<p>One important thing to note, Templatize will individually evaluate any function in the context it is placed in the data-binding. This is as Templatize evaluates by bindings then searching for relevant tags (instead of by tags then searching for bindings). </p>
+<p>As such, the below will result in an exception when <code>calcAge</code> is evaluated independently in the top-level scope and does not find a <code>this._parent</code> to reference <code>year</code> from.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{#children}}{{children.name}} is {{children~calcAge}}. {{/children}}
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="nx">children</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Tina&quot;</span><span class="p">,</span> <span class="nx">born</span><span class="o">:</span> <span class="mi">2008</span><span class="p">},</span> 
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Gene&quot;</span><span class="p">,</span> <span class="nx">born</span><span class="o">:</span> <span class="mi">2010</span><span class="p">},</span> 
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Louise&quot;</span><span class="p">,</span> <span class="nx">born</span><span class="o">:</span> <span class="mi">2012</span><span class="p">}</span>
+  <span class="p">],</span> 
+  <span class="nx">year</span><span class="o">:</span> <span class="mi">2021</span><span class="p">,</span> 
+  <span class="nx">calcAge</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">year</span> <span class="o">-</span> <span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Normally, this does not break the rendering, as the default behavior is to fail functions silently (see next section). However, if that is modified, then this will throw the exception.</p>
+<p>To prevent this, the <code>calcAge</code> function could be adjusted in two ways. First, it could simply check for the existence of the parameters it requires and if not found, return blank or some other filler value.</p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="p">...</span>
+  <span class="nx">calcAge</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_parent</span> <span class="o">||</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">year</span> <span class="o">||</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">)</span> <span class="k">return</span> <span class="s2">&quot;--&quot;</span><span class="p">;</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">year</span> <span class="o">-</span> <span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Another method is to prefix the variable name with a tilde (&lsquo;~&rsquo;), which tells Templatize not to evaluate this function unless provided a given context. When calling the function in the template, you do not need to double up on the tilde, whether it is nested or not.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{#children}}{{children~funcs.fullName}} is {{children~calcAge}}. {{/children}}
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="nx">children</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Tina&quot;</span><span class="p">,</span> <span class="nx">born</span><span class="o">:</span> <span class="mi">2008</span><span class="p">},</span> 
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Gene&quot;</span><span class="p">,</span> <span class="nx">born</span><span class="o">:</span> <span class="mi">2010</span><span class="p">},</span> 
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Louise&quot;</span><span class="p">,</span> <span class="nx">born</span><span class="o">:</span> <span class="mi">2012</span><span class="p">}</span>
+  <span class="p">],</span> 
+  <span class="nx">familyName</span><span class="o">:</span> <span class="s2">&quot;Belcher&quot;</span><span class="p">,</span> 
+  <span class="nx">year</span><span class="o">:</span> <span class="mi">2021</span><span class="p">,</span> 
+  <span class="s1">&#39;~calcAge&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">year</span> <span class="o">-</span> <span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">;</span>
+  <span class="p">},</span> 
+  <span class="nx">funcs</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s1">&#39;~fullName&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">familyName</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
 <h3 id="error-handling">Error handling<a class="headerlink" href="#error-handling" title="Permanent link"></a></h3>
 <p>By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the <code>errorOnFuncFailure</code> flag to <code>true</code>: </p>
 <div class="codehilite"><pre><span class="nx">Templatize</span><span class="p">.</span><span class="nx">errorOnFuncFailure</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
@@ -1637,13 +1719,13 @@ His wife is Linda Belcher. His rival is Jimmy Pesto.
 <ul>
 <li><a href="#section-value-evaluation">Evaluation of &ldquo;truthiness&rdquo;</a>. Mustache reads <code>0</code> as false when evaluating a section whereas Templatize treats 0 as a valid value.</li>
 <li>Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab values from each list item within that section). Templatize still requires the full dot notation to grab data within a repeating section.</li>
-<li>In Mustache, functions called within a section are given the <code>this</code> context of the data-binding of the section. Thus calling a function in a repeating section changes the context to the item per iteration.</li>
+<li>In Mustache, functions called within a section are given the <code>this</code> context of the data-binding of the section. Thus calling a function in a repeating section changes the context to the item per iteration. In Templatize, you must instead pass the item as a parameter to the section. (See <a href="#passing-parameters-to-functions">Passing parameters to functions</a>).</li>
 </ul>
 <p>Functional differences include:</p>
 <ul>
-<li>Templatize does not implement caching of templates, all templates are parsed and render at call.</li>
-<li>Templatize has no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this).</li>
 <li>Templatize currently has no support for custom delimiters.</li>
+<li>Templatize does not implement caching of templates. All templates are parsed and render at call.</li>
+<li>Templatize has no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this).</li>
 </ul>
 <p>&nbsp;</p>
 <h3 id="caching">Caching<a class="headerlink" href="#caching" title="Permanent link"></a></h3>
@@ -1759,7 +1841,7 @@ Total (w/ tax): $7.35
 <p>There&rsquo;s a lot going on here, so let&rsquo;s break it down step by step. First, we defined the function <code>calcAge</code>, which uses its <code>this</code> context to access <code>year</code>. Note that as it takes in an input parameter, it cannot be called directly by Templatize which can&rsquo;t know how to pass said parameter (using <code>{{calcAge}}</code> in the template would result in &ldquo;NaN&rdquo;).</p>
 <p>This function is called by the function <code>age</code> within each instance of <code>children</code>. In <code>age</code>, the <code>this</code> context is used to pass each child&rsquo;s <code>born</code> property as an input parameter to <code>calcAge</code>. Because the scope is nested, it uses <code>this._parent</code> to access <code>calcAge</code>. When <code>calcAge</code> is called here, because it is called from the scope of <code>_parent</code>, the <code>this</code> context within <code>calcAge</code> still has access to <code>this.year</code>.</p>
 <p>Finally, the function <code>ages</code> maps each item in <code>children</code> to the result of the <code>age</code> function to create an array of just the ages. However, because we are manually calling a function within a function, and the inner function relies on <code>this._parent</code>, we need to supply <code>this._parent</code> as that variable is not automatically added in a manual function call.</p>
-<p>Confused yet? Don&rsquo;t worry, the above case is a very contrived scenario to create a somewhat ridiculous but pronounced case for demonstration. There are many cleaner and more efficient solutions to the above example that avoid such scoping problems. E.g. the map function could simply return <code>this.year - child.born</code>.</p>
+<p>Confused yet? Don&rsquo;t worry, the above case is a very contrived scenario to force the issue for demonstration. There are many cleaner and more efficient solutions to the above example that avoid such scoping problems. E.g. the map function could simply return <code>this.year - child.born</code>, or the template could dynamically pass the repeating section&rsquo;s item of iteration of the function.</p>
 <hr />
 <p>&nbsp;</p>
 <h3 id="acknowledgments">Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permanent link"></a></h3>

@@ -20,8 +20,8 @@ Lawrence Sim © 2021
 * [Functions](#functions)
     * [Context and parent](#context-and-parent)
     * [Nesting](#nesting)
-    * [Functions within functions][#functions-within-functions]
-    * [Passing parameters to functions](#passing-parameters-to-functions)
+    * [Functions within functions](#functions-within-functions)
+    * [Dynamically scoping functions](#dynamically-scoping-functions)
     * [Error handling](#error-handling)
 * [Putting it all together](#putting-it-all-together)
 * [More](#more)
@@ -516,7 +516,7 @@ Tina Belcher , Gene Belcher , and Louise Belcher
 
 A few behaviors to note for the above example:
 
-* Within the template for the repeating section, scope is still from the top level, hence we can render `name.last` within, and subvariables of `children` must be called via dot notation.
+* Within the template for the repeating section, scope is still from the top level, hence we can render `name.last` within, and sub-variables of `children` must be called via dot notation.
 * `children[].lastChild` must be specified for all array items, as the evaluation for `lastChild` in each repeat of the section will only happen where such a key exists.
 
 &nbsp; 
@@ -642,9 +642,108 @@ Louise is 9 years old
 
 Finally, there is the special case of calling a function within a function. While this is easily done using the `this` context, all inner functions that are manually triggered require careful monitoring of the context as nested function calls get triggered. For a detailed explanation and example of how this works, see [Scoping of functions within functions](#scoping-of-function-within-functions).
 
-### Passing parameters to functions
+### Dynamically scoping functions ###
 
-You may want to pass parameters to functions dynamically, for example, within a repeating section.
+You may want set the context of the functions dynamically, for example, within a repeating section. By calling a function with the tilde (`~`), the function will be called with the context as specified before the tilde.
+
+&nbsp; *Template:*
+
+```
+{{#family.children}}{{family.children.name}} is {{family.children~calcAge}}. {{/family.children}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  family: {
+    children: [
+      {name: "Tina", born: 2008}, 
+      {name: "Gene", born: 2010}, 
+      {name: "Louise", born: 2012}
+    ]
+  }, 
+  calcAge: function() {
+    return 2021 - this.born;
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+Bob is 47.
+```
+
+One important thing to note, Templatize will individually evaluate any function in the context it is placed in the data-binding. This is as Templatize evaluates by bindings then searching for relevant tags (instead of by tags then searching for bindings). 
+
+As such, the below will result in an exception when `calcAge` is evaluated independently in the top-level scope and does not find a `this._parent` to reference `year` from.
+
+&nbsp; *Template:*
+
+```
+{{#children}}{{children.name}} is {{children~calcAge}}. {{/children}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  children: [
+    {name: "Tina", born: 2008}, 
+    {name: "Gene", born: 2010}, 
+    {name: "Louise", born: 2012}
+  ], 
+  year: 2021, 
+  calcAge: function() {
+    return this._parent.year - this.born;
+  }
+}
+```
+
+Normally, this does not break the rendering, as the default behavior is to fail functions silently (see next section). However, if that is modified, then this will throw the exception.
+
+To prevent this, the `calcAge` function could be adjusted in two ways. First, it could simply check for the existence of the parameters it requires and if not found, return blank or some other filler value.
+
+```javascript
+{
+  ...
+  calcAge: function() {
+    if(!this._parent || !this._parent.year || !this.born) return "--";
+    return this._parent.year - this.born;
+  }
+}
+```
+
+Another method is to prefix the variable name with a tilde ('~'), which tells Templatize not to evaluate this function unless provided a given context. When calling the function in the template, you do not need to double up on the tilde, whether it is nested or not.
+
+&nbsp; *Template:*
+
+```
+{{#children}}{{children~funcs.fullName}} is {{children~calcAge}}. {{/children}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  children: [
+    {name: "Tina", born: 2008}, 
+    {name: "Gene", born: 2010}, 
+    {name: "Louise", born: 2012}
+  ], 
+  familyName: "Belcher", 
+  year: 2021, 
+  '~calcAge': function() {
+    return this._parent.year - this.born;
+  }, 
+  funcs: {
+    '~fullName': function() {
+      return this.name + " " + this._parent.familyName;
+    }
+  }
+}
+```
 
 ### Error handling ###
 
