@@ -195,9 +195,12 @@ export default {
         if(!isNaN(value) && !isNaN(parseFloat(value))) {
             return d3.format(format)(value);
         }
+        if(format.startsWith("^")) {
+            value = this.__escape(value);
+            format = format.substr(1);
+        }
         switch(format) {
-            case "html":
-            case "escape":
+            case "encode":
                 return value.toString().replace(/&/g, "&amp;")
                      .replace(/</g, "&lt;")
                      .replace(/>/g, "&gt;")
@@ -213,6 +216,14 @@ export default {
                 });
         }
         return value;
+    }, 
+
+    __escape(value) {
+        return value.toString().replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
 };

@@ -106,13 +106,13 @@ Bob is {{age}} years old.
 
 Formatting options are also available by suffixing the property name in the template code with a colon and format directive. For strings, accepted directives are 'upper', 'lower', and 'capitalize'. For numbers, Templatize uses the [d3-format library](https://github.com/d3/d3-format). See documentation there for various formatting options.
 
-The format directives 'escape' or 'html' will also escape HTML special characters such as pointed brackets, ampersands, and quotes.
+The format directive 'encode' will also encode HTML special characters such as pointed brackets, ampersands, and quotes. You can also preface another format directive with a "^" to achieve the same in addition to the chosen directive.
 
 &nbsp; *Template:*
 
 ```
 {{name:capitalize}} lives in {{locale:capitalize}} and sells burgers for {{price.burger:$.2f}}.
-{{break:escape}}
+{{break}}{{break:encode}}{{break:^upper}}{{break:^}}
 ```
 
 &nbsp; *Bindings:*
@@ -129,7 +129,8 @@ The format directives 'escape' or 'html' will also escape HTML special character
 &nbsp; *Outputs:*
 
 ```
-Bob lives in New England and sells burgers for $5.00. <br />
+Bob lives in New England and sells burgers for $5.00.
+<br /><BR /><br />
 ```
 
 Formatting also works for [lists](#lists) and [functions](#functions), an example is shown in the section [Formatting lists and functions](#formatting-lists-and-functions).
