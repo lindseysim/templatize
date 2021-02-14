@@ -1062,7 +1062,7 @@ body .markdown-body
 <ul>
 <li><a href="#how-to-use">How to Use</a></li>
 <li><a href="#variables">Variables</a><ul>
-<li><a href="#escaping">Escaping</a></li>
+<li><a href="#comments-and-escaping">Comments and escaping</a></li>
 <li><a href="#formatting">Formatting</a></li>
 </ul>
 </li>
@@ -1144,10 +1144,10 @@ body .markdown-body
 </pre></div>
 
 <p>Generally avoid any data-binding names starting with an underscore (<code>_</code>) as some reserved values use the underscore prefix (e.g. <code>_display</code> and <code>_parent</code>).</p>
-<h3 id="escaping">Escaping<a class="headerlink" href="#escaping" title="Permanent link"></a></h3>
-<p>Escaping is simply done by prefixing the key with a bang (<code>!</code>).</p>
+<h3 id="comments-and-escaping">Comments and escaping<a class="headerlink" href="#comments-and-escaping" title="Permanent link"></a></h3>
+<p>Both comments and escaping is done with a bang (<code>!</code>). For comments, place the bang within the opening <code>{{</code>. For escaping, place the bang outside the opening <code>{{</code>.</p>
 <p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{name.first}} is {{!age}} years old.
+<div class="codehilite"><pre>{{name.first}} is !{{age}} years old. {{!is this the right age?}}
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>
@@ -1163,20 +1163,24 @@ body .markdown-body
 
 <h2 id="formatting">Formatting<a class="headerlink" href="#formatting" title="Permanent link"></a></h2>
 <p>Formatting options are also available by suffixing the property name in the template code with a colon and format directive. For strings, accepted directives are &lsquo;upper&rsquo;, &lsquo;lower&rsquo;, and &lsquo;capitalize&rsquo;. For numbers, Templatize uses the <a href="https://github.com/d3/d3-format">d3-format library</a>. See documentation there for various formatting options.</p>
+<p>The format directive &lsquo;encode&rsquo; will also encode HTML special characters such as pointed brackets, ampersands, and quotes. You can also preface another format directive with a &ldquo;^&rdquo; to achieve the same in addition to the chosen directive.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>{{name:capitalize}} lives in {{locale:capitalize}} and sells burgers for {{price.burger:$.2f}}.
+{{break}}{{break:encode}}{{break:^upper}}{{break:^}}
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>
 <div class="codehilite"><pre><span class="p">{</span>
   <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;bob&quot;</span><span class="p">,</span> 
   <span class="nx">locale</span><span class="o">:</span> <span class="s2">&quot;new england&quot;</span><span class="p">,</span> 
-  <span class="nx">price</span><span class="o">:</span> <span class="p">{</span> <span class="nx">burger</span><span class="o">:</span> <span class="mi">5</span> <span class="p">}</span>
+  <span class="nx">price</span><span class="o">:</span> <span class="p">{</span> <span class="nx">burger</span><span class="o">:</span> <span class="mi">5</span> <span class="p">},</span> 
+  <span class="k">break</span><span class="o">:</span> <span class="s2">&quot;&lt;br /&gt;&quot;</span>
 <span class="p">}</span>
 </pre></div>
 
 <p>&nbsp; <em>Outputs:</em></p>
 <div class="codehilite"><pre>Bob lives in New England and sells burgers for $5.00.
+&lt;br /&gt;&lt;BR /&gt;&lt;br /&gt;
 </pre></div>
 
 <p>Formatting also works for <a href="#lists">lists</a> and <a href="#functions">functions</a>, an example is shown in the section <a href="#formatting-lists-and-functions">Formatting lists and functions</a>.</p>
@@ -1353,7 +1357,7 @@ Bob is a chef.
 <p>Note in the above that <code>_display</code> does not reverse the behavior of inverse sections (the section <code>{{^job}}Unemployed{/job}}</code> is still hidden as <code>job</code> itself is not evaluated to <code>false</code>). Also, nested section data may still be accessed and rendered outside of the section, even if the section itself is set not to display.</p>
 <p>&nbsp;</p>
 <h2 id="repeating-sections">Repeating Sections<a class="headerlink" href="#repeating-sections" title="Permanent link"></a></h2>
-<p>For repeating sections, set the section value to an array of objects and section html will be repeated. May still use <code>_display</code> to not use particular array item. Values within any array item are limited in scope only to that section given that array item.</p>
+<p>For repeating sections, set the section value to an array of objects and section will be repeated for as many items exists in the array. May still use <code>_display</code> to not use particular array item. Values within the repeating section must still be called via dot notation within the section.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>{{#children}}Child: {{children.firstName}}&lt;br /&gt;{{/children}}
 </pre></div>
@@ -1374,14 +1378,47 @@ Child: Gene
 Child: Louise
 </pre></div>
 
-<p>Note value must be an array of objects. E.g., the above template with the following data-bindings will error:</p>
-<p>&nbsp; <em>Data:</em></p>
+<p>Note above cases uses an array of objects. If a flat array of values is used, may simply use dot notation ending with the dot.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{#children}}Child: {{children.}}&lt;br /&gt;{{/children}}
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
 <div class="codehilite"><pre><span class="p">{</span>
   <span class="nx">children</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;Tina&quot;</span><span class="p">,</span> <span class="s2">&quot;Gene&quot;</span><span class="p">,</span> <span class="s2">&quot;Louise&quot;</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 
-<p>However, the above case makes sense with <a href="#lists">lists</a>.</p>
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>Child: Tina
+Child: Gene
+Child: Louise
+</pre></div>
+
+<p>However, the above case makes more sense with <a href="#lists">lists</a>.</p>
+<p>Note there is currently no support for nested arrays or an array of functions. It must either be an array of objects or printable values. Within said objects as items, however, may be more nested arrays or functions.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{#a}}{{#a.b}}{{a.b.c}}{{/a.b}}{{/a}}
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="c1">// this is hard to think of a good example so gonna go real basic/abstract</span>
+<span class="p">{</span>
+  <span class="nx">a</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="nx">b</span><span class="o">:</span> <span class="p">[{</span><span class="nx">c</span><span class="o">:</span> <span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="nx">c</span><span class="o">:</span> <span class="mi">2</span><span class="p">}]</span>
+    <span class="p">},</span> 
+    <span class="p">{</span>
+      <span class="nx">b</span><span class="o">:</span> <span class="p">[{</span><span class="nx">c</span><span class="o">:</span> <span class="mi">3</span><span class="p">},</span> <span class="p">{</span><span class="nx">c</span><span class="o">:</span> <span class="mi">4</span><span class="p">}]</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>1234
+</pre></div>
+
 <p>Unlike regular sections, repeating sections are limited in scope to its own section. Thus, variables within a repeating section&rsquo;s data bindings will not evaluate outside the portion of the template within the repeating section. Values from outside, however, can be scoped within the repeating section.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>{{#children}}Child: {{children.firstName}} {{lastName}}&lt;br /&gt;{{/children}}
@@ -1617,15 +1654,19 @@ His wife is Linda Belcher. His rival is Jimmy Pesto.
 <p>&nbsp;</p>
 <h2 id="more">More<a class="headerlink" href="#more" title="Permanent link"></a></h2>
 <h3 id="templatize-vs-mustache">Templatize vs Mustache<a class="headerlink" href="#templatize-vs-mustache" title="Permanent link"></a></h3>
-<p>The support for grammatically formatted <a href="#lists">lists</a>, escaping with <code>!</code> are unique to Templatize.</p>
-<p>Syntactic differences include:</p>
+<p>The support for grammatically formatted <a href="#lists">lists</a> and built-in formatters are unique to Templatize.</p>
+<p>Major syntax/usage differences include:</p>
 <ul>
 <li><a href="#section-value-evaluation">Evaluation of &ldquo;truthiness&rdquo;</a>. Mustache reads <code>0</code> as false when evaluating a section whereas Templatize treats 0 as a valid value.</li>
-<li>Scope within repeating sections. Mustache treats templates within a repeating section as scoped within (not requiring dot notation to grab an element within that section). Templatize still uses dot notation to grab data within a repeating section.</li>
-<li>Scope within functions. In Templatize the <code>this</code> scope </li>
+<li>Repeating section: <ul>
+<li>Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab values from each list item within that section). Templatize still uses dot notation to grab data within a repeating section.</li>
+<li>Functions called within a repeating section are given the <code>this</code> context of the item in the repeating section.</li>
+</ul>
+</li>
 </ul>
 <p>Functional differences include:</p>
 <ul>
+<li>Templatize does not implement caching of templates, all templates are parsed and render at call.</li>
 <li>Templatize has no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this).</li>
 <li>Templatize currently has no support for custom delimiters.</li>
 </ul>

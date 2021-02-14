@@ -14,14 +14,20 @@ export default {
     __objTester: ({}).toString, 
 
     render: function(html, bindings, cleanup) {
-        var rendered = this.__render(html, bindings);
+        var rendered = this.__render(html, bindings)
+                           .replace(new RegExp(`(?<!!){{![^}]*}}` , 'g'), "");  // cleanup comments
         if(cleanup) {
             var iCleanupStart = rendered.indexOf("{{");
             while(~iCleanupStart) {
-                var iCleanupEnd = rendered.indexOf("}}", iCleanupStart);
-                if(!~iCleanupEnd) break;
-                rendered = rendered.slice(0, iCleanupStart) + rendered.slice(iCleanupEnd+2);
-                iCleanupStart = rendered.indexOf("{{");
+                // ignore escaped
+                if(iCleanupStart > 0 && rendered[iCleanupStart-1] === "!") {
+                    iCleanupStart = rendered.indexOf("{{", iCleanupStart+2);
+                } else {
+                    let iCleanupEnd = rendered.indexOf("}}", iCleanupStart);
+                    if(!~iCleanupEnd) break;
+                    rendered = rendered.slice(0, iCleanupStart) + rendered.slice(iCleanupEnd+2);
+                    iCleanupStart = rendered.indexOf("{{");
+                }
             }
         }
         return rendered;
@@ -94,16 +100,17 @@ export default {
         while(true) {
             // break length isn't even long enough for section tags to fit or at end of template
             if(html.length < minHtmlLength || (searchFromIndex && searchFromIndex+1 >= html.length)) break;
-                // find first section of either type
-            var iIncludeStart = html.indexOf(sectionIncludeStart, searchFromIndex), 
-                iExcludeStart = html.indexOf(sectionExcludeStart, searchFromIndex), 
+            // find first section of either type
+            let iIncludeStart = this.__indexOf(html, sectionIncludeStart, searchFromIndex), 
+                iExcludeStart = this.__indexOf(html, sectionExcludeStart, searchFromIndex), 
                 // determine which type is found first
                 inclusive     = ~iIncludeStart && (!~iExcludeStart || iIncludeStart < iExcludeStart), 
-                iStart        = inclusive ? iIncludeStart : iExcludeStart, 
-                // if valid, find section end, search from found section start
-                iEnd          = ~iStart ? html.indexOf(sectionEnd, iStart) : false;
-            // break if no [properly-formatted] section found
+                iStart        = inclusive ? iIncludeStart : iExcludeStart;
+            // if valid, find section end, search from found section start
+            let iEnd = ~iStart ? this.__indexOf(html, sectionEnd, iStart) : false;
             if(iEnd === false || !~iEnd) break;
+            // break if no [properly-formatted] section found
+            if(!~iEnd) break;
             // display if display and inclusive or not-display and exclusive
             if(display ? inclusive : !inclusive) {
                 // simply remove the tags to show section (use non-greedy replace)
@@ -127,17 +134,16 @@ export default {
     }, 
 
     __renderRepeatingSection: function(html, section, bindings) {
-        var sectionStart = `{{#${section}}}`, 
+        let sectionStart = `{{#${section}}}`, 
             sectionEnd   = `{{/${section}}}`, 
-            iStart       = html.indexOf(sectionStart), 
-            iEnd         = ~iStart ? html.indexOf(sectionEnd, iStart) : false;
-        // both parts must be found and in correct order
-        if(iEnd === false || !~iEnd) return html;
+            iStart       = this.__indexOf(html, sectionStart), 
+            iEnd         = ~iStart ? this.__indexOf(html, sectionEnd, iStart) : -1;
+        if(!~iEnd) return html;
         // slice out section html
-        var sectionHtml = html.substring(iStart + sectionStart.length, iEnd);
+        let sectionHtml = html.substring(iStart + sectionStart.length, iEnd), 
+            insertHtml = "";
         // build HTML for repeating sections
-        var insertHtml = "";
-        for(var i = 0; i < bindings.length; ++i) {
+        for(let i = 0; i < bindings.length; ++i) {
             if(this.__objTester.call(bindings[i]) === "[object Object]") {
                 // if an object literal, treat like a new render
                 if(!bindings[i]._parent) bindings[i]._parent = bindings._parent;  // add parent context
@@ -160,8 +166,8 @@ export default {
     }, 
 
     __renderList: function(html, section, bindings) {
-        var listStr = false;
-        return html.replace(new RegExp(`{{(&${section})(?::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
+        let listStr = false;
+        return html.replace(new RegExp(`(?<!!){{(&${section})(?::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
             if(listStr !== false) return listStr;
             if(!bindings || !bindings.length) return listStr = "";
             let values = bindings.map(val => this.__format(val, format));
@@ -179,15 +185,18 @@ export default {
         });
     }, 
 
+    __indexOf: function(html, search, indexStart) {
+        let index = html.indexOf(search, indexStart || 0);
+        while(index > 0 && html[index-1] === "!") {
+            index = html.indexOf(search, index+search.length);
+        }
+        return index;
+    }, 
+
     __renderValue: function(html, tag, value) {
-            // replace with optional formatting
-       return html.replace(new RegExp(`{{(${tag})(?::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
-                return this.__format(value, format);
-            })
-            // replace escaped
-            .replace(new RegExp(`{{!(${tag})(?::)?([^:}]*)?}}` , 'g'), match => {
-                return match.replace("!", "");
-            });
+       return html.replace(new RegExp(`(?<!!){{(${tag})(?::)?([^:}]*)?}}` , 'g'), (match, tag, format) => {
+            return this.__format(value, format);
+        });
     }, 
 
     __format: function(value, format) {

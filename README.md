@@ -8,7 +8,7 @@ Lawrence Sim © 2021
 
 * [How to Use](#how-to-use)
 * [Variables](#variables)
-    * [Escaping](#escaping)
+    * [Comments and escaping](#comments-and-escaping)
     * [Formatting](#formatting)
 * [Lists](#lists)
 * [Sections](#sections)
@@ -77,14 +77,14 @@ Bob is 46 years old.
 
 Generally avoid any data-binding names starting with an underscore (`_`) as some reserved values use the underscore prefix (e.g. `_display` and `_parent`).
 
-### Escaping ###
+### Comments and escaping ###
 
-Escaping is simply done by prefixing the key with a bang (`!`).
+Both comments and escaping is done with a bang (`!`). For comments, place the bang within the opening `{{`. For escaping, place the bang outside the opening `{{`.
 
 &nbsp; *Template:*
 
 ```
-{{name.first}} is {{!age}} years old.
+{{name.first}} is !{{age}} years old. {{!is this the right age?}}
 ```
 
 &nbsp; *Bindings:*
@@ -104,15 +104,15 @@ Bob is {{age}} years old.
 
 ## Formatting ##
 
-Formatting options are also available by suffixing the property name in the template code with a colon and format directive. For strings, accepted directives are 'upper', 'lower', and 'capitalize'. For numbers, Templatize uses the [d3-format library](https://github.com/d3/d3-format). See documentation there for various formatting options.
+Formatting options are also available by suffixing the property name in the template code with a double-colon and format directive. For strings, accepted directives are 'upper', 'lower', and 'capitalize'. For numbers, Templatize uses the [d3-format library](https://github.com/d3/d3-format). See documentation there for various formatting options.
 
 The format directive 'encode' will also encode HTML special characters such as pointed brackets, ampersands, and quotes. You can also preface another format directive with a "^" to achieve the same in addition to the chosen directive.
 
 &nbsp; *Template:*
 
 ```
-{{name:capitalize}} lives in {{locale:capitalize}} and sells burgers for {{price.burger:$.2f}}.
-{{break}}{{break:encode}}{{break:^upper}}{{break:^}}
+{{name:capitalize}} lives in {{locale::capitalize}} and sells burgers for {{price.burger::$.2f}}.
+{{break}}{{break::encode}}{{break::^upper}}{{break::^}}
 ```
 
 &nbsp; *Bindings:*
