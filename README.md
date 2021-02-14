@@ -764,10 +764,10 @@ Below is a complex example using a bit of everything covered above.
 &nbsp; *Template:*
 
 ```
-{{name.full}} has {{numChildrenText}}.<br />
+{{name~fullName}} has {{numChildrenText}}.<br />
 {{&kidsNamesAndAges}}.
 <br /><br />
-{{#relations}}His {{relations.relation}} is {{relations.name}}. {{/relations}}
+{{#relations}}His {{relations.relation}} is {{relations.fullname}}. {{/relations}}
 ```
 
 &nbsp; *Bindings:*
@@ -799,21 +799,29 @@ Below is a complex example using a bit of everything covered above.
   year: 2021, 
   kidsNamesAndAges: function() {
     return this.children.map(child => {
-      var fullname = child.name + " " + this.familyName, 
-          age = this.year - child.born;
+      child._parent = this;  // helper functions being manually called need '_parent'
+      var fullname = this['~fullName'].call(child), 
+          age = this['~age'].call(child);
       return fullname + " is " + age + " years old";
     });
   }, 
   relations: [
     {
       relation: "wife", 
-      name: function() { return "Linda " + this._parent.familyName; }
+      name: "Linda", 
+      fullname: function() { return this._parent['~fullName'].call(this); }
     }, 
     {
       relation: "rival", 
-      name: "Jimmy Pesto"
+      fullname: "Jimmy Pesto"
     }
-  ]
+  ], 
+  '~fullName': function() {
+    return (this.first || this.name) + " " + this._parent.familyName;
+  }, 
+  '~age': function() {
+    return this._parent.year - this.born;
+  }
 }
 ```
 

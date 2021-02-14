@@ -82,7 +82,7 @@ export default {
                             if(key.startsWith("~")) continue;
                             // duplicate function result into emulated binding
                             let rebind = {};
-                            rebind[key] = value.call(bindings);
+                            rebind[tKey] = value.call(bindings);
                             if(!rebind._parent) rebind._parent = bindings;
                             html = this.__render(html, rebind, null, root);
                             continue;
