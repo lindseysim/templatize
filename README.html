@@ -1653,10 +1653,10 @@ Louise is 9 years old
 <h2 id="putting-it-all-together">Putting it all together<a class="headerlink" href="#putting-it-all-together" title="Permanent link"></a></h2>
 <p>Below is a complex example using a bit of everything covered above.</p>
 <p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{name.full}} has {{numChildrenText}}.&lt;br /&gt;
+<div class="codehilite"><pre>{{name~fullName}} has {{numChildrenText}}.&lt;br /&gt;
 {{&amp;kidsNamesAndAges}}.
 &lt;br /&gt;&lt;br /&gt;
-{{#relations}}His {{relations.relation}} is {{relations.name}}. {{/relations}}
+{{#relations}}His {{relations.relation}} is {{relations.fullname}}. {{/relations}}
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>
@@ -1686,21 +1686,29 @@ Louise is 9 years old
   <span class="nx">year</span><span class="o">:</span> <span class="mi">2021</span><span class="p">,</span> 
   <span class="nx">kidsNamesAndAges</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">child</span> <span class="o">=&gt;</span> <span class="p">{</span>
-      <span class="kd">var</span> <span class="nx">fullname</span> <span class="o">=</span> <span class="nx">child</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">familyName</span><span class="p">,</span> 
-          <span class="nx">age</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">year</span> <span class="o">-</span> <span class="nx">child</span><span class="p">.</span><span class="nx">born</span><span class="p">;</span>
+      <span class="nx">child</span><span class="p">.</span><span class="nx">_parent</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>  <span class="c1">// helper functions being manually called need &#39;_parent&#39;</span>
+      <span class="kd">var</span> <span class="nx">fullname</span> <span class="o">=</span> <span class="k">this</span><span class="p">[</span><span class="s1">&#39;~fullName&#39;</span><span class="p">].</span><span class="nx">call</span><span class="p">(</span><span class="nx">child</span><span class="p">),</span> 
+          <span class="nx">age</span> <span class="o">=</span> <span class="k">this</span><span class="p">[</span><span class="s1">&#39;~age&#39;</span><span class="p">].</span><span class="nx">call</span><span class="p">(</span><span class="nx">child</span><span class="p">);</span>
       <span class="k">return</span> <span class="nx">fullname</span> <span class="o">+</span> <span class="s2">&quot; is &quot;</span> <span class="o">+</span> <span class="nx">age</span> <span class="o">+</span> <span class="s2">&quot; years old&quot;</span><span class="p">;</span>
     <span class="p">});</span>
   <span class="p">},</span> 
   <span class="nx">relations</span><span class="o">:</span> <span class="p">[</span>
     <span class="p">{</span>
       <span class="nx">relation</span><span class="o">:</span> <span class="s2">&quot;wife&quot;</span><span class="p">,</span> 
-      <span class="nx">name</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="s2">&quot;Linda &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">familyName</span><span class="p">;</span> <span class="p">}</span>
+      <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Linda&quot;</span><span class="p">,</span> 
+      <span class="nx">fullname</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">[</span><span class="s1">&#39;~fullName&#39;</span><span class="p">].</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span> <span class="p">}</span>
     <span class="p">},</span> 
     <span class="p">{</span>
       <span class="nx">relation</span><span class="o">:</span> <span class="s2">&quot;rival&quot;</span><span class="p">,</span> 
-      <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Jimmy Pesto&quot;</span>
+      <span class="nx">fullname</span><span class="o">:</span> <span class="s2">&quot;Jimmy Pesto&quot;</span>
     <span class="p">}</span>
-  <span class="p">]</span>
+  <span class="p">],</span> 
+  <span class="s1">&#39;~fullName&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">first</span> <span class="o">||</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">familyName</span><span class="p">;</span>
+  <span class="p">},</span> 
+  <span class="s1">&#39;~age&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">year</span> <span class="o">-</span> <span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">;</span>
+  <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 

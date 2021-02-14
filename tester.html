@@ -60,10 +60,10 @@
   <body>
     <div id="container">
       <label>Template:</label>
-      <textarea id="input-template">{{name.full}} has {{numChildrenText}}.<br />
+      <textarea id="input-template">{{name~fullName}} has {{numChildrenText}}.<br />
 {{&kidsNamesAndAges}}.
 <br /><br />
-{{#relations}}His {{relations.relation}} is {{relations.name}}. {{/relations}}</textarea>
+{{#relations}}His {{relations.relation}} is {{relations.fullname}}. {{/relations}}</textarea>
       <div class="spacer"></div>
       <label>Bindings:</label>
       <textarea id="input-bindings">{
@@ -92,21 +92,29 @@
   year: 2021, 
   kidsNamesAndAges: function() {
     return this.children.map(child => {
-      var fullname = child.name + " " + this.familyName, 
-          age = this.year - child.born;
+      child._parent = this;  // helper functions being manually called need '_parent'
+      var fullname = this['~fullName'].call(child), 
+          age = this['~age'].call(child);
       return fullname + " is " + age + " years old";
     });
   }, 
   relations: [
     {
       relation: "wife", 
-      name: function() { return "Linda " + this._parent.familyName; }
+      name: "Linda", 
+      fullname: function() { return this._parent['~fullName'].call(this); }
     }, 
     {
       relation: "rival", 
-      name: "Jimmy Pesto"
+      fullname: "Jimmy Pesto"
     }
-  ]
+  ], 
+  '~fullName': function() {
+    return (this.first || this.name) + " " + this._parent.familyName;
+  }, 
+  '~age': function() {
+    return this._parent.year - this.born;
+  }
 }</textarea>
       <div class="spacer"></div>
       <label>Output:</label>
