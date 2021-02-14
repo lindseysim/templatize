@@ -196,6 +196,13 @@ export default {
             return d3.format(format)(value);
         }
         switch(format) {
+            case "html":
+            case "escape":
+                return value.toString().replace(/&/g, "&amp;")
+                     .replace(/</g, "&lt;")
+                     .replace(/>/g, "&gt;")
+                     .replace(/"/g, "&quot;")
+                     .replace(/'/g, "&#039;");
             case "upper":
                 return value.toString().toUpperCase();
             case "lower":

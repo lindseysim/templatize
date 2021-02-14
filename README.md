@@ -106,10 +106,13 @@ Bob is {{age}} years old.
 
 Formatting options are also available by suffixing the property name in the template code with a colon and format directive. For strings, accepted directives are 'upper', 'lower', and 'capitalize'. For numbers, Templatize uses the [d3-format library](https://github.com/d3/d3-format). See documentation there for various formatting options.
 
+The format directives 'escape' or 'html' will also escape HTML special characters such as pointed brackets, ampersands, and quotes.
+
 &nbsp; *Template:*
 
 ```
 {{name:capitalize}} lives in {{locale:capitalize}} and sells burgers for {{price.burger:$.2f}}.
+{{break:escape}}
 ```
 
 &nbsp; *Bindings:*
@@ -118,14 +121,15 @@ Formatting options are also available by suffixing the property name in the temp
 {
   name: "bob", 
   locale: "new england", 
-  price: { burger: 5 }
+  price: { burger: 5 }, 
+  break: "<br />"
 }
 ```
 
 &nbsp; *Outputs:*
 
 ```
-Bob lives in New England and sells burgers for $5.00.
+Bob lives in New England and sells burgers for $5.00. <br />
 ```
 
 Formatting also works for [lists](#lists) and [functions](#functions), an example is shown in the section [Formatting lists and functions](#formatting-lists-and-functions).
@@ -766,12 +770,12 @@ Major syntax/usage differences include:
 
 * [Evaluation of "truthiness"](#section-value-evaluation). Mustache reads `0` as false when evaluating a section whereas Templatize treats 0 as a valid value.
 * Repeating section: 
-    * Templatize requires repeating section to be an array of objects. In Mustache, an array of flat values can be rendered within a repeating section with `{{.}}`.
-    * Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab an element within that section). Templatize still uses dot notation to grab data within a repeating section.
+    * Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab values from each list item within that section). Templatize still uses dot notation to grab data within a repeating section.
     * Functions called within a repeating section are given the `this` context of the item in the repeating section.
 
 Functional differences include:
 
+* Templatize does not implement caching of templates, all templates are parsed and render at call.
 * Templatize has no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this).
 * Templatize currently has no support for custom delimiters.
 
