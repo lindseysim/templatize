@@ -2,29 +2,96 @@ import * as d3 from "d3-format";
 
 export default {
     findTag(content, delimiters, tag, options) {
-        options = options || {};
-        let as      = options.as || false, 
-            search  = options.search || 0, 
-            split   = options.split || [], 
-            closing = options.closing || false;
-        if(split && !Array.isArray(split)) split = [split];
-        let open = this.__findTag(content, delimiters, tag, as, split, search);
-        if(!closing || !open) return open;
-        let close = this.__findTag(content, delimiters, tag, "/", null, open.end);
-        if(!close) return null;
-        return {
-            open:  open, 
-            close: close, 
-            inner: content.slice(open.end, close.start)
-        }
+        return this.__findTag(content, delimiters, tag, options);
+        if(!closing) return open;
     }, 
-    __findTag(content, delimiters, tag, as, split, search) {
-        search = search || 0;
+    findSection(content, delimiters, tag, options) {
+        // copy options so we don't modified source obj
+        if(!options || !options.as || !options.as.length) throw "Opening section tag must have leading directive";
+        let optOpen = {}, optClose = {};
+        for(let key in options) {
+            if(key === "split") throw "Section tags cannot have trailing directives";
+            optOpen[key] = options[key];
+            optClose[key] = key === "as" ? "/" : options[key];
+        }
+        // find opening tag
+        let open = this.findTag(content, delimiters, tag, optOpen), 
+            close;
+        // find closing tag
+        close = this.__findTag(content, delimiters, tag, optClose);
+        if(!open && !close) return null;
+        if(!open || close.start < open.start) throw `Improper section nesting (for: #${tag})`;
+        // section object
+        function newSection(open, parent) {
+            return {
+                open:  open, 
+                close: null, 
+                as:    open.as, 
+                nest:  [], 
+                inner: [], 
+                _up:   parent
+            };
+        }
+        // parse for possible nested structure
+        let current = newSection(open), 
+            root = current, 
+            next, 
+            i = 0;
+        optOpen.search = current.open.end;
+        while(++i) {
+            if(i > 100) throw `Section search call stack size exceeded (for: #${tag})`;
+            // find all nested opening tag
+            next = this.__findTag(content, delimiters, tag, optOpen);
+            // continue pushing to inner level if still can
+            if(next && next.start < close.start) {
+                current.nest.push(newSection(next, current));
+                current = current.nest[current.nest.length-1];
+                optOpen.search = current.open.end;
+                continue;
+            }
+            // at inner-most, unhandled tag, close tag
+            current.close = close;
+            // parse inner content, exclude whatever nested
+            if(!current.nest.length) {
+                current.inner = [content.slice(current.open.end, current.close.start)];
+            } else {
+                let sliceFrom = current.open.end;
+                current.inner = [];
+                current.nest.forEach((child,i) => {
+                    current.inner.push(content.slice(sliceFrom, child.open.start));
+                    sliceFrom = child.close.end;
+                });
+                current.inner.push(content.slice(sliceFrom, current.close.start));
+            }
+            if(current._up) {
+                // find next closing tag
+                optClose.search = current.close.end;
+                close = this.__findTag(content, delimiters, tag, optClose);
+                if(!close) throw `Improper section nesting (for: #${tag})`;
+                // pop level, cleanup "up" reference
+                next = current;
+                current = current._up;
+                delete next._up;
+            } else {
+                // break condition
+                delete current._up;
+                break;
+            }
+        }
+        return root;
+    }, 
+    __findTag(content, delimiters, tag, options) {
+        options    = options || {};
+        let as     = options.as || false, 
+            split  = options.split || false, 
+            search = options.search || 0;
+        if(as && !Array.isArray(as)) as = [as];
+        if(split && !Array.isArray(split)) split = [split];
         let open       = -1, 
             start      = -1, 
             close      = -1, 
             directives = [], 
-            inner;
+            asIndex, inner;
         // find opening tag
         while(true) {
             // find opening delimiter
@@ -32,14 +99,16 @@ export default {
             if(!~open) return null;
             start = open+delimiters[0].length;
             // find closing delimiter
-            close = this.indexOf(content, delimiters[1], search);;
+            close = this.indexOf(content, delimiters[1], search);
             if(!~close) return null;
             // update position and grab content
             search = close + delimiters[1].length;
             inner = content.slice(start, close).trim();
-            // as directive, if specified
+            // verify as directive, if specified
+            asIndex = -1;
             if(as) {
-                if(inner[0] != as) continue;
+                asIndex = as.indexOf(inner[0])
+                if(!~asIndex) continue;
                 inner = inner.slice(1);
             }
             // split by directives, if specified
@@ -59,6 +128,7 @@ export default {
             }
             if(tag === undefined || inner === tag) {
                 return {
+                    as: ~asIndex ? as[asIndex] : undefined, 
                     start: open, 
                     end: search, 
                     directives: directives

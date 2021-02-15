@@ -47,15 +47,6 @@ const Interface = function(options) {
                     continue;
                 }
                 switch(typeof value) {
-                    // if an object literal, recurse into
-                    case "object":
-                        if(!value._parent) value._parent = bindings;  // add parent context
-                        // render item as object after rendering any object as function context
-                        html = this.__renderFunctionContext(html, path, value), 
-                        html = this.__render(html, value, path);
-                        delete value._parent;
-                        break;
-                    // if a function, use it to evaluate value, then recurse to apply by result type
                     case "function":
                         try {
                             // skip naked evaluation if marked as contextual only
@@ -64,6 +55,7 @@ const Interface = function(options) {
                             let rebind = {};
                             rebind[path] = value.call(bindings);
                             if(!rebind._parent) rebind._parent = bindings;
+                            // recurse to apply by result type
                             html = this.__render(html, rebind, null);
                             continue;
                         } catch(e) {
@@ -73,6 +65,14 @@ const Interface = function(options) {
                             value = "";
                             break;
                         }
+                    case "object":
+                        if(!value._parent) value._parent = bindings;  // add parent context
+                        // check to render as function context
+                        html = this.__renderFunctionContext(html, path, value);
+                        // recurse into
+                        html = this.__render(html, value, path);
+                        delete value._parent;
+                        break;
                 }
             }
             // display/hide section (after having checked for repeating)
@@ -102,13 +102,13 @@ const Interface = function(options) {
         while(find) {
             let format = find.directives.length ? find.directives[0] : false, 
                 values = bindings.map(val => {
-                    if(Array.isArray(val)) throw `Multi-dimensional arrays not supported (${tag})`;
+                    if(Array.isArray(val)) throw `Multi-dimensional arrays not supported (for: ${tag})`;
                     // if function try to evaluate, but must eventually return object or primitive
                     let b = 0;
                     while(typeof val === "function" && ++b <= 20) {
                         val = val.call(context);
                     }
-                    if(typeof val === "object") throw `List items cannot be objects (${tag})`;
+                    if(typeof val === "object") throw `List items cannot be objects (for: ${tag})`;
                     return Helpers.format(val, format);
                 });
             let listStr;
@@ -132,93 +132,70 @@ const Interface = function(options) {
         return html;
     };
 
-    this.__renderSection = function(html, tag, display) {
-        display = (
-            (this.evalZeroAsTrue && display === 0)  // if set to, evaluate strict 0 as true
-            || (display && (typeof display !== "string" || display.trim().length)) // any whitespace is false
-        );
-        let optInclude   = {search: 0, as: "#"}, 
-            optExclude   = {search: 0, as: "^"}, 
-            optClosing   = {search: 0, as: "/"}, 
-            includeStart = null, 
-            excludeStart = null, 
-            inclusive    = true, 
-            openingTag   = null, 
-            closingTag   = null;
+    this.__renderSectionAbstract = function(html, tag, as, render) {
+        let options = {search: 0, as: as}, 
+            section, rendered;
         while(true) {
-            // start by searching for opening tags
-            includeStart = Helpers.findTag(html, this.__delimiters, tag, optInclude);
-            excludeStart = Helpers.findTag(html, this.__delimiters, tag, optExclude);
-            inclusive = includeStart && (!excludeStart || includeStart.start < excludeStart.start);
-            // break if neither starting tag found
-            if(!inclusive && !excludeStart) break;
-            // set opening tag, search for closing
-            openingTag = inclusive ? includeStart : excludeStart;
-            optClosing.search = openingTag.end;
-            closingTag = Helpers.findTag(html, this.__delimiters, tag, optClosing);
-            // break if no closing tag found
-            if(!closingTag) break;
-            // display if display and inclusive or not-display and exclusive
-            if(display ? inclusive : !inclusive) {
-                // simply remove the tags to show section
-                html = html.slice(0, openingTag.start)
-                    + html.slice(openingTag.end, closingTag.start)
-                    + html.slice(closingTag.end);
-                let search = openingTag.start + (closingTag.start - openingTag.end);
-                optInclude.search = optExclude.search = search;
-            } else {
-                // splice out the section
-                if(openingTag.start === 0) {
-                    html = html.slice(closingTag.end);
-                } else {
-                    html = html.slice(0, openingTag.start) + html.slice(closingTag.end);
-                }
-                optInclude.search = optExclude.search = openingTag.start;
-            }
+            section = Helpers.findSection(html, this.__delimiters, tag, options);
+            if(!section) break;
+            rendered = render(section);
+            html = html.slice(0, section.open.start) + rendered + html.slice(section.close.end);
+            options.search = section.open.start + rendered.length;
         }
         return html;
     };
 
+    this.__renderSection = function(html, tag, display) {
+        display = (
+            (this.evalZeroAsTrue && display === 0)  // if set to, evaluate strict 0 as true
+            || (display && (typeof display !== "string" || display.trim().length))  // only-whitespace is false
+        );
+        // render sections from outermost-in (until non-display hit)
+        function render(section) {
+            if(section.as === "#" ? !display : display) return "";
+            let pieces = [section.inner[0]];
+            section.nest.forEach((child, i) => {
+                pieces.push(render(child), section.inner[i+1]);
+            });
+            return pieces.join("");
+        }
+        return this.__renderSectionAbstract(html, tag, ["#", "^"], render);
+    };
+
     this.__renderRepeatingSection = function(html, tag, bindings, context) {
-        let options = {search: 0, closing: true, as: "#"}, 
-            section;
-        while(true) {
-            section = Helpers.findTag(html, this.__delimiters, tag, options);
-            if(!section) break;
-            // section html as template and insert as rendered
-            let template = section.inner, 
-                rendered = "";
-            // build for items in array
+        // build and render sections from inside-out
+        let render = section => {
+            let template = section.inner[0];
+            section.nest.forEach((child, i) => {
+                template += render(child) + section.inner[i+1];
+            });
+            let rendered = "";
             bindings.forEach(item => {
-                if(Array.isArray(item)) throw `Multi-dimensional arrays not supported (${tag})`;
+                if(Array.isArray(item)) throw `Multi-dimensional arrays not supported (for: ${tag})`;
                 // if function try to evaluate, but must eventually return object or primitive
                 let b = 0;
                 while(typeof item === "function" && ++b <= 20) {
                     item = item.call(context);
                 }
+                let itemRendered;
                 switch(typeof item) {
                     case "object":
                         // if an object literal, treat like a new render
                         if("_display" in item && !item._display) break;
                         item._parent = context;
-                        let itemRendered = this.__renderFunctionContext(template, tag, item);
-                        rendered += this.__render(itemRendered, item, tag);
+                        itemRendered = this.__renderFunctionContext(template, tag, item);
+                        itemRendered = this.__render(itemRendered, item, tag);
                         delete item._parent;
                         break;
                     default:
                         // try to print value as is for flat values in array
-                        rendered += this.__renderValue(template, `${tag}.`, item);
+                        itemRendered = this.__renderValue(template, `${tag}.`, item);
                 }
+                rendered += itemRendered;
             });
-            // splice into full template, replacing old section template
-            if(section.open.start === 0) {
-                html = rendered + html.slice(section.close.end);
-            } else {
-                html = html.slice(0, section.open.start) + rendered + html.slice(section.close.end);
-            }
-            options.search = section.open.start + rendered.length;
+            return rendered;
         }
-        return html;
+        return this.__renderSectionAbstract(html, tag, "#", render);
     };
 
     this.__renderFunctionContext = function(html, tag, context) {
@@ -247,8 +224,10 @@ const Interface = function(options) {
                     value = "";
                 }
                 html = html.slice(0, find.start) + value + html.slice(find.end);
+                opts.search = find.start + value.length;
+            } else {
+                opts.search = find.end;
             }
-            opts.search = find.start + value.length;
             find = Helpers.findTag(html, this.__delimiters, tag, opts);
         }
         return html;

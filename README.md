@@ -8,6 +8,7 @@ Lawrence Sim © 2021
 
 * [How to Use](#how-to-use)
 * [Variables](#variables)
+    * [Naming](#naming)
     * [Comments and escaping](#comments-and-escaping)
     * [Formatting](#formatting)
 * [Lists](#lists)
@@ -24,9 +25,8 @@ Lawrence Sim © 2021
     * [Dynamically scoping functions](#dynamically-scoping-functions)
     * [Error handling](#error-handling)
 * [Putting it all together](#putting-it-all-together)
-* [More](#more)
-    * [Templatize vs Mustache](#templatize-vs-mustache)
-    * [Caching](#caching)
+* [Templatize vs Mustache](#templatize-vs-mustache)
+* [Common errors and more](#common-errors-and-more)
     * [Missing bindings](#missing-bindings)
     * [Formatting lists and functions](#formatting-lists-and-functions)
     * [Scoping of functions within functions](#scoping-of-function-within-functions)
@@ -52,22 +52,20 @@ Import the source or minified javascript. If regular script import, uses name `T
 
 **Flags**
 
-Two flags you may set involves evaluation of zero-values for sections and error handling of functions. The default values for both are `false`.
+Two flags you may set involves evaluation of zero-values for sections and error handling of functions. The default values for both are `false`. For the functions for these flags, see [Evaluation of zero-value](#evaluation-of-zero-value) (for sections) and [Error handling](#error-handling) (for functions).
 
 ```javascript
 Templatize.evalZeroAsTrue = false;
 Templatize.errorOnFuncFailure = false;
 ```
 
-See [Sections>Evaluation of zero-value](#evaluation-of-zero-value) and [Functions>Error handling](#error-handling). When editing flags, it is best to assume `Templatize` is static. That is, all imported version of it are affected.
+When editing flags, it is best to assume `Templatize` is static. That is, all imported version of it are affected.
 
 **Custom renderer**
 
-To create a clone the renderer -- either to ensure a unique copy to scope flag changes only to the cloned instance or customize the rendering options -- you can use `custom()`.
+*Templatize*.**custom**([*options*]) : Clones new version of Templatize renderer.
 
-*Templatize*.custom([*options*]) : Clones new version of Templatize renderer.
-
-The `options` parameter, which is optional, can be supplied with the follow properties to customize the behavior of the cloned renderer.
+Clone the renderer -- either to ensure a unique copy to scope flag changes only to the cloned instance or customize the rendering options. The `options` parameter, which is optional, can be supplied with the follow properties to customize the behavior of the cloned renderer.
 
 | Name | Type | Description |
 | --- | --- | :--- |
@@ -85,10 +83,13 @@ The `options` parameter, which is optional, can be supplied with the follow prop
 
 Parts related to templates to be encased in double curly braces, with dot notation to traverse nested structures. Example below where above the break is the template and below the data-bindings.
 
+Missing bindings in the template are rendered as is unless the `cleanup` parameter is set. For more details, see [Missing bindings](#missing-bindings).
+
 &nbsp; *Template:*
 
 ```
-{{name.first}} is {{age}} years old.
+{{name.first}} is {{age}} years old.<br />
+This binding is {{missing}}
 ```
 
 &nbsp; *Bindings:*
@@ -104,15 +105,23 @@ Parts related to templates to be encased in double curly braces, with dot notati
 
 ```
 Bob is 46 years old.
+This binding is {{missing}}
 ```
 
-**Naming guidelines**
+### Naming ###
 
-* While spaces can be part of the property name, it is generally not good practice. At the very least avoid using it as starting or trailing character(s).
-* While dots (`.`) can mostly be used in the property name without failing (only one edge case where it would error with helper functions), it is generally to be avoided.
-* Avoid the double-colon (`::`) which is a [formatting](#formatting) directive.
-* Avoid starting any parameter name with the special characters used for [comments/escaping](#comments-and-escaping), [lists](#lists), [sections](#sections), and [functions](#functions) -- which include the bang (`!`), ampersand (`&`), hash (`#`), carot (`^`), and tilde (`~`). 
-* Some special parameters use the underscore prefix (`_display` and `_parent`) so mind usages of these (unless explicitly setting as such). 
+**Special/reserved property names**
+
+* `_parent` is a special keyword (see [Context and parent](#context-and-parent)).
+* `_display` is a special keyword. While it is meant to be set (see [More section behavior](#more-section-behavior]), it should only be done when specifically calling said functionality.
+* Any property name with a leading bang (`!`) will be treated as an [escaped tag](#comments-and-escaping) in the template code.
+
+**Things to avoid in property names**
+
+* While whitespaces can be part of the property name, it is generally not good practice. At the very least avoid using it as leading or trailing character(s). Templatize will generally handle trimming and adjust in cases where it does exist, but proper behavior cannot be fully guaranteed.
+* While periods/dots (`.`) can mostly be used in the property name without failing (only one edge case where it would error with helper functions), it is generally to be avoided to avoid confusion.
+* Avoid the double-colon (`::`), which is a [formatting](#formatting) directive, or a tilde (`~`), which is used for [dynamically scoping functions](#dynamically-scoping-functions).
+* Avoid starting any parameter name with the special characters used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and carot (`^`). Though, if not given an array value, they will still resolve, this leads to confusion in the template code.
 
 ### Comments and escaping ###
 
@@ -729,6 +738,8 @@ You may want set the context of the functions dynamically, for example, within a
 Bob is 47.
 ```
 
+### Marking context-only functions ###
+
 One important thing to note, Templatize will individually evaluate any function in the context it is placed in the data-binding. This is as Templatize evaluates by bindings then searching for relevant tags (instead of by tags then searching for bindings). 
 
 As such, the below will result in an exception when `calcAge` is evaluated independently in the top-level scope and does not find a `this._parent` to reference `year` from.
@@ -759,7 +770,7 @@ Normally, this does not break the rendering, as the default behavior is to fail 
 
 To prevent this, the `calcAge` function could be adjusted in a few ways. First, it could simply check for the existence of the parameters it requires and if not found, return blank or some other filler value. Or you could simply wrap the interior block of the function in a try-catch-finally block to prevent the exception from bubbling out.
 
-Another method is to prefix the property name with a tilde ('~'), which tells Templatize not to evaluate this function unless provided a given context. (When referencing the function in the template, you do not include the tilde.)
+Another method is to prefix the property name with a tilde ('~'), which tells Templatize not to evaluate this function unless provided a given context. (When referencing the function in the template, you do not include the tilde.) Note that any references to the function without a dynamically provided context will not render.
 
 &nbsp; *Template:*
 
@@ -877,31 +888,42 @@ His wife is Linda Belcher. His rival is Jimmy Pesto.
 
 &nbsp;
 
-## More ##
+## Templatize vs Mustache ##
 
-### Templatize vs Mustache ###
+It's not a competition, but it's worth mentioning why there's a big library that emulates most of what [Mustache.js](https://github.com/janl/mustache.js/) does, while being different enough to be somewhat annoying to switch between both. As previously mentioned, this originally developed as an extremely minimal and lightweight implementation of a templating system, that only eventually blew up and became quite a full-on project. Partly because it contains some customizations I prefer and partly just as a side-project.
 
-The support for grammatically formatted [lists](#lists) and built-in formatters are unique to Templatize.
+The support for grammatically formatted [lists](#lists) and built-in formatters are unique to Templatize as well as the options to evaluation zero-values are true.
 
-Major syntax/usage differences include:
+#### Major syntax and usage differences include ####
 
-* [Evaluation of "truthiness"](#section-value-evaluation). Mustache reads `0` as false when evaluating a section whereas Templatize treats 0 as a valid value.
-* Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab values from each list item within that section). Templatize still requires the full dot notation to grab data within a repeating section.
-* In Mustache, functions called within a section are given the `this` context of the data-binding of the section. Thus calling a function in a repeating section changes the context to the item per iteration. In Templatize, you must instead pass the item as a parameter to the section. (See [Passing parameters to functions](#passing-parameters-to-functions)).
+**Scope for repeating sections**
 
-Functional differences include:
+Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab values from each list item within that section). Templatize still requires the full dot notation to grab data within a repeating section.
 
-* Templatize currently has no support for custom delimiters.
-* Templatize does not implement caching of templates. All templates are parsed and render at call.
-* Templatize has no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this).
+**Scope for functions**
+
+In Mustache, functions called within a section are given the `this` context of the data-binding of the section. Thus calling a function in a repeating section changes the context to the item per iteration. 
+
+In Templatize, functions are by default given the context of where the function lives within the data binding. To provide a different context, it must be explicitly called. See [Dynamically scoping functions](#dynamically-scoping-functions).
+
+**Partials** 
+
+Templatize has no inherent support for partials -- though as Templatize maps and renders on runtime, it is not really necessary.
+
+#### Architecture ####
+
+Templatize is data-binding-orientated. That it, it traverses the data bindings provided, and looks for tags in the template code that would be associated with said data binding. This results in potential artifacts such as [missing bindings](#missing-bindings).
+
+Additionally, Templatize looks outside-in. For example, in a nested function, the outside section is handled first, then the inner section.
+
+For example, the below code, because the sections 'overlap', will first handle the `{{#one}}...{{/one}}` section (because it comes first while traversing the data binding), hiding the opening tag `{{#two}}` and leaving behind the unpaired `{{/two}}` tag, which will be assumed in error and unhandled (unless the cleanup parameter is set).
+
+
+Mustache parses templates before rendering and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize can be faster for the first run. However, the preprocessed map is cached in Mustache and all subsequent renders that use the same template are greatly improved in speed. If the same template is reused multiple times and speed is of the essence, Mustache may be a better choice.
 
 &nbsp;
 
-### Caching ###
-
-Mustache parses templates before rendering and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize is faster in that regard. However, the preprocessed map is cached in Mustache and all subsequent renders that use the same template are greatly improved in speed. If the same template is reused multiple times and speed is of the essence, Mustache may be a better choice.
-
-&nbsp;
+## Common errors and more ##
 
 ### Missing bindings ###
 

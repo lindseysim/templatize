@@ -128,10 +128,14 @@
         function render() {
           try {
             bindings = window.Function("let window=null;return "+inputBindings.value+";")();
-            output.innerHTML = Templatize.render(inputTemplate.value, bindings);
-          } catch(e) {
-            console.error(e);
-            output.innerHTML = "<span class='error'>"+e.message+"</span>";
+            try {
+              output.innerHTML = Templatize.render(inputTemplate.value, bindings);
+            } catch(e) {
+              console.error(e);
+              output.innerHTML = "<span class='error'>"+(typeof e === "string" ? e : e.message)+"</span>";
+            }
+          } catch {
+            output.innerHTML = "";
           }
         };
         render();
