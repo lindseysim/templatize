@@ -890,11 +890,11 @@ His wife is Linda Belcher. His rival is Jimmy Pesto.
 
 ## Templatize vs Mustache ##
 
-It's not a competition, but it's worth mentioning why there's a big library that emulates most of what [Mustache.js](https://github.com/janl/mustache.js/) does, while being different enough to be somewhat annoying to switch between both. As previously mentioned, this originally developed as an extremely minimal and lightweight implementation of a templating system, that only eventually blew up and became quite a full-on project. Partly because it contains some customizations I prefer and partly just as a side-project.
+It's not a competition, but it's worth mentioning why there's a big library that emulates most of what [Mustache.js](https://github.com/janl/mustache.js/) does, while while they are similar there are enough differences to make switching between incompatible beyond the basic variables and sections. As aforementioned, this originally developed as an extremely minimal and lightweight implementation of a templating system, that only eventually blew up and became quite a full-on project. Partly because it contains some customizations I prefer and partly just as a side-project for practice.
 
-The support for grammatically formatted [lists](#lists) and built-in formatters are unique to Templatize as well as the options to evaluation zero-values are true.
+#### Major syntax and usage differences ####
 
-#### Major syntax and usage differences include ####
+The support for grammatically formatted [lists](#lists) and built-in formatters are unique to Templatize as well as the options to evaluate zero-values as true.
 
 **Scope for repeating sections**
 
@@ -910,16 +910,13 @@ In Templatize, functions are by default given the context of where the function 
 
 Templatize has no inherent support for partials -- though as Templatize maps and renders on runtime, it is not really necessary.
 
-#### Architecture ####
+#### Architecture differences ####
 
-Templatize is data-binding-orientated. That it, it traverses the data bindings provided, and looks for tags in the template code that would be associated with said data binding. This results in potential artifacts such as [missing bindings](#missing-bindings).
+Templatize is data-binding-orientated. That it, it traverses the data bindings provided, and looks for tags in the template code that would be associated with said data binding. This results in [potential artifacts from unresolved template tags](#missing-bindings) unless the `clean` parameter is set.
 
-Additionally, Templatize looks outside-in. For example, in a nested function, the outside section is handled first, then the inner section.
-
-For example, the below code, because the sections 'overlap', will first handle the `{{#one}}...{{/one}}` section (because it comes first while traversing the data binding), hiding the opening tag `{{#two}}` and leaving behind the unpaired `{{/two}}` tag, which will be assumed in error and unhandled (unless the cleanup parameter is set).
+Mustache is template-oriented in that it first maps the template, finding all valid tags, then replaces them, if found, with the associated value in the data-binding object.
 
 
-Mustache parses templates before rendering and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize can be faster for the first run. However, the preprocessed map is cached in Mustache and all subsequent renders that use the same template are greatly improved in speed. If the same template is reused multiple times and speed is of the essence, Mustache may be a better choice.
 
 &nbsp;
 

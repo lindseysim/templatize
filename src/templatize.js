@@ -9,15 +9,26 @@ const Interface = function(options) {
     this.errorOnFuncFailure = options.errorOnFuncFailure || false;
     // flag for treating 0 as true for section evaluation
     this.evalZeroAsTrue = options.evalZeroAsTrue || false;
-    // for internally persistent data
-    this.__data;
+
+    if(!Array.isArray(this.__delimiters) || this.__delimiters.length < 2) {
+        throw "Invalid delimiters supplied";
+    } else {
+        this.__delimiters = this.__delimiters.map(d => d.trim());
+    }
 
     this.render = function(html, bindings, cleanup) {
-        this.__data = {html: html, root: bindings};
-        var rendered = this.__render(this.__data.html, bindings, null);
-        rendered = this.__renderValue(rendered, undefined, "", "!");  // cleanup comments
-        if(cleanup) rendered = this.__renderValue(rendered, undefined, "");  // cleanup orphaned tags
-        return rendered;
+        this.__data = {
+            template: html, 
+            root:     bindings
+        };
+        try {
+            var rendered = this.__render(this.__data.template, bindings, null);
+            rendered = this.__renderValue(rendered, undefined, "", "!");  // cleanup comments
+            if(cleanup) rendered = this.__renderValue(rendered, undefined, "");  // cleanup orphaned tags
+            return rendered;
+        } finally {
+            this.__data = null;
+        }
     };
 
     this.__render = function(html, bindings, prefix) {
@@ -84,7 +95,10 @@ const Interface = function(options) {
     };
 
     this.__renderValue = function(html, tag, value, as) {
-        let opts = {split: ["::"], as: as || false}, 
+        let opts = {
+                split: ["::"], 
+                as: as || false
+            }, 
             find = Helpers.findTag(html, this.__delimiters, tag, opts);
         while(find) {
             let format = find.directives.length ? find.directives[0] : false, 
@@ -97,7 +111,10 @@ const Interface = function(options) {
     };
 
     this.__renderList = function(html, tag, bindings, context) {
-        let opts = {split: ["::"], as: "&"}, 
+        let opts = {
+                split: ["::"], 
+                as: "&"
+            }, 
             find = Helpers.findTag(html, this.__delimiters, tag, opts);
         while(find) {
             let format = find.directives.length ? find.directives[0] : false, 
@@ -133,8 +150,10 @@ const Interface = function(options) {
     };
 
     this.__renderSectionAbstract = function(html, tag, as, render) {
-        let options = {search: 0, as: as}, 
-            section, rendered;
+        let section, rendered, options = {
+            search: 0, 
+            as: as
+        };
         while(true) {
             section = Helpers.findSection(html, this.__delimiters, tag, options);
             if(!section) break;
@@ -237,6 +256,10 @@ const Interface = function(options) {
 
 const Templatize = {};
 Interface.call(Templatize);
-Templatize.custom = options => Interface(options);
+Templatize.custom = options => {
+    var inst = {};
+    Interface.call(inst, options);
+    return inst;
+};
 
 export default Templatize;

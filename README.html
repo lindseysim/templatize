@@ -1086,7 +1086,7 @@ body .markdown-body
 </li>
 <li><a href="#putting-it-all-together">Putting it all together</a></li>
 <li><a href="#templatize-vs-mustache">Templatize vs Mustache</a></li>
-<li><a href="#more">More</a><ul>
+<li><a href="#common-errors-and-more">Common errors and more</a><ul>
 <li><a href="#missing-bindings">Missing bindings</a></li>
 <li><a href="#formatting-lists-and-functions">Formatting lists and functions</a></li>
 <li><a href="#scoping-of-function-within-functions">Scoping of functions within functions</a></li>
@@ -1777,9 +1777,9 @@ His wife is Linda Belcher. His rival is Jimmy Pesto.
 
 <p>&nbsp;</p>
 <h2 id="templatize-vs-mustache">Templatize vs Mustache<a class="headerlink" href="#templatize-vs-mustache" title="Permanent link"></a></h2>
-<p>It&rsquo;s not a competition, but it&rsquo;s worth mentioning why there&rsquo;s a big library that emulates most of what <a href="https://github.com/janl/mustache.js/">Mustache.js</a> does, while being different enough to be somewhat annoying to switch between both. As previously mentioned, this originally developed as an extremely minimal and lightweight implementation of a templating system, that only eventually blew up and became quite a full-on project. Partly because it contains some customizations I prefer and partly just as a side-project.</p>
-<p>The support for grammatically formatted <a href="#lists">lists</a> and built-in formatters are unique to Templatize as well as the options to evaluation zero-values are true.</p>
-<h4 id="major-syntax-and-usage-differences-include">Major syntax and usage differences include<a class="headerlink" href="#major-syntax-and-usage-differences-include" title="Permanent link"></a></h4>
+<p>It&rsquo;s not a competition, but it&rsquo;s worth mentioning why there&rsquo;s a big library that emulates most of what <a href="https://github.com/janl/mustache.js/">Mustache.js</a> does, while while they are similar there are enough differences to make switching between incompatible beyond the basic variables and sections. As aforementioned, this originally developed as an extremely minimal and lightweight implementation of a templating system, that only eventually blew up and became quite a full-on project. Partly because it contains some customizations I prefer and partly just as a side-project for practice.</p>
+<h4 id="major-syntax-and-usage-differences">Major syntax and usage differences<a class="headerlink" href="#major-syntax-and-usage-differences" title="Permanent link"></a></h4>
+<p>The support for grammatically formatted <a href="#lists">lists</a> and built-in formatters are unique to Templatize as well as the options to evaluate zero-values as true.</p>
 <p><strong>Scope for repeating sections</strong></p>
 <p>Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab values from each list item within that section). Templatize still requires the full dot notation to grab data within a repeating section.</p>
 <p><strong>Scope for functions</strong></p>
@@ -1787,27 +1787,11 @@ His wife is Linda Belcher. His rival is Jimmy Pesto.
 <p>In Templatize, functions are by default given the context of where the function lives within the data binding. To provide a different context, it must be explicitly called. See <a href="#dynamically-scoping-functions">Dynamically scoping functions</a>.</p>
 <p><strong>Partials</strong> </p>
 <p>Templatize has no inherent support for partials &ndash; though as Templatize maps and renders on runtime, it is not really necessary.</p>
-<h4 id="binding-vs-template-orientated">Binding vs. template orientated<a class="headerlink" href="#binding-vs-template-orientated" title="Permanent link"></a></h4>
-<p>Templatize is data-binding-orientated. That it, it traverses the data bindings provided, and looks for tags in the template code that would be associated with said data binding. This results in potential errors such as <a href="#missing-bindings">missing bindings</a> and errors if sections are improperly nested.</p>
-<p>For example, the below code, because the sections &lsquo;overlap&rsquo;, will first handle the <code>{{#one}}...{{/one}}</code> section (because it comes first while traversing the data binding), hiding the opening tag <code>{{#two}}</code> and leaving behind the unpaired <code>{{/two}}</code> tag, which will be assumed in error and unhandled (unless the cleanup parameter is set).</p>
-<p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{#one}}{{#two}}{{/one}}{{/two}}
-</pre></div>
-
-<p>&nbsp; <em>Bindings:</em></p>
-<div class="codehilite"><pre><span class="p">{</span>
-  <span class="nx">one</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span> 
-  <span class="nx">two</span><span class="o">:</span> <span class="kc">true</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>{{/two}}
-</pre></div>
-
-<p>Mustache parses templates before rendering and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize can be faster for the first run. However, the preprocessed map is cached in Mustache and all subsequent renders that use the same template are greatly improved in speed. If the same template is reused multiple times and speed is of the essence, Mustache may be a better choice.</p>
+<h4 id="architecture-differences">Architecture differences<a class="headerlink" href="#architecture-differences" title="Permanent link"></a></h4>
+<p>Templatize is data-binding-orientated. That it, it traverses the data bindings provided, and looks for tags in the template code that would be associated with said data binding. This results in <a href="#missing-bindings">potential artifacts from unresolved template tags</a> unless the <code>clean</code> parameter is set.</p>
+<p>Mustache is template-oriented in that it first maps the template, finding all valid tags, then replaces them, if found, with the associated value in the data-binding object.</p>
 <p>&nbsp;</p>
-<h2 id="more">More<a class="headerlink" href="#more" title="Permanent link"></a></h2>
+<h2 id="common-errors-and-more">Common errors and more<a class="headerlink" href="#common-errors-and-more" title="Permanent link"></a></h2>
 <h3 id="missing-bindings">Missing bindings<a class="headerlink" href="#missing-bindings" title="Permanent link"></a></h3>
 <p>As aforementioned, templates are not preprocessed to map data-bindings. Instead, templates are rendered at call, using the supplied data bindings, and finding the appropriate, matching markup in the template. Consequently, <strong>missing bindings in the template are rendered as is</strong>. This may be particularly tricky when using inverse sections. The binding must still exist, even if it evaluates to <code>false</code> &ndash; if undefined, the section syntax is ignored in the template.</p>
 <p>Additionally, formatting issues are not checked and validated. Thus, providing an incomplete data-binding or badly formatted template will result in rendering issues.</p>
