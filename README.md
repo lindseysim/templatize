@@ -12,8 +12,8 @@ Lawrence Sim © 2021
     * [Formatting](#formatting)
 * [Lists](#lists)
 * [Sections](#sections)
-    * [Basic sections](#basic-sections)
     * [Section value evaluation](#section-value-evaluation)
+    * [Evaluation of zero-value](#evaluation-of-zero-value)
     * [More section behavior](#more-section-behavior)
 * [Repeating Sections](#repeating-sections)
 * [Nested Sections](#nested-sections)
@@ -32,6 +32,10 @@ Lawrence Sim © 2021
     * [Scoping of functions within functions](#scoping-of-function-within-functions)
 * [Acknowledgments](#acknowledgments)
 
+----------
+
+&nbsp; 
+
 ## How to Use ##
 
 Import the source or minified javascript. If regular script import, uses name `Templatize`. There is only one function you need to know:
@@ -45,6 +49,33 @@ Import the source or minified javascript. If regular script import, uses name `T
 | `cleanup` | `Boolean` | Whether to cleanup unrendered markups. Defaults to false. |
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
+
+**Flags**
+
+Two flags you may set involves evaluation of zero-values for sections and error handling of functions. The default values for both are `false`.
+
+```javascript
+Templatize.evalZeroAsTrue = false;
+Templatize.errorOnFuncFailure = false;
+```
+
+See [Sections>Evaluation of zero-value](#evaluation-of-zero-value) and [Functions>Error handling](#error-handling). When editing flags, it is best to assume `Templatize` is static. That is, all imported version of it are affected.
+
+**Custom renderer**
+
+To create a clone the renderer -- either to ensure a unique copy to scope flag changes only to the cloned instance or customize the rendering options -- you can use `custom()`.
+
+*Templatize*.custom([*options*]) : Clones new version of Templatize renderer.
+
+The `options` parameter, which is optional, can be supplied with the follow properties to customize the behavior of the cloned renderer.
+
+| Name | Type | Description |
+| --- | --- | :--- |
+| `delimiters` | `String[]` | If supplied, the custom start and end delimiters. Defaults to `["{{","}}"]`. |
+| `errorOnFuncFailure` | `Boolean` | Sets the flag to throw exceptions from functions in data bindings. |
+| `evalZeroAsTrue` | `Boolean` | Sets the flag to evaluate zero-values are true for sections. |
+
+&nbsp;&nbsp;&nbsp;&nbsp; **Returns:** New instance of Templatize renderer.
 
 ----------
 
@@ -75,7 +106,13 @@ Parts related to templates to be encased in double curly braces, with dot notati
 Bob is 46 years old.
 ```
 
-Generally avoid any data-binding names starting with an underscore (`_`) as some reserved values use the underscore prefix (e.g. `_display` and `_parent`).
+**Naming guidelines**
+
+* While spaces can be part of the property name, it is generally not good practice. At the very least avoid using it as starting or trailing character(s).
+* While dots (`.`) can mostly be used in the property name without failing (only one edge case where it would error with helper functions), it is generally to be avoided.
+* Avoid the double-colon (`::`) which is a [formatting](#formatting) directive.
+* Avoid starting any parameter name with the special characters used for [comments/escaping](#comments-and-escaping), [lists](#lists), [sections](#sections), and [functions](#functions) -- which include the bang (`!`), ampersand (`&`), hash (`#`), carot (`^`), and tilde (`~`). 
+* Some special parameters use the underscore prefix (`_display` and `_parent`) so mind usages of these (unless explicitly setting as such). 
 
 ### Comments and escaping ###
 
@@ -102,7 +139,7 @@ Both comments and escaping is done with a bang (`!`). For comments, place the ba
 Bob is {{age}} years old.
 ```
 
-## Formatting ##
+### Formatting ###
 
 Formatting options are also available by suffixing the property name in the template code with a double-colon and format directive. For strings, accepted directives are 'upper', 'lower', and 'capitalize'. For numbers, Templatize uses the [d3-format library](https://github.com/d3/d3-format). See documentation there for various formatting options.
 
@@ -144,7 +181,7 @@ Lists are marked with a `&`-prefix and can only take in an array. The output is 
 &nbsp; *Template:*
 
 ```
-{{&name}} sells {{&sells}} with {{&with}}. 
+{{&name::capitalize}} sells {{&sells}} with {{&with}}. 
 ```
 
 &nbsp; *Bindings:*
@@ -169,11 +206,9 @@ Bob sells burgers, sodas, and fries with his wife and kids.
 
 ## Sections ##
 
-### Basic Sections ###
-
 Section are marked with start at `#`-prefix and end at `/`-prefix. By binding section to a `true` or `false` value, they may be shown or removed.
 
-You may also use an inverse section by replacing `#` starting prefix with `^`. Such sections will only be displayed if the section is evaluated to `false`.
+You may also use an inverse section by replacing the hash (`#`) starting prefix with a carot (`^`). Such sections will only be displayed if the section is evaluated to `false`.
 
 Data may be put inside of a section.
 
@@ -209,7 +244,7 @@ If the section key does not exist, that section is simply not evaluated in the t
 &nbsp; *Template:*
 
 ```
-Bob is {{#married}}married.{{/married}}{{#single}}single.{{/single}}
+Bob is {{^single}}married.{{/single}}{{#single}}single.{{/single}}
 ```
 
 &nbsp; *Bindings:*
@@ -221,12 +256,71 @@ Bob is {{#married}}married.{{/married}}{{#single}}single.{{/single}}
 &nbsp; *Outputs:*
 
 ```
-Bob is married{{#single}}single{{/single}}.
+Bob is {{^single}}married.{{/single}}{{#single}}single.{{/single}}
 ```
 
 ### Section value evaluation ###
 
-Section data may be other values besides boolean. However, evaluation of non-boolean values have minor differences from normal Javascript behavior. Values of `undefined`, `null`, an empty string, or a string composed only of whitespace (if you want to add whitespace, use `&nbsp;`), evaluate to `false`. Conversely, a value of `0` is evaluated as `true`.
+Section data may be other values besides boolean. Values of `undefined`, `null`, an empty string or a string composed only of whitespace (if you want to add whitespace, use `&nbsp;`), and `0` evaluate to `false`. As long as data-binding for section evaluates to `true`, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
+
+&nbsp; *Template:*
+
+```
+{{#job}}Occupation: {{job}}{{/job}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{job: "Chef"}
+```
+
+&nbsp; *Outputs:*
+
+```
+Occupation: Chef
+```
+
+The above though is somewhat messy of an implementation. One alternative is to separate a "display" variable, or use an object for the section data.
+
+&nbsp; *Template:*
+
+```
+{{#showJob}}Occupation: {{job}}{{/showJob}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  showJob: true, 
+  job: "Chef"
+}
+```
+
+&nbsp; *Template:*
+
+```
+{{#job}}Occupation: {{job.title}}{/job}}
+```
+ 
+&nbsp; *Bindings:*
+
+```javascript
+{
+  job: {title: "Chef"}
+}
+// or conversely, which will hide the section..
+{
+  job: false
+}
+```
+
+Note that section data (excluding repeating sections) are scoped for the entire template. E.g., given the above example, `{{job.title}}` may be used anywhere in the template inside or outside of a `{{#job}}{{/job}}` section and will be replaced with `"Chef"` when rendered.
+
+### Evaluation of zero-value ###
+
+There may however be cased in which you do want sections to evaluate `0` as `true`.
 
 &nbsp; *Template:*
 
@@ -252,68 +346,28 @@ Saturday - {{#saturday}}{{saturday::$.2f}}{{/saturday}}{{^saturday}}Closed{{/sat
 ```
 Profit:
 Monday - Closed
-Sunday - $0.00
+Sunday - Closed
 Saturday - $122.00
 ```
 
-As long as data-binding for section evaluates to `true`, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value.
-
-&nbsp; *Template:*
-
-```
-{{#job}}Occupation: {{job}}{{/job}}
-```
-
-&nbsp; *Bindings:*
+By setting `evalZeroAsTrue` to `true`, you can change this behavior to treat zero-values as truthy.
 
 ```javascript
-{job: "Chef"}
+Templatize.evalZeroAsTrue = true;
 ```
+
+Which will change to output as follows.
 
 &nbsp; *Outputs:*
 
 ```
-Occupation: Chef
+Profit:
+Monday - Closed
+Sunday - $0.00
+Saturday - $122.00
 ```
 
-The above though is somewhat messy of an implementation. One alternative is to separate a "display" variable.
-
-&nbsp; *Template:*
-
-```
-{{#showJob}}Occupation: {{job}}{{/showJob}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  showJob: true, 
-  job: "Chef"
-}
-```
-
-Or, even better, used a nested structure for the section like below.
-
-&nbsp; *Template:*
-
-```
-{{#job}}Occupation: {{job.title}}{/job}}
-```
- 
-&nbsp; *Bindings:*
-
-```javascript
-{
-  job: {title: "Chef"}
-}
-// or conversely, which will hide the entire section..
-{
-  job: false
-}
-```
-
-Note that section data (excluding repeating sections) are scoped for the entire template. E.g., given the above example, `{{job.title}}` may be used anywhere in the template inside or outside of a `{{#job}}{{/job}}` section and will be replaced with `"Chef"` when rendered.
+Depending on your dependency manager, this may or may not affect all references to `Templatize`. Generally speaking, assume `Templatize` is a static reference, so either adjust for all uses, and/or have it reset back to a desired behavior after using it with non-default behavior.
 
 ### More section behavior ###
 
@@ -703,19 +757,9 @@ As such, the below will result in an exception when `calcAge` is evaluated indep
 
 Normally, this does not break the rendering, as the default behavior is to fail functions silently (see next section). However, if that is modified, then this will throw the exception.
 
-To prevent this, the `calcAge` function could be adjusted in two ways. First, it could simply check for the existence of the parameters it requires and if not found, return blank or some other filler value.
+To prevent this, the `calcAge` function could be adjusted in a few ways. First, it could simply check for the existence of the parameters it requires and if not found, return blank or some other filler value. Or you could simply wrap the interior block of the function in a try-catch-finally block to prevent the exception from bubbling out.
 
-```javascript
-{
-  ...
-  calcAge: function() {
-    if(!this._parent || !this._parent.year || !this.born) return "--";
-    return this._parent.year - this.born;
-  }
-}
-```
-
-Another method is to prefix the variable name with a tilde ('~'), which tells Templatize not to evaluate this function unless provided a given context. When calling the function in the template, you do not need to double up on the tilde, whether it is nested or not.
+Another method is to prefix the property name with a tilde ('~'), which tells Templatize not to evaluate this function unless provided a given context. (When referencing the function in the template, you do not include the tilde.)
 
 &nbsp; *Template:*
 
@@ -764,7 +808,7 @@ Below is a complex example using a bit of everything covered above.
 &nbsp; *Template:*
 
 ```
-{{name~fullName}} has {{numChildrenText}}.<br />
+{{name~fullname}} has {{numChildrenText}}.<br />
 {{&kidsNamesAndAges}}.
 <br /><br />
 {{#relations}}His {{relations.relation}} is {{relations.fullname}}. {{/relations}}
@@ -800,8 +844,8 @@ Below is a complex example using a bit of everything covered above.
   kidsNamesAndAges: function() {
     return this.children.map(child => {
       child._parent = this;  // helper functions being manually called need '_parent'
-      var fullname = this['~fullName'].call(child), 
-          age = this['~age'].call(child);
+      var fullname = this['~fullname'].call(child), 
+          age = this.year - child.born;
       return fullname + " is " + age + " years old";
     });
   }, 
@@ -809,19 +853,16 @@ Below is a complex example using a bit of everything covered above.
     {
       relation: "wife", 
       name: "Linda", 
-      fullname: function() { return this._parent['~fullName'].call(this); }
+      fullname: function() { return this._parent['~fullname'].call(this); }
     }, 
     {
       relation: "rival", 
       fullname: "Jimmy Pesto"
     }
   ], 
-  '~fullName': function() {
+  '~fullname': function() {
     return (this.first || this.name) + " " + this._parent.familyName;
-  }, 
-  '~age': function() {
-    return this._parent.year - this.born;
-  }
+  },
 }
 ```
 
@@ -901,9 +942,9 @@ The formatting feature also applies to lists and functions.
 ```
 Order:<br />
 {{#order}}-{{order.name}}<br />{{/order}}
-Item prices: {{&prices:$.2f}}<br />
-Sale tax: {{salesTax:.0%}}<br />
-Total (w/ tax): {{total:$.2f}}
+Item prices: {{&prices::$.2f}}<br />
+Sale tax: {{salesTax::.0%}}<br />
+Total (w/ tax): {{total::$.2f}}
 ```
 
 &nbsp; *Bindings:*

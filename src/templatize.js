@@ -1,39 +1,26 @@
-import * as d3 from "d3-format";
+import Helpers from "./helpers.js"
 
-if(!String.prototype.endsWith) {
-    String.prototype.endsWith = function(search, this_len) {
-        if(this_len === undefined || this_len > this.length) this_len = this.length;
-        return this.substring(this_len - search.length, this_len) === search;
-    };
-}
 
-export default {
+const Interface = function(options) {
+    options = options || {};
+
+    this.__delimiters = options.delimiters || ["{{","}}"];
     // flag for throwing error on function evaluation
-    errorOnFuncFailure: false, 
-    // for testing object type (only way to find base obj)
-    __objTester: ({}).toString, 
+    this.errorOnFuncFailure = options.errorOnFuncFailure || false;
+    // flag for treating 0 as true for section evaluation
+    this.evalZeroAsTrue = options.evalZeroAsTrue || false;
+    // for internally persistent data
+    this.__data;
 
-    render: function(html, bindings, cleanup) {
-        var rendered = this.__render(html, bindings, null, bindings)
-                           .replace(new RegExp(`(?<!!){{![^}]*}}` , 'g'), "");  // cleanup comments
-        if(cleanup) {
-            var iCleanupStart = rendered.indexOf("{{");
-            while(~iCleanupStart) {
-                // ignore escaped
-                if(iCleanupStart > 0 && rendered[iCleanupStart-1] === "!") {
-                    iCleanupStart = rendered.indexOf("{{", iCleanupStart+2);
-                } else {
-                    let iCleanupEnd = rendered.indexOf("}}", iCleanupStart);
-                    if(!~iCleanupEnd) break;
-                    rendered = rendered.slice(0, iCleanupStart) + rendered.slice(iCleanupEnd+2);
-                    iCleanupStart = rendered.indexOf("{{");
-                }
-            }
-        }
+    this.render = function(html, bindings, cleanup) {
+        this.__data = {html: html, root: bindings};
+        var rendered = this.__render(this.__data.html, bindings, null);
+        rendered = this.__renderValue(rendered, undefined, "", "!");  // cleanup comments
+        if(cleanup) rendered = this.__renderValue(rendered, undefined, "");  // cleanup orphaned tags
         return rendered;
-    }, 
+    };
 
-    __render: function(html, bindings, prefix, root) {
+    this.__render = function(html, bindings, prefix) {
         if(!html) return "";
         // render section for subsections as nested objects
         let inSection = false;
@@ -43,245 +30,234 @@ export default {
             html = this.__renderSection(html, prefix, display);
         }
         // prep prefix for next level
-        let usePrefix = inSection ? prefix + "." : "";
+        let usePrefix = inSection ? prefix + "." : "", 
+            value, path;
         for(let key in bindings) {
             // skip reserved values
             if(key === "_display" || key === "_parent") continue;
-            let tKey = usePrefix + key, 
-                value = bindings[key];
+            value = bindings[key];
+            key = key.trim();        // strip leading/trailing whitespace
+            path = usePrefix + key;  // full key path from root
             // special cases
             if(value) {
-                switch(this.__objTester.call(value)) {
+                // if an array, treat as repeating section
+                if(Array.isArray(value)) {
+                    html = this.__renderList(html, path, value, bindings),  // list formatting
+                    html = this.__renderRepeatingSection(html, path, value, bindings);
+                    continue;
+                }
+                switch(typeof value) {
                     // if an object literal, recurse into
-                    case "[object Object]":
+                    case "object":
                         if(!value._parent) value._parent = bindings;  // add parent context
                         // render item as object after rendering any object as function context
-                        html = this.__render(
-                            this.__renderFunctionContext(html, tKey, value, root), 
-                            value, 
-                            tKey, 
-                            root
-                        );
+                        html = this.__renderFunctionContext(html, path, value), 
+                        html = this.__render(html, value, path);
                         delete value._parent;
-                        continue;
-                    // if an array, treat as repeating section
-                    case "[object Array]":
-                        if(!value._parent) value._parent = bindings;  // add parent context
-                        html = this.__renderRepeatingSection(
-                            this.__renderList(html, tKey, value),  // list formatting
-                            tKey, 
-                            value, 
-                            root
-                        );
-                        delete value._parent;
-                        continue;
+                        break;
                     // if a function, use it to evaluate value, then recurse to apply by result type
-                    case "[object Function]":
+                    case "function":
                         try {
                             // skip naked evaluation if marked as contextual only
                             if(key.startsWith("~")) continue;
                             // duplicate function result into emulated binding
                             let rebind = {};
-                            rebind[tKey] = value.call(bindings);
+                            rebind[path] = value.call(bindings);
                             if(!rebind._parent) rebind._parent = bindings;
-                            html = this.__render(html, rebind, null, root);
+                            html = this.__render(html, rebind, null);
                             continue;
                         } catch(e) {
                             // set error if functions errors, otherwise continue with blank to remove tags
                             if(this.errorOnFuncFailure) throw e;
+                            console.error(e);
                             value = "";
+                            break;
                         }
                 }
             }
-            // display/hide section with this tag first
-            html = this.__renderSection(html, tKey, value);
+            // display/hide section (after having checked for repeating)
+            html = this.__renderSection(html, path, value);
             // render simple tags
-            html = this.__renderValue(html, tKey, value);
+            html = this.__renderValue(html, path, value);
         }
         return html;
-    }, 
+    };
 
-    __renderSection: function(html, section, display) {
-        // value that evaluate to false but treated as true is 0, vice versa for whitespace-only string
-        display = display === 0 || (display && (typeof display !== "string" || display.trim().length));
-            // section tags
-        var sectionIncludeStart = `{{#${section}}}`, 
-            sectionExcludeStart = `{{^${section}}}`, 
-            sectionEnd          = `{{/${section}}}`, 
-            // to optimize not searching over parts already passed or when string isn't long enough anyways
-            searchFromIndex     = 0, 
-            minHtmlLength       = sectionIncludeStart.length + sectionEnd.length;
+    this.__renderValue = function(html, tag, value, as) {
+        let opts = {split: ["::"], as: as || false}, 
+            find = Helpers.findTag(html, this.__delimiters, tag, opts);
+        while(find) {
+            let format = find.directives.length ? find.directives[0] : false, 
+                fvalue = Helpers.format(value, format);
+            html = html.slice(0, find.start) + fvalue + html.slice(find.end);
+            opts.search = find.start + fvalue.length;
+            find = Helpers.findTag(html, this.__delimiters, tag, opts);
+        }
+        return html;
+    };
+
+    this.__renderList = function(html, tag, bindings, context) {
+        let opts = {split: ["::"], as: "&"}, 
+            find = Helpers.findTag(html, this.__delimiters, tag, opts);
+        while(find) {
+            let format = find.directives.length ? find.directives[0] : false, 
+                values = bindings.map(val => {
+                    if(Array.isArray(val)) throw `Multi-dimensional arrays not supported (${tag})`;
+                    // if function try to evaluate, but must eventually return object or primitive
+                    let b = 0;
+                    while(typeof val === "function" && ++b <= 20) {
+                        val = val.call(context);
+                    }
+                    if(typeof val === "object") throw `List items cannot be objects (${tag})`;
+                    return Helpers.format(val, format);
+                });
+            let listStr;
+            switch(values.length) {
+                case 1:
+                    listStr = values[0];
+                    break;
+                case 2:
+                    listStr = `${values[0]} and ${values[1]}`;
+                    break;
+                default:
+                    listStr = "";
+                    values.forEach((item, i) => {
+                        listStr += `${i ? ", " : ""}${i+1 === values.length ? "and " : ""}${item}`;
+                    });
+            }
+            html = html.slice(0, find.start) + listStr + html.slice(find.end);
+            opts.search = find.start + listStr.length;
+            find = Helpers.findTag(html, this.__delimiters, tag, opts);
+        }
+        return html;
+    };
+
+    this.__renderSection = function(html, tag, display) {
+        display = (
+            (this.evalZeroAsTrue && display === 0)  // if set to, evaluate strict 0 as true
+            || (display && (typeof display !== "string" || display.trim().length)) // any whitespace is false
+        );
+        let optInclude   = {search: 0, as: "#"}, 
+            optExclude   = {search: 0, as: "^"}, 
+            optClosing   = {search: 0, as: "/"}, 
+            includeStart = null, 
+            excludeStart = null, 
+            inclusive    = true, 
+            openingTag   = null, 
+            closingTag   = null;
         while(true) {
-            // break length isn't even long enough for section tags to fit or at end of template
-            if(html.length < minHtmlLength || (searchFromIndex && searchFromIndex+1 >= html.length)) break;
-            // find first section of either type
-            let iIncludeStart = this.__indexOf(html, sectionIncludeStart, searchFromIndex), 
-                iExcludeStart = this.__indexOf(html, sectionExcludeStart, searchFromIndex), 
-                // determine which type is found first
-                inclusive     = ~iIncludeStart && (!~iExcludeStart || iIncludeStart < iExcludeStart), 
-                iStart        = inclusive ? iIncludeStart : iExcludeStart;
-            // if valid, find section end, search from found section start
-            let iEnd = ~iStart ? this.__indexOf(html, sectionEnd, iStart) : false;
-            if(iEnd === false || !~iEnd) break;
-            // break if no [properly-formatted] section found
-            if(!~iEnd) break;
+            // start by searching for opening tags
+            includeStart = Helpers.findTag(html, this.__delimiters, tag, optInclude);
+            excludeStart = Helpers.findTag(html, this.__delimiters, tag, optExclude);
+            inclusive = includeStart && (!excludeStart || includeStart.start < excludeStart.start);
+            // break if neither starting tag found
+            if(!inclusive && !excludeStart) break;
+            // set opening tag, search for closing
+            openingTag = inclusive ? includeStart : excludeStart;
+            optClosing.search = openingTag.end;
+            closingTag = Helpers.findTag(html, this.__delimiters, tag, optClosing);
+            // break if no closing tag found
+            if(!closingTag) break;
             // display if display and inclusive or not-display and exclusive
             if(display ? inclusive : !inclusive) {
-                // simply remove the tags to show section (use non-greedy replace)
-                html = (
-                    html.slice(0, iStart)
-                    + html.slice(iStart + sectionEnd.length, iEnd)
-                    + html.slice(iEnd + sectionEnd.length)
-                );
-                searchFromIndex = iEnd - sectionEnd.length;
+                // simply remove the tags to show section
+                html = html.slice(0, openingTag.start)
+                    + html.slice(openingTag.end, closingTag.start)
+                    + html.slice(closingTag.end);
+                let search = openingTag.start + (closingTag.start - openingTag.end);
+                optInclude.search = optExclude.search = search;
             } else {
                 // splice out the section
-                if(iStart === 0) {
-                    html = html.slice(iEnd + sectionEnd.length);
+                if(openingTag.start === 0) {
+                    html = html.slice(closingTag.end);
                 } else {
-                    html = html.slice(0, iStart) + html.slice(iEnd + sectionEnd.length);
+                    html = html.slice(0, openingTag.start) + html.slice(closingTag.end);
                 }
-                searchFromIndex = iStart;
+                optInclude.search = optExclude.search = openingTag.start;
             }
         }
         return html;
-    }, 
+    };
 
-    __renderRepeatingSection: function(html, section, bindings, root) {
-        let sectionStart = `{{#${section}}}`, 
-            sectionEnd   = `{{/${section}}}`, 
-            iStart       = this.__indexOf(html, sectionStart), 
-            iEnd         = ~iStart ? this.__indexOf(html, sectionEnd, iStart) : -1;
-        if(!~iEnd) return html;
-        // slice out section html
-        let sectionHtml = html.substring(iStart + sectionStart.length, iEnd), 
-            insertHtml = "";
-        // build HTML for repeating sections
-        for(let i = 0; i < bindings.length; ++i) {
-            if(this.__objTester.call(bindings[i]) === "[object Object]") {
-                // if an object literal, treat like a new render
-                if(!("_display" in bindings[i]) || bindings[i]["_display"]) {
-                    // add parent context
-                    bindings[i]._parent = bindings._parent;
-                    // render item as object after rendering any object as function context
-                    insertHtml += this.__render(
-                        this.__renderFunctionContext(sectionHtml, section, bindings[i], root), 
-                        bindings[i], 
-                        section, 
-                        root
-                    );
-                    delete bindings[i]._parent;
+    this.__renderRepeatingSection = function(html, tag, bindings, context) {
+        let options = {search: 0, closing: true, as: "#"}, 
+            section;
+        while(true) {
+            section = Helpers.findTag(html, this.__delimiters, tag, options);
+            if(!section) break;
+            // section html as template and insert as rendered
+            let template = section.inner, 
+                rendered = "";
+            // build for items in array
+            bindings.forEach(item => {
+                if(Array.isArray(item)) throw `Multi-dimensional arrays not supported (${tag})`;
+                // if function try to evaluate, but must eventually return object or primitive
+                let b = 0;
+                while(typeof item === "function" && ++b <= 20) {
+                    item = item.call(context);
                 }
+                switch(typeof item) {
+                    case "object":
+                        // if an object literal, treat like a new render
+                        if("_display" in item && !item._display) break;
+                        item._parent = context;
+                        let itemRendered = this.__renderFunctionContext(template, tag, item);
+                        rendered += this.__render(itemRendered, item, tag);
+                        delete item._parent;
+                        break;
+                    default:
+                        // try to print value as is for flat values in array
+                        rendered += this.__renderValue(template, `${tag}.`, item);
+                }
+            });
+            // splice into full template, replacing old section template
+            if(section.open.start === 0) {
+                html = rendered + html.slice(section.close.end);
             } else {
-                // try to print value as is
-                insertHtml += this.__renderValue(sectionHtml, `${section}.`, bindings[i]);
+                html = html.slice(0, section.open.start) + rendered + html.slice(section.close.end);
             }
+            options.search = section.open.start + rendered.length;
         }
-        // splice into full template, replacing old section template
-        if(iStart === 0) {
-            html = insertHtml + html.slice(iEnd + sectionEnd.length);
-        } else {
-            html = html.slice(0, iStart) + insertHtml + html.slice(iEnd + sectionEnd.length);
-        }
-        // repeat until no more sections found
-        return this.__renderRepeatingSection(html, section, bindings);
-    }, 
+        return html;
+    };
 
-    __renderList: function(html, section, bindings) {
-        let listStr = false;
-        return this.__renderValue(html, '&'+section, (match, tag, format) => {
-            if(listStr !== false) return listStr;
-            if(!bindings || !bindings.length) return listStr = "";
-            let values = bindings.map(val => this.__format(val, format));
-            if(values.length === 1) {
-                listStr = values[0];
-            } else if(values.length === 2) {
-                listStr = `${values[0]} and ${values[1]}`;
-            } else {
-                listStr = "";
-                values.forEach((item, i) => {
-                    listStr += `${i ? ", " : ""}${i+1 === values.length ? "and " : ""}${item}`;
-                });
-            }
-            return listStr;
-        })
-    }, 
-
-    __indexOf: function(html, search, indexStart) {
-        let index = html.indexOf(search, indexStart || 0);
-        while(index > 0 && html[index-1] === "!") {
-            index = html.indexOf(search, index+search.length);
-        }
-        return index;
-    }, 
-
-    __renderValue: function(html, tag, value) {
-        tag = this.__regexClean(tag);
-        return html.replace(
-            new RegExp(`(?<!!){{(${tag})(?:::)?([^:}]*)?}}` , 'g'), 
-            typeof value === "function" ? value : (match, tag, format) => {
-                return this.__format(value, format);
-            }
-        );
-    }, 
-
-    __format: function(value, format) {
-        if(!format) return value;
-        if(!isNaN(value) && !isNaN(parseFloat(value))) {
-            return d3.format(format)(value);
-        }
-        if(format.startsWith("^")) {
-            value = this.__escape(value);
-            format = format.substr(1);
-        }
-        switch(format) {
-            case "encode":
-                return value.toString().replace(/&/g, "&amp;")
-                     .replace(/</g, "&lt;")
-                     .replace(/>/g, "&gt;")
-                     .replace(/"/g, "&quot;")
-                     .replace(/'/g, "&#039;");
-            case "upper":
-                return value.toString().toUpperCase();
-            case "lower":
-                return value.toString().toLowerCase();
-            case "capitalize":
-                return value.toString().replace(/(?:^|[^\w])[a-z]/g, match => {
-                    return match === "'s" ? match : match.toUpperCase();
-                });
-        }
-        return value;
-    }, 
-
-    __escape(value) {
-        return value.toString().replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }, 
-
-    __renderFunctionContext: function(html, tag, context, root) {
-        tag = this.__regexClean(tag);
-        return html.replace(
-            new RegExp(`(?<!!){{(${tag})(?:~)([^:}]*)(?:::)?([^:}]*)?}}` , 'g'), 
-            (match, tag, funcPath, format) => {
+    this.__renderFunctionContext = function(html, tag, context) {
+        let opts = {split: ["~", "::"]}, 
+            find = Helpers.findTag(html, this.__delimiters, tag, opts), 
+            value, 
+            directives;
+        while(find) {
+            value = "";
+            directives = find.directives;
+            // must have at least the one split directive for function call
+            if(directives.length) {
+                let funcPath = find.directives[0], 
+                    format = find.directives.length > 1 ? find.directives[1] : false;
                 try {
+                    // search for function from root
                     let path = funcPath.split("."), 
-                        func = root;
+                        func = this.__data.root;
                     path.forEach((sub,i) => {
                         func = func[path[i]] || func["~"+path[i]];
                     });
-                    return this.__format(func.call(context), format);
-                } catch {
-                    return "";
+                    value = Helpers.format(func.call(context), format);
+                } catch(e) {
+                    if(this.errorOnFuncFailure) throw e;
+                    console.error(e);
+                    value = "";
                 }
+                html = html.slice(0, find.start) + value + html.slice(find.end);
             }
-        );
-    }, 
-
-    __regexClean(value) {
-        return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-    }
+            opts.search = find.start + value.length;
+            find = Helpers.findTag(html, this.__delimiters, tag, opts);
+        }
+        return html;
+    };
 
 };
+
+const Templatize = {};
+Interface.call(Templatize);
+Templatize.custom = options => Interface(options);
+
+export default Templatize;

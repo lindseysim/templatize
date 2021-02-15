@@ -1068,8 +1068,8 @@ body .markdown-body
 </li>
 <li><a href="#lists">Lists</a></li>
 <li><a href="#sections">Sections</a><ul>
-<li><a href="#basic-sections">Basic sections</a></li>
 <li><a href="#section-value-evaluation">Section value evaluation</a></li>
+<li><a href="#evaluation-of-zero-value">Evaluation of zero-value</a></li>
 <li><a href="#more-section-behavior">More section behavior</a></li>
 </ul>
 </li>
@@ -1094,6 +1094,8 @@ body .markdown-body
 </li>
 <li><a href="#acknowledgments">Acknowledgments</a></li>
 </ul>
+<hr />
+<p>&nbsp; </p>
 <h2 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link"></a></h2>
 <p>Import the source or minified javascript. If regular script import, uses name <code>Templatize</code>. There is only one function you need to know:</p>
 <p><em>Templatize</em>.<strong>render</strong>(<em>template, *bindings</em>[, <em>cleanup</em>]) : Renders template.</p>
@@ -1124,6 +1126,44 @@ body .markdown-body
 </tbody>
 </table>
 <p>&nbsp; &nbsp; &nbsp; &nbsp;<strong>Returns:</strong> (String) The rendered template.</p>
+<p><strong>Flags</strong></p>
+<p>Two flags you may set involves evaluation of zero-values for sections and error handling of functions. The default values for both are <code>false</code>.</p>
+<div class="codehilite"><pre><span class="nx">Templatize</span><span class="p">.</span><span class="nx">evalZeroAsTrue</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+<span class="nx">Templatize</span><span class="p">.</span><span class="nx">errorOnFuncFailure</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+</pre></div>
+
+<p>See <a href="#evaluation-of-zero-value">Sections&gt;Evaluation of zero-value</a> and <a href="#error-handling">Functions&gt;Error handling</a>. When editing flags, it is best to assume <code>Templatize</code> is static. That is, all imported version of it are affected.</p>
+<p><strong>Custom renderer</strong></p>
+<p>To create a clone the renderer &ndash; either to ensure a unique copy to scope flag changes only to the cloned instance or customize the rendering options &ndash; you can use <code>custom()</code>.</p>
+<p><em>Templatize</em>.custom([<em>options</em>]) : Clones new version of Templatize renderer.</p>
+<p>The <code>options</code> parameter, which is optional, can be supplied with the follow properties to customize the behavior of the cloned renderer.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>delimiters</code></td>
+<td><code>String[]</code></td>
+<td align="left">If supplied, the custom start and end delimiters. Defaults to <code>["{{","}}"]</code>.</td>
+</tr>
+<tr>
+<td><code>errorOnFuncFailure</code></td>
+<td><code>Boolean</code></td>
+<td align="left">Sets the flag to throw exceptions from functions in data bindings.</td>
+</tr>
+<tr>
+<td><code>evalZeroAsTrue</code></td>
+<td><code>Boolean</code></td>
+<td align="left">Sets the flag to evaluate zero-values are true for sections.</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;&nbsp;&nbsp;&nbsp; <strong>Returns:</strong> New instance of Templatize renderer.</p>
 <hr />
 <p>&nbsp; </p>
 <h2 id="variables">Variables<a class="headerlink" href="#variables" title="Permanent link"></a></h2>
@@ -1143,7 +1183,14 @@ body .markdown-body
 <div class="codehilite"><pre>Bob is 46 years old.
 </pre></div>
 
-<p>Generally avoid any data-binding names starting with an underscore (<code>_</code>) as some reserved values use the underscore prefix (e.g. <code>_display</code> and <code>_parent</code>).</p>
+<p><strong>Naming guidelines</strong></p>
+<ul>
+<li>While spaces can be part of the property name, it is generally not good practice. At the very least avoid using it as starting or trailing character(s).</li>
+<li>While dots (<code>.</code>) can mostly be used in the property name without failing (only one edge case where it would error with helper functions), it is generally to be avoided.</li>
+<li>Avoid the double-colon (<code>::</code>) which is a <a href="#formatting">formatting</a> directive.</li>
+<li>Avoid starting any parameter name with the special characters used for <a href="#comments-and-escaping">comments/escaping</a>, <a href="#lists">lists</a>, <a href="#sections">sections</a>, and <a href="#functions">functions</a> &ndash; which include the bang (<code>!</code>), ampersand (<code>&amp;</code>), hash (<code>#</code>), carot (<code>^</code>), and tilde (<code>~</code>). </li>
+<li>Some special parameters use the underscore prefix (<code>_display</code> and <code>_parent</code>) so mind usages of these (unless explicitly setting as such). </li>
+</ul>
 <h3 id="comments-and-escaping">Comments and escaping<a class="headerlink" href="#comments-and-escaping" title="Permanent link"></a></h3>
 <p>Both comments and escaping is done with a bang (<code>!</code>). For comments, place the bang within the opening <code>{{</code>. For escaping, place the bang outside the opening <code>{{</code>.</p>
 <p>&nbsp; <em>Template:</em></p>
@@ -1161,7 +1208,7 @@ body .markdown-body
 <div class="codehilite"><pre>Bob is {{age}} years old.
 </pre></div>
 
-<h2 id="formatting">Formatting<a class="headerlink" href="#formatting" title="Permanent link"></a></h2>
+<h3 id="formatting">Formatting<a class="headerlink" href="#formatting" title="Permanent link"></a></h3>
 <p>Formatting options are also available by suffixing the property name in the template code with a double-colon and format directive. For strings, accepted directives are &lsquo;upper&rsquo;, &lsquo;lower&rsquo;, and &lsquo;capitalize&rsquo;. For numbers, Templatize uses the <a href="https://github.com/d3/d3-format">d3-format library</a>. See documentation there for various formatting options.</p>
 <p>The format directive &lsquo;encode&rsquo; will also encode HTML special characters such as pointed brackets, ampersands, and quotes. You can also preface another format directive with a &ldquo;^&rdquo; to achieve the same in addition to the chosen directive.</p>
 <p>&nbsp; <em>Template:</em></p>
@@ -1188,7 +1235,7 @@ body .markdown-body
 <h2 id="lists">Lists<a class="headerlink" href="#lists" title="Permanent link"></a></h2>
 <p>Lists are marked with a <code>&amp;</code>-prefix and can only take in an array. The output is grammatically formatted with appropriate use of commas and/or the &lsquo;and&rsquo;-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.</p>
 <p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{&amp;name}} sells {{&amp;sells}} with {{&amp;with}}. 
+<div class="codehilite"><pre>{{&amp;name::capitalize}} sells {{&amp;sells}} with {{&amp;with}}. 
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>
@@ -1208,9 +1255,8 @@ body .markdown-body
 </blockquote>
 <p>&nbsp; </p>
 <h2 id="sections">Sections<a class="headerlink" href="#sections" title="Permanent link"></a></h2>
-<h3 id="basic-sections">Basic Sections<a class="headerlink" href="#basic-sections" title="Permanent link"></a></h3>
 <p>Section are marked with start at <code>#</code>-prefix and end at <code>/</code>-prefix. By binding section to a <code>true</code> or <code>false</code> value, they may be shown or removed.</p>
-<p>You may also use an inverse section by replacing <code>#</code> starting prefix with <code>^</code>. Such sections will only be displayed if the section is evaluated to <code>false</code>.</p>
+<p>You may also use an inverse section by replacing the hash (<code>#</code>) starting prefix with a carot (<code>^</code>). Such sections will only be displayed if the section is evaluated to <code>false</code>.</p>
 <p>Data may be put inside of a section.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>Bob is {{#married}}married{{/married}}{{#single}}single{{/single}}.&lt;br /&gt;
@@ -1235,7 +1281,7 @@ Bob has no pets.
 
 <p>If the section key does not exist, that section is simply not evaluated in the template, which is a common error.</p>
 <p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>Bob is {{#married}}married.{{/married}}{{#single}}single.{{/single}}
+<div class="codehilite"><pre>Bob is {{^single}}married.{{/single}}{{#single}}single.{{/single}}
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>
@@ -1243,11 +1289,52 @@ Bob has no pets.
 </pre></div>
 
 <p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>Bob is married{{#single}}single{{/single}}.
+<div class="codehilite"><pre>Bob is {{^single}}married.{{/single}}{{#single}}single.{{/single}}
 </pre></div>
 
 <h3 id="section-value-evaluation">Section value evaluation<a class="headerlink" href="#section-value-evaluation" title="Permanent link"></a></h3>
-<p>Section data may be other values besides boolean. However, evaluation of non-boolean values have minor differences from normal Javascript behavior. Values of <code>undefined</code>, <code>null</code>, an empty string, or a string composed only of whitespace (if you want to add whitespace, use <code>&amp;nbsp;</code>), evaluate to <code>false</code>. Conversely, a value of <code>0</code> is evaluated as <code>true</code>.</p>
+<p>Section data may be other values besides boolean. Values of <code>undefined</code>, <code>null</code>, an empty string or a string composed only of whitespace (if you want to add whitespace, use <code>&amp;nbsp;</code>), and <code>0</code> evaluate to <code>false</code>. As long as data-binding for section evaluates to <code>true</code>, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. </p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{#job}}Occupation: {{job}}{{/job}}
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span><span class="nx">job</span><span class="o">:</span> <span class="s2">&quot;Chef&quot;</span><span class="p">}</span>
+</pre></div>
+
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>Occupation: Chef
+</pre></div>
+
+<p>The above though is somewhat messy of an implementation. One alternative is to separate a &ldquo;display&rdquo; variable, or use an object for the section data.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{#showJob}}Occupation: {{job}}{{/showJob}}
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="nx">showJob</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> 
+  <span class="nx">job</span><span class="o">:</span> <span class="s2">&quot;Chef&quot;</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{#job}}Occupation: {{job.title}}{/job}}
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="nx">job</span><span class="o">:</span> <span class="p">{</span><span class="nx">title</span><span class="o">:</span> <span class="s2">&quot;Chef&quot;</span><span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">// or conversely, which will hide the section..</span>
+<span class="p">{</span>
+  <span class="nx">job</span><span class="o">:</span> <span class="kc">false</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Note that section data (excluding repeating sections) are scoped for the entire template. E.g., given the above example, <code>{{job.title}}</code> may be used anywhere in the template inside or outside of a <code>{{#job}}{{/job}}</code> section and will be replaced with <code>"Chef"</code> when rendered.</p>
+<h3 id="evaluation-of-zero-value">Evaluation of zero-value<a class="headerlink" href="#evaluation-of-zero-value" title="Permanent link"></a></h3>
+<p>There may however be cased in which you do want sections to evaluate <code>0</code> as <code>true</code>.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>Profit:&lt;br /&gt;
 Monday - {{#monday}}{{monday::$.2f}}{{/monday}}{{^monday}}Closed{{/monday}}&lt;br /&gt;
@@ -1266,51 +1353,23 @@ Saturday - {{#saturday}}{{saturday::$.2f}}{{/saturday}}{{^saturday}}Closed{{/sat
 <p>&nbsp; <em>Outputs:</em></p>
 <div class="codehilite"><pre>Profit:
 Monday - Closed
+Sunday - Closed
+Saturday - $122.00
+</pre></div>
+
+<p>By setting <code>evalZeroAsTrue</code> to <code>true</code>, you can change this behavior to treat zero-values as truthy.</p>
+<div class="codehilite"><pre><span class="nx">Templatize</span><span class="p">.</span><span class="nx">evalZeroAsTrue</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+</pre></div>
+
+<p>Which will change to output as follows.</p>
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>Profit:
+Monday - Closed
 Sunday - $0.00
 Saturday - $122.00
 </pre></div>
 
-<p>As long as data-binding for section evaluates to <code>true</code>, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value.</p>
-<p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{#job}}Occupation: {{job}}{{/job}}
-</pre></div>
-
-<p>&nbsp; <em>Bindings:</em></p>
-<div class="codehilite"><pre><span class="p">{</span><span class="nx">job</span><span class="o">:</span> <span class="s2">&quot;Chef&quot;</span><span class="p">}</span>
-</pre></div>
-
-<p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>Occupation: Chef
-</pre></div>
-
-<p>The above though is somewhat messy of an implementation. One alternative is to separate a &ldquo;display&rdquo; variable.</p>
-<p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{#showJob}}Occupation: {{job}}{{/showJob}}
-</pre></div>
-
-<p>&nbsp; <em>Bindings:</em></p>
-<div class="codehilite"><pre><span class="p">{</span>
-  <span class="nx">showJob</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> 
-  <span class="nx">job</span><span class="o">:</span> <span class="s2">&quot;Chef&quot;</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>Or, even better, used a nested structure for the section like below.</p>
-<p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{#job}}Occupation: {{job.title}}{/job}}
-</pre></div>
-
-<p>&nbsp; <em>Bindings:</em></p>
-<div class="codehilite"><pre><span class="p">{</span>
-  <span class="nx">job</span><span class="o">:</span> <span class="p">{</span><span class="nx">title</span><span class="o">:</span> <span class="s2">&quot;Chef&quot;</span><span class="p">}</span>
-<span class="p">}</span>
-<span class="c1">// or conversely, which will hide the entire section..</span>
-<span class="p">{</span>
-  <span class="nx">job</span><span class="o">:</span> <span class="kc">false</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>Note that section data (excluding repeating sections) are scoped for the entire template. E.g., given the above example, <code>{{job.title}}</code> may be used anywhere in the template inside or outside of a <code>{{#job}}{{/job}}</code> section and will be replaced with <code>"Chef"</code> when rendered.</p>
+<p>Depending on your dependency manager, this may or may not affect all references to <code>Templatize</code>. Generally speaking, assume <code>Templatize</code> is a static reference, so either adjust for all uses, and/or have it reset back to a desired behavior after using it with non-default behavior.</p>
 <h3 id="more-section-behavior">More section behavior<a class="headerlink" href="#more-section-behavior" title="Permanent link"></a></h3>
 <p>Section data may still be filled out but removed/hidden if a <code>_display</code> variable exists and evaluates to  <code>false</code> (this behavior evaluates &ldquo;truthiness&rdquo; in a standard fashion &ndash; e.g. unlike for the section value itself, <code>0</code> evaluates to <code>false</code>).</p>
 <p>&nbsp; <em>Template:</em></p>
@@ -1608,17 +1667,8 @@ Louise is 9 years old
 </pre></div>
 
 <p>Normally, this does not break the rendering, as the default behavior is to fail functions silently (see next section). However, if that is modified, then this will throw the exception.</p>
-<p>To prevent this, the <code>calcAge</code> function could be adjusted in two ways. First, it could simply check for the existence of the parameters it requires and if not found, return blank or some other filler value.</p>
-<div class="codehilite"><pre><span class="p">{</span>
-  <span class="p">...</span>
-  <span class="nx">calcAge</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_parent</span> <span class="o">||</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">year</span> <span class="o">||</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">)</span> <span class="k">return</span> <span class="s2">&quot;--&quot;</span><span class="p">;</span>
-    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">year</span> <span class="o">-</span> <span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>Another method is to prefix the variable name with a tilde (&lsquo;~&rsquo;), which tells Templatize not to evaluate this function unless provided a given context. When calling the function in the template, you do not need to double up on the tilde, whether it is nested or not.</p>
+<p>To prevent this, the <code>calcAge</code> function could be adjusted in a few ways. First, it could simply check for the existence of the parameters it requires and if not found, return blank or some other filler value. Or you could simply wrap the interior block of the function in a try-catch-finally block to prevent the exception from bubbling out.</p>
+<p>Another method is to prefix the property name with a tilde (&lsquo;~&rsquo;), which tells Templatize not to evaluate this function unless provided a given context. (When referencing the function in the template, you do not include the tilde.)</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>{{#children}}{{children~funcs.fullName}} is {{children~calcAge}}. {{/children}}
 </pre></div>
@@ -1653,7 +1703,7 @@ Louise is 9 years old
 <h2 id="putting-it-all-together">Putting it all together<a class="headerlink" href="#putting-it-all-together" title="Permanent link"></a></h2>
 <p>Below is a complex example using a bit of everything covered above.</p>
 <p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{name~fullName}} has {{numChildrenText}}.&lt;br /&gt;
+<div class="codehilite"><pre>{{name~fullname}} has {{numChildrenText}}.&lt;br /&gt;
 {{&amp;kidsNamesAndAges}}.
 &lt;br /&gt;&lt;br /&gt;
 {{#relations}}His {{relations.relation}} is {{relations.fullname}}. {{/relations}}
@@ -1687,8 +1737,8 @@ Louise is 9 years old
   <span class="nx">kidsNamesAndAges</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">child</span> <span class="o">=&gt;</span> <span class="p">{</span>
       <span class="nx">child</span><span class="p">.</span><span class="nx">_parent</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>  <span class="c1">// helper functions being manually called need &#39;_parent&#39;</span>
-      <span class="kd">var</span> <span class="nx">fullname</span> <span class="o">=</span> <span class="k">this</span><span class="p">[</span><span class="s1">&#39;~fullName&#39;</span><span class="p">].</span><span class="nx">call</span><span class="p">(</span><span class="nx">child</span><span class="p">),</span> 
-          <span class="nx">age</span> <span class="o">=</span> <span class="k">this</span><span class="p">[</span><span class="s1">&#39;~age&#39;</span><span class="p">].</span><span class="nx">call</span><span class="p">(</span><span class="nx">child</span><span class="p">);</span>
+      <span class="kd">var</span> <span class="nx">fullname</span> <span class="o">=</span> <span class="k">this</span><span class="p">[</span><span class="s1">&#39;~fullname&#39;</span><span class="p">].</span><span class="nx">call</span><span class="p">(</span><span class="nx">child</span><span class="p">),</span> 
+          <span class="nx">age</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">year</span> <span class="o">-</span> <span class="nx">child</span><span class="p">.</span><span class="nx">born</span><span class="p">;</span>
       <span class="k">return</span> <span class="nx">fullname</span> <span class="o">+</span> <span class="s2">&quot; is &quot;</span> <span class="o">+</span> <span class="nx">age</span> <span class="o">+</span> <span class="s2">&quot; years old&quot;</span><span class="p">;</span>
     <span class="p">});</span>
   <span class="p">},</span> 
@@ -1696,19 +1746,16 @@ Louise is 9 years old
     <span class="p">{</span>
       <span class="nx">relation</span><span class="o">:</span> <span class="s2">&quot;wife&quot;</span><span class="p">,</span> 
       <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Linda&quot;</span><span class="p">,</span> 
-      <span class="nx">fullname</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">[</span><span class="s1">&#39;~fullName&#39;</span><span class="p">].</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span> <span class="p">}</span>
+      <span class="nx">fullname</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">[</span><span class="s1">&#39;~fullname&#39;</span><span class="p">].</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">);</span> <span class="p">}</span>
     <span class="p">},</span> 
     <span class="p">{</span>
       <span class="nx">relation</span><span class="o">:</span> <span class="s2">&quot;rival&quot;</span><span class="p">,</span> 
       <span class="nx">fullname</span><span class="o">:</span> <span class="s2">&quot;Jimmy Pesto&quot;</span>
     <span class="p">}</span>
   <span class="p">],</span> 
-  <span class="s1">&#39;~fullName&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="s1">&#39;~fullname&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">return</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">first</span> <span class="o">||</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">familyName</span><span class="p">;</span>
-  <span class="p">},</span> 
-  <span class="s1">&#39;~age&#39;</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">year</span> <span class="o">-</span> <span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">;</span>
-  <span class="p">}</span>
+  <span class="p">},</span>
 <span class="p">}</span>
 </pre></div>
 
@@ -1762,9 +1809,9 @@ His wife is Linda Belcher. His rival is Jimmy Pesto.
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>Order:&lt;br /&gt;
 {{#order}}-{{order.name}}&lt;br /&gt;{{/order}}
-Item prices: {{&amp;prices:$.2f}}&lt;br /&gt;
-Sale tax: {{salesTax:.0%}}&lt;br /&gt;
-Total (w/ tax): {{total:$.2f}}
+Item prices: {{&amp;prices::$.2f}}&lt;br /&gt;
+Sale tax: {{salesTax::.0%}}&lt;br /&gt;
+Total (w/ tax): {{total::$.2f}}
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>

@@ -60,7 +60,7 @@
   <body>
     <div id="container">
       <label>Template:</label>
-      <textarea id="input-template">{{name~fullName}} has {{numChildrenText}}.<br />
+      <textarea id="input-template">{{name~fullname}} has {{numChildrenText}}.<br />
 {{&kidsNamesAndAges}}.
 <br /><br />
 {{#relations}}His {{relations.relation}} is {{relations.fullname}}. {{/relations}}</textarea>
@@ -93,8 +93,8 @@
   kidsNamesAndAges: function() {
     return this.children.map(child => {
       child._parent = this;  // helper functions being manually called need '_parent'
-      var fullname = this['~fullName'].call(child), 
-          age = this['~age'].call(child);
+      var fullname = this['~fullname'].call(child), 
+          age = this.year - child.born;
       return fullname + " is " + age + " years old";
     });
   }, 
@@ -102,18 +102,15 @@
     {
       relation: "wife", 
       name: "Linda", 
-      fullname: function() { return this._parent['~fullName'].call(this); }
+      fullname: function() { return this._parent['~fullname'].call(this); }
     }, 
     {
       relation: "rival", 
       fullname: "Jimmy Pesto"
     }
   ], 
-  '~fullName': function() {
+  '~fullname': function() {
     return (this.first || this.name) + " " + this._parent.familyName;
-  }, 
-  '~age': function() {
-    return this._parent.year - this.born;
   }
 }</textarea>
       <div class="spacer"></div>
@@ -133,6 +130,7 @@
             bindings = window.Function("let window=null;return "+inputBindings.value+";")();
             output.innerHTML = Templatize.render(inputTemplate.value, bindings);
           } catch(e) {
+            console.error(e);
             output.innerHTML = "<span class='error'>"+e.message+"</span>";
           }
         };
