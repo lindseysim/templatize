@@ -1,5 +1,5 @@
-import Interface from "./interface.js";
-import Template from "./template.js";
+import Interface from "./lib/interface.js";
+import Template from "./lib/template.js";
 
 export default {
     render: function(template, bindings, options) {

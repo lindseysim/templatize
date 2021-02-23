@@ -9,7 +9,7 @@
     "type": "git",
     "url": "git+https://github.com/lawrencesim/templatize.git"
   },
-  "main": "dist/templatize.min.js",
+  "main": "templatize.min.js",
   "devDependencies": {
     "@babel/core": "^7.12.16",
     "@babel/preset-env": "^7.12.16",
