@@ -3,7 +3,6 @@ import {TYPES, typeOf, evalf, formatValue}            from "./misc.js";
 import DIRECTIVES                                     from "./directives.js";
 import Template                                       from "./template.js";
 import Domain                                         from "./domain.js";
-// import {Binding, Bindings}                            from "./bindings.js";
 
 const DEFAULT = {
     errorOnFuncFailure: false, 
@@ -74,18 +73,6 @@ class Interface {
                 escapeAll:          this.escapeAll, 
                 handleMissingTags:  this.handleMissingTags
             };
-            // if(bindings instanceof Bindings) {
-            //     // partials get passed bindings object, don't need to recreate..
-            //     this._bindings = bindings;
-            // } else if(bindings instanceof Bindings) {
-            //     // ..or passed context from bindings object, also don't need to recreate
-            //     /* TODO */
-            //     this._bindings = bindings;
-            // } else {
-            //     // map bindings
-            //     this._bindings = new Bindings(bindings, this.handleMissingTags);
-            //     this._bindings.map(this._bindings.root);
-            // }
             if(bindings instanceof Domain) {
                 // partials get passed context object, don't need to recreate
                 this._root = bindings;
@@ -111,8 +98,6 @@ class Interface {
             return this._render2(this._render1(this._template.root));
         } finally {
             // clean up references and temporary variables
-            // if(this._bindings) this._bindings.exit();
-            // this._bindings = null;
             if(this._root) this._root.cleanup();
             this._root     = null;
             this._partials = {};
@@ -150,11 +135,6 @@ class Interface {
                 processed.inner.push(node);
                 continue;
             }
-            // get bindings -- allow missing
-            // bv = this._bindings.get(node, domain, {
-            //     onFuncError: this._errorHandler(node.key), 
-            //     handleMissing: "null"
-            // });
             // render partial as sub-render with passed data domain and duplicate options
             if(node instanceof PartialNode) {
                 processed.inner.push(this._partial(node, domain));
@@ -200,16 +180,6 @@ class Interface {
                 let dylen = context.node.dynamic.length(), 
                     dydom;
                 for(let i = 0; i < dylen; ++i) {
-                    // // create binding for this dynamic data domain
-                    // dContext = this._bindings.create.dynamic({
-                    //     key:    bv.binding.key, 
-                    //     dkey:   i,                  // dynamic key, added to key in map to keep unique
-                    //     value:  bv.value[i],        // pass array item as data
-                    //     parent: bv.binding.parent,  // pass array parent to be this parent context
-                    //     nobind: true                // don't bind, dynamic context is temporary
-                    // });
-                    // processed.inner.push(this._render2(node, dContext, processed));
-                    // this._bindings.cleanup(dContext); // cleanup context binding map after use
                     // get dynamic domain and recurse into section
                     dydom = context.node.dynamic.get(i);
                     processed.inner.push(this._render2(node, dydom));
@@ -225,7 +195,6 @@ class Interface {
             } else if(typeof node === "string") {
                 text += node;
             } else {
-                // let bv = this._bindings.get(node, domain, {onFuncError: this._errorHandler(node.key)});
                 context = this._context(node, domain);
                 if(!context) {
                     this._missingHandler(node.raw);
