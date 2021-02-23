@@ -1,0 +1,8 @@
+(?<!!)     - ignore escaped (preceded by !)
+({{)       - starting delimiter
+(?:[ ]*)   - ignore spaces
+(tag)      - tag name
+(?:::)?    - format directive
+([^:}]*)?  - formative directive name
+(?:[ ]*)   - ignore spaces
+()}})      - ending delimiter

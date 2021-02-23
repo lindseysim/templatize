@@ -29,7 +29,7 @@
       textarea {
         flex: 0 0 auto;
         width: 100%;
-        resize: none;
+        resize: vertical;
         margin: 1em;
         margin-top: 0;
         display: block;
@@ -38,10 +38,10 @@
         color: #fff;
       }
       #input-template {
-        height: 90px;
+        height: 240px;
       }
       #input-bindings {
-        height: 280px;
+        height: 240px;
       }
       #output {
         width: 100%;
@@ -93,7 +93,7 @@
   kidsNamesAndAges: function() {
     return this.children.map(child => {
       child._parent = this;  // helper functions being manually called need '_parent'
-      var fullname = this['~fullname'].call(child), 
+      var fullname = this.fullname.call(child), 
           age = this.year - child.born;
       return fullname + " is " + age + " years old";
     });
@@ -102,14 +102,14 @@
     {
       relation: "wife", 
       name: "Linda", 
-      fullname: function() { return this._parent['~fullname'].call(this); }
+      fullname: function() { return this._parent.fullname.call(this); }
     }, 
     {
       relation: "rival", 
       fullname: "Jimmy Pesto"
     }
   ], 
-  '~fullname': function() {
+  fullname: function() {
     return (this.first || this.name) + " " + this._parent.familyName;
   }
 }</textarea>
