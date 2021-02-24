@@ -173,9 +173,7 @@ Note in the above that `_display` does not reverse the behavior of inverse secti
 
 If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array.
 
-Note that each item is also treated to the same [section value evaluation](#section-value-evaluation) to determine whether it is rendered.
-
-For a flat array of values you may simply use the [context directive](../README.md#scoping-and-the-context-directive) alone to display the value of each item. 
+For a flat array of values you may simply use the [context directive](../README.md#scoping-and-the-context-directive) alone to display the value of each item. Note that each item is also treated to the same [section value evaluation](#section-value-evaluation) to determine whether it is rendered.
 
 &nbsp; *Template:*
 
