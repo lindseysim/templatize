@@ -1,50 +1,54 @@
-## Functions ##
+## Functions
 
-Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides.
+Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via `this`).
+
+As the behavior of the function depends on what is returned, it may be used in a variety of contexts. Note however that functions that return a function will continue to be re-evaluated until it returns a non-function value or will error if it exceeds a maximum number of iterations without doing such.
 
 &nbsp; *Template:*
 
 ```
-{{name}} has {{numChildrenText}}.
+{{fullname}}'s friends include {{&friends}}.
 ```
 
 &nbsp; *Bindings:*
 
 ```javascript
 {
-  name: "Bob", 
-  numChildrenText: function() {
-    switch(this.children.length) {
-      case 0:
-        return "no children"
-      case 1:
-        return "one child"
-      default:
-        return this.children.length + " children"
-    }
+  name: {
+    first: "Bob", 
+    last: "Belcher"
   }, 
-  children: [
-    {firstName: "Tina"}, 
-    {firstName: "Gene"}, 
-    {firstName: "Louise"}
-  ]
+  fullname: function() {
+    return this.name.first + " " + this.name.last;
+  }, 
+  relations: [
+    {name: "Teddy", friendly: true}, 
+    {name: "Mort", friendly: true}, 
+    {name: "Jimmy Pesto", friendly: false}
+  ], 
+  friends: function() { 
+    return this.relations.filter(person => person.friendly)
+                         .map(person => person.name);
+  }
 }
 ```
 
 &nbsp; *Outputs:*
 
 ```
-Bob has 3 children.
+Bob Belcher's friends include Teddy and Mort.
 ```
 
-### Context and parent ###
+&nbsp;
 
-In the previous example, the function `numChildrenText` was called with a `this` context of the data object at the same level in which the function exists, allowing it to access the var `children`. For nested, variables, `this` will also include a `_parent` to allow traversal up the data structure.
+### Context and `_parent`
+
+In the previous example, the functions were all at the root level, and thus the `this` context was the root data binding. For nested, variables, `this` will also include a `_parent` to allow traversal up the data structure.
 
 &nbsp; *Template:*
 
 ```
-The head of the family is {{head.name}}, who is married to {{relations.wife.name}}.
+{{main.name}} is married to {{relations.wife.name}}.
 ```
 
 &nbsp; *Bindings:*
@@ -52,7 +56,7 @@ The head of the family is {{head.name}}, who is married to {{relations.wife.name
 ```javascript
 {
   familyName: "Belcher", 
-  head: {
+  main: {
     firstName: "Bob", 
     name: function() { return this.firstName + " " + this._parent.familyName }
   }, 
@@ -68,42 +72,44 @@ The head of the family is {{head.name}}, who is married to {{relations.wife.name
 &nbsp; *Outputs:*
 
 ```
-The head of the family is Bob Belcher, who is married to Linda Belcher.
+Bob Belcher is married to Linda Belcher.
 ```
 
-Note in the more deeply-nested case, `this._parent` is used twice to traverse upwards two levels.
+Note in the more deeply-nested case, `this._parent` can be used twice to traverse upwards two levels.
 
-### Nesting ###
+&nbsp;
 
-Additionally, the return value of the function may also be another object, array, or function, and treated as appropriate.
+### Passing context to function
+
+To specify a specific context in which the function should be called, you may use the pass-context-to-function directive, by separating the context (first) and function to call it on (second) with a tilde (`~`).
 
 &nbsp; *Template:*
 
 ```
-Bob's kids are {{&kidsNames}}<br />
-Louise is {{kidsAges.Louise}} years old
+{{main~fullname}}'s kids are:<br />
+{{#children}}
+  {{children~fullname}} ({{.~age}} years old)<br />
+{{/children}}
 ```
 
 &nbsp; *Bindings:*
 
 ```javascript
 {
+  main: {
+    name: "Bob"
+  }, 
+  familyName: "Belcher", 
   children: [
     {name: "Tina", born: 2008}, 
     {name: "Gene", born: 2010}, 
     {name: "Louise", born: 2012}
   ], 
-  kidsNames: function() {
-    // this returns an array that we'll treat as a list
-    return this.children.map(child => child.name);
-  }, 
-  kidsAges: function() {
-    // this returns an object that we can nest into
-    var ages = {};
-    this.children.forEach(child => {
-      ages[child.name] = 2021 - child.born;
-    });
-    return ages;
+  fullname: function() {
+    return this.name + " " + this._parent.familyName;
+  },
+  age: function() {
+    return 2021 - this.born;
   }
 }
 ```
@@ -111,8 +117,10 @@ Louise is {{kidsAges.Louise}} years old
 &nbsp; *Outputs:*
 
 ```
-Bob's kids are Tina, Gene, and Louise
-Louise is 9 years old
+Bob Belcher's kids are:
+Tina Belcher (13 years old)
+Gene Belcher (11 years old)
+Louise Belcher (9 years old)
 ```
 
 ### Functions within functions ###

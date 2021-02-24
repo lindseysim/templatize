@@ -299,7 +299,7 @@ The data bound to a section tag is evaluated for 'truthiness'. Values of `undefi
 
 ##### More
 
-[See additional documentation for more on sections and section value evaluation](./docs/sections.md).
+See additional documentation for more on [sections](./docs/sections.md), [section value evaluation](./docs/sections.md#section-value-evaluation), [the `_display` parameter](./docs/sections.md#the-_display-parameter), and more.
 
 &nbsp; 
 
@@ -333,7 +333,7 @@ Child: Louise
 
 ##### More
 
-[See additional documentation for more on repeating sections](./docs/sections.md#repeating-sections).
+See additional documentation for more on [repeating sections](./docs/sections.md#repeating-sections).
 
 
 &nbsp; 
@@ -369,6 +369,58 @@ All keys in template tags must provide the full path to the data-binding, even i
 &nbsp;
 
 
+## Functions
+
+Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via `this`).
+
+As the behavior of the function depends on what is returned, it may be used in a variety of contexts. Note however that functions that return a function will continue to be re-evaluated until it returns a non-function value or will error if it exceeds a maximum number of iterations without doing such.
+
+&nbsp; *Template:*
+
+```
+{{fullname}}'s friends include {{&friends}}.
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  name: {
+    first: "Bob", 
+    last: "Belcher"
+  }, 
+  fullname: function() {
+    return this.name.first + " " + this.name.last;
+  }, 
+  relations: [
+    {name: "Teddy", friendly: true}, 
+    {name: "Mort", friendly: true}, 
+    {name: "Jimmy Pesto", friendly: false}
+  ], 
+  friends: function() { 
+    return this.relations.filter(person => person.friendly)
+                         .map(person => person.name);
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+Bob Belcher's friends include Teddy and Mort.
+```
+
+##### More
+
+See additional documentation for more on [functions](#./docs/functions.md).
+
+
+&nbsp;
+
+
+
+
+
 ## Templatize vs Mustache ##
 
 It's not a competition, but it's worth mentioning why there's a big library that emulates most of what [Mustache.js](https://github.com/janl/mustache.js/) does, while while they are similar there are enough differences to make switching between incompatible beyond the basic variables and sections. As aforementioned, this originally developed as an extremely minimal and lightweight implementation of a templating system, that only eventually blew up and became quite a full-on project. Partly because it contains some customizations I prefer and partly just as a side-project for practice.
@@ -401,37 +453,7 @@ Mustache is template-oriented in that it first maps the template, finding all va
 
 &nbsp;
 
-## Common errors and more ##
 
-### Missing bindings ###
-
-As aforementioned, templates are not preprocessed to map data-bindings. Instead, templates are rendered at call, using the supplied data bindings, and finding the appropriate, matching markup in the template. Consequently, **missing bindings in the template are rendered as is**. This may be particularly tricky when using inverse sections. The binding must still exist, even if it evaluates to `false` -- if undefined, the section syntax is ignored in the template.
-
-Additionally, formatting issues are not checked and validated. Thus, providing an incomplete data-binding or badly formatted template will result in rendering issues.
-
-&nbsp; *Template:*
-
-```
-{{name.first}} {{#age}}is {{age}} years old.
-```
-
-&nbsp; *Data:*
-
-```javascript
-{age: 46}
-```
-
-&nbsp; *Outputs:*
-
-```
-{{name.first}} {{#age}}is 46 years old.
-```
-
-In the above, `{{name.first}}` is not replaced because the binding does not exist in the supplied data. As well, the use of the `{{#age}}` section is erroneously rendered as the expected closing tag (`{{/age}}`) was not found.
-
-To cleanup any remaining markup, set the `cleanup` parameter in `Templatize.render()` as `true`.
-
-&nbsp;
 
 ### Formatting lists and functions ###
 
