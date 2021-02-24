@@ -1071,45 +1071,18 @@ body .markdown-body
 <li><a href="#lists">Lists</a></li>
 <li><a href="#sections">Sections</a><ul>
 <li><a href="#section-value-evaluation">Section value evaluation</a></li>
-</ul>
-</li>
-<li><a href="#functions">Functions</a></li>
-</ul>
-</li>
-<li><a href="#more">More</a></li>
-<li>
-<p><a href="#acknowledgments">Acknowledgments</a></p>
-</li>
-<li>
-<p><a href="#variables">Variables</a></p>
-<ul>
-<li><a href="#formatting">Formatting</a></li>
-</ul>
-</li>
-<li><a href="#lists">Lists</a></li>
-<li><a href="#sections">Sections</a><ul>
-<li><a href="#evaluation-of-zero-value">Evaluation of zero-value</a></li>
-<li><a href="#more-section-behavior">More section behavior</a></li>
-</ul>
-</li>
 <li><a href="#repeating-sections">Repeating Sections</a></li>
-<li><a href="#nested-sections">Nested Sections</a></li>
+</ul>
+</li>
+<li><a href="#scoping-and-the-context-directive">Scoping and the context directive</a></li>
 <li><a href="#functions">Functions</a><ul>
-<li><a href="#context-and-parent">Context and parent</a></li>
-<li><a href="#nesting">Nesting</a></li>
-<li><a href="#functions-within-functions">Functions within functions</a></li>
-<li><a href="#dynamically-scoping-functions">Dynamically scoping functions</a></li>
 <li><a href="#error-handling">Error handling</a></li>
 </ul>
 </li>
-<li><a href="#putting-it-all-together">Putting it all together</a></li>
-<li><a href="#templatize-vs-mustache">Templatize vs Mustache</a></li>
-<li><a href="#common-errors-and-more">Common errors and more</a><ul>
-<li><a href="#missing-bindings">Missing bindings</a></li>
-<li><a href="#formatting-lists-and-functions">Formatting lists and functions</a></li>
-<li><a href="#scoping-of-function-within-functions">Scoping of functions within functions</a></li>
 </ul>
 </li>
+<li><a href="#advanced-topics-and-more">Advanced Topics and More</a></li>
+<li><a href="#acknowledgments">Acknowledgments</a></li>
 </ul>
 <hr />
 <p>&nbsp; </p>
@@ -1273,11 +1246,11 @@ body .markdown-body
 <p><strong>Restrictions for property names</strong></p>
 <ul>
 <li><code>_parent</code> is a special keyword (see <a href="#context-and-parent">Context and parent</a>).</li>
-<li><code>_display</code> is a special keyword. While it is meant to be set (see <a href="D:/ProjectsWeb/templatize/docs/sections.md#more-section-behavior]">More section behavior</a>, it should only be done when specifically calling said functionality.</li>
+<li><code>_display</code> is a special keyword. While it is meant to be set (see <a href="D:/ProjectsWeb/templatize/more/sections#more-section-behavior]">More section behavior</a>, it should only be done when specifically calling said functionality.</li>
 <li>Any property name with a leading bang (<code>!</code>) will be treated as an <a href="#comments-and-escaping">escaped tag</a> in the template code.</li>
 <li>Any property name with a leading directive used for <a href="#lists">lists</a> and <a href="#sections">sections</a> &ndash; which include ampersand (<code>&amp;</code>), hash (<code>#</code>), and caret (<code>^</code>) &ndash; will be interpreted as such and not considered part of the key name.</li>
 <li>Ending a property name ending with a semi-colon (<code>;</code>) will be interpreted as the escape <a href="#formatting">formatting</a> directive and not part of the key name.</li>
-<li>Using in any place a double-colon (<code>::</code>), which is a <a href="#formatting">formatting</a> directive, or a tilde (<code>~</code>), which is used for <a href="D:/ProjectsWeb/templatize/docs/sections.md#dynamically-scoping-functions">dynamically scoping functions</a>, will be interpreted as their respective directives.</li>
+<li>Using in any place a double-colon (<code>::</code>), which is a <a href="#formatting">formatting</a> directive, or a double right-pointed-bracket (<code>&gt;&gt;</code>), which is used for <a href="D:/ProjectsWeb/templatize/more/sections#passing-context-to-functions">passing context to functions</a>, will be interpreted as their respective directives.</li>
 </ul>
 <p><strong>Things to avoid in property names</strong></p>
 <ul>
@@ -1397,140 +1370,95 @@ Bob has no pets.
 
 <h3 id="section-value-evaluation">Section value evaluation<a class="headerlink" href="#section-value-evaluation" title="Permanent link"></a></h3>
 <p>The data bound to a section tag is evaluated for &lsquo;truthiness&rsquo;. Values of <code>undefined</code>, <code>null</code>, an empty string or a string composed only of whitespace, an empty array, and <code>0</code> evaluate as false. Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. </p>
-<h3 id="more">More<a class="headerlink" href="#more" title="Permanent link"></a></h3>
-<p><a href="D:/ProjectsWeb/templatize/docs/sections.md">See documentation for more on sections</a>, including display patterns, the <code>_display</code> parameter, scoping, nested sections, and more.</p>
+<p>&nbsp;</p>
+<h5 id="more">More<a class="headerlink" href="#more" title="Permanent link"></a></h5>
+<p>See additional documentation for more on <a href="D:/ProjectsWeb/templatize/more/sections">sections</a>, <a href="D:/ProjectsWeb/templatize/more/sections#section-value-evaluation">section value evaluation</a>, <a href="D:/ProjectsWeb/templatize/more/sections#the-_display-parameter">the <code>_display</code> parameter</a>, and more.</p>
 <p>&nbsp; </p>
-<h2 id="repeating-sections">Repeating Sections<a class="headerlink" href="#repeating-sections" title="Permanent link"></a></h2>
-<h3 id="more_1">More<a class="headerlink" href="#more_1" title="Permanent link"></a></h3>
-<p><a href="D:/ProjectsWeb/templatize/docs/sections.md#repeating-sections">See documentation for more on repeating sections</a>, including &hellip;</p>
-<p>&nbsp;</p>
-<h2 id="templatize-vs-mustache">Templatize vs Mustache<a class="headerlink" href="#templatize-vs-mustache" title="Permanent link"></a></h2>
-<p>It&rsquo;s not a competition, but it&rsquo;s worth mentioning why there&rsquo;s a big library that emulates most of what <a href="https://github.com/janl/mustache.js/">Mustache.js</a> does, while while they are similar there are enough differences to make switching between incompatible beyond the basic variables and sections. As aforementioned, this originally developed as an extremely minimal and lightweight implementation of a templating system, that only eventually blew up and became quite a full-on project. Partly because it contains some customizations I prefer and partly just as a side-project for practice.</p>
-<h4 id="major-syntax-and-usage-differences">Major syntax and usage differences<a class="headerlink" href="#major-syntax-and-usage-differences" title="Permanent link"></a></h4>
-<p>The support for grammatically formatted <a href="#lists">lists</a> and built-in formatters are unique to Templatize as well as the options to evaluate zero-values as true.</p>
-<p><strong>Scope for repeating sections</strong></p>
-<p>Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab values from each list item within that section). Templatize still requires the full dot notation to grab data within a repeating section.</p>
-<p><strong>Scope for functions</strong></p>
-<p>In Mustache, functions called within a section are given the <code>this</code> context of the data-binding of the section. Thus calling a function in a repeating section changes the context to the item per iteration. </p>
-<p>In Templatize, functions are by default given the context of where the function lives within the data binding. To provide a different context, it must be explicitly called. See <a href="#dynamically-scoping-functions">Dynamically scoping functions</a>.</p>
-<p><strong>Partials</strong> </p>
-<p>Templatize has no inherent support for partials &ndash; though as Templatize maps and renders on runtime, it is not really necessary.</p>
-<h4 id="architecture-differences">Architecture differences<a class="headerlink" href="#architecture-differences" title="Permanent link"></a></h4>
-<p>Templatize is data-binding-orientated. That it, it traverses the data bindings provided, and looks for tags in the template code that would be associated with said data binding. This results in <a href="#missing-bindings">potential artifacts from unresolved template tags</a> unless the <code>clean</code> parameter is set.</p>
-<p>Mustache is template-oriented in that it first maps the template, finding all valid tags, then replaces them, if found, with the associated value in the data-binding object.</p>
-<p>&nbsp;</p>
-<h2 id="common-errors-and-more">Common errors and more<a class="headerlink" href="#common-errors-and-more" title="Permanent link"></a></h2>
-<h3 id="missing-bindings">Missing bindings<a class="headerlink" href="#missing-bindings" title="Permanent link"></a></h3>
-<p>As aforementioned, templates are not preprocessed to map data-bindings. Instead, templates are rendered at call, using the supplied data bindings, and finding the appropriate, matching markup in the template. Consequently, <strong>missing bindings in the template are rendered as is</strong>. This may be particularly tricky when using inverse sections. The binding must still exist, even if it evaluates to <code>false</code> &ndash; if undefined, the section syntax is ignored in the template.</p>
-<p>Additionally, formatting issues are not checked and validated. Thus, providing an incomplete data-binding or badly formatted template will result in rendering issues.</p>
+<h3 id="repeating-sections">Repeating Sections<a class="headerlink" href="#repeating-sections" title="Permanent link"></a></h3>
+<p>If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array.</p>
+<p>Note that each item is also treated to the same <a href="D:/ProjectsWeb/templatize/more/sections#section-value-evaluation">section value evaluation</a> to determine whether it is rendered.</p>
+<p>For a flat array of values you may simply use the <a href="#scoping-and-the-context-directive">context directive</a> alone to display the value of each item. </p>
 <p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{name.first}} {{#age}}is {{age}} years old.
+<div class="codehilite"><pre>{{#children}}Child: {{.}}&lt;br /&gt;{{/children}}
 </pre></div>
 
-<p>&nbsp; <em>Data:</em></p>
-<div class="codehilite"><pre><span class="p">{</span><span class="nx">age</span><span class="o">:</span> <span class="mi">46</span><span class="p">}</span>
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span><span class="nx">children</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;Tina&quot;</span><span class="p">,</span> <span class="s2">&quot;Gene&quot;</span><span class="p">,</span> <span class="s2">&quot;Louise&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">]}</span>
 </pre></div>
 
 <p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>{{name.first}} {{#age}}is 46 years old.
+<div class="codehilite"><pre>Child: Tina
+Child: Gene
+Child: Louise
 </pre></div>
 
-<p>In the above, <code>{{name.first}}</code> is not replaced because the binding does not exist in the supplied data. As well, the use of the <code>{{#age}}</code> section is erroneously rendered as the expected closing tag (<code>{{/age}}</code>) was not found.</p>
-<p>To cleanup any remaining markup, set the <code>cleanup</code> parameter in <code>Templatize.render()</code> as <code>true</code>.</p>
-<p>&nbsp;</p>
-<h3 id="formatting-lists-and-functions">Formatting lists and functions<a class="headerlink" href="#formatting-lists-and-functions" title="Permanent link"></a></h3>
-<p>The formatting feature also applies to lists and functions.</p>
+<h5 id="more_1">More<a class="headerlink" href="#more_1" title="Permanent link"></a></h5>
+<p>See additional documentation for more on <a href="D:/ProjectsWeb/templatize/more/sections#repeating-sections">repeating sections</a>.</p>
+<p>&nbsp; </p>
+<h2 id="scoping-and-the-context-directive">Scoping and the context directive<a class="headerlink" href="#scoping-and-the-context-directive" title="Permanent link"></a></h2>
+<p>All keys in template tags must provide the full path to the data-binding, even if within a section. However, one way to shortcut to the inner-most context is by prefacing the tag key with the context directive (<code>.</code>).</p>
 <p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>Order:&lt;br /&gt;
-{{#order}}-{{order.name}}&lt;br /&gt;{{/order}}
-Item prices: {{&amp;prices::$.2f}}&lt;br /&gt;
-Sale tax: {{salesTax::.0%}}&lt;br /&gt;
-Total (w/ tax): {{total::$.2f}}
+<div class="codehilite"><pre>{{#name}}1. {{name.first}}{{/name}}&lt;br /&gt;
+{{#name}}2. {{first}}{{/name}}&lt;br /&gt;
+{{#name}}3. {{.first}}{{/name}}
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="p">{</span><span class="nx">first</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">}}</span>
+</pre></div>
+
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>1. Bob
+2.
+3. Bob
+</pre></div>
+
+<p>&nbsp;</p>
+<h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link"></a></h2>
+<p>Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via <code>this</code>).</p>
+<p>As the behavior of the function depends on what is returned, it may be used in a variety of contexts. Note however that functions that return a function will continue to be re-evaluated until it returns a non-function value or will error if it exceeds a maximum number of iterations without doing such.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{fullname}}&#39;s friends include {{&amp;friends}}.
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>
 <div class="codehilite"><pre><span class="p">{</span>
-  <span class="nx">order</span><span class="o">:</span> <span class="p">[</span>
-    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;BURGER&quot;</span><span class="p">,</span> <span class="nx">price</span><span class="o">:</span> <span class="mi">5</span><span class="p">},</span> 
-    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;FRIES&quot;</span><span class="p">,</span> <span class="nx">price</span><span class="o">:</span> <span class="mi">2</span><span class="p">}</span>
-  <span class="p">],</span> 
-  <span class="nx">ticket</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">order</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">item</span> <span class="o">=&gt;</span> <span class="nx">item</span><span class="p">.</span><span class="nx">price</span><span class="o">*</span><span class="p">(</span><span class="mf">1.0</span><span class="o">+</span><span class="k">this</span><span class="p">.</span><span class="nx">salesTax</span><span class="p">));</span>
+  <span class="nx">name</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">first</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span> 
+    <span class="nx">last</span><span class="o">:</span> <span class="s2">&quot;Belcher&quot;</span>
   <span class="p">},</span> 
-  <span class="nx">prices</span><span class="o">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> 
-  <span class="nx">salesTax</span><span class="o">:</span> <span class="mf">0.05</span><span class="p">,</span> 
-  <span class="nx">total</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">order</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">item</span> <span class="o">=&gt;</span> <span class="p">{</span>
-      <span class="nx">sum</span> <span class="o">+=</span> <span class="nx">item</span><span class="p">.</span><span class="nx">price</span><span class="o">*</span><span class="p">(</span><span class="mf">1.0</span><span class="o">+</span><span class="k">this</span><span class="p">.</span><span class="nx">salesTax</span><span class="p">);</span>
-    <span class="p">});</span>
-    <span class="k">return</span> <span class="nx">sum</span><span class="p">;</span>
+  <span class="nx">fullname</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">first</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">last</span><span class="p">;</span>
+  <span class="p">},</span> 
+  <span class="nx">relations</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Teddy&quot;</span><span class="p">,</span> <span class="nx">friendly</span><span class="o">:</span> <span class="kc">true</span><span class="p">},</span> 
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Mort&quot;</span><span class="p">,</span> <span class="nx">friendly</span><span class="o">:</span> <span class="kc">true</span><span class="p">},</span> 
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Jimmy Pesto&quot;</span><span class="p">,</span> <span class="nx">friendly</span><span class="o">:</span> <span class="kc">false</span><span class="p">}</span>
+  <span class="p">],</span> 
+  <span class="nx">friends</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> 
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">relations</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">person</span> <span class="o">=&gt;</span> <span class="nx">person</span><span class="p">.</span><span class="nx">friendly</span><span class="p">)</span>
+                         <span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">person</span> <span class="o">=&gt;</span> <span class="nx">person</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
 <p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>Order:
--BURGER
--FRIES
-Item prices: $5.00 and $2.00
-Sale tax: 5%
-Total (w/ tax): $7.35
+<div class="codehilite"><pre>Bob Belcher&#39;s friends include Teddy and Mort.
 </pre></div>
 
+<h3 id="error-handling">Error handling<a class="headerlink" href="#error-handling" title="Permanent link"></a></h3>
+<p>By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the <code>errorOnFuncFailure</code> flag to <code>true</code> in the <a href="D:/ProjectsWeb/README.md#options">options</a>.</p>
+<h5 id="more_2">More<a class="headerlink" href="#more_2" title="Permanent link"></a></h5>
+<p>See additional documentation for more on <a href="#./more/functions/">functions</a>, including <a href="D:/ProjectsWeb/templatize/more/functions#context-and-_parent">context and <code>_parent</code></a>, and <a href="D:/ProjectsWeb/templatize/more/functions#passing-context-to-functions">passing context to functions</a>.</p>
 <p>&nbsp;</p>
-<h3 id="scoping-of-function-within-functions">Scoping of function within functions<a class="headerlink" href="#scoping-of-function-within-functions" title="Permanent link"></a></h3>
-<p>When calling a function manually within another function, the <code>this</code> context as it will not be automatically handled. You may at times need to explicitly set the <code>this</code> context (e.g. by using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call"><em>Function</em>.prototype.call()</a>). As well, <code>this._parent</code> will not be automatically created, if needed.</p>
-<p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>The kids are {{&amp;ages}} years old.
-</pre></div>
-
-<p>&nbsp; <em>Bindings:</em></p>
-<div class="codehilite"><pre><span class="p">{</span>
-  <span class="nx">year</span><span class="o">:</span> <span class="mi">2021</span><span class="p">,</span> 
-  <span class="nx">calcAge</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">born</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">year</span> <span class="o">-</span> <span class="nx">born</span><span class="p">;</span>
-  <span class="p">},</span> 
-  <span class="nx">children</span><span class="o">:</span> <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Tina&quot;</span><span class="p">,</span> 
-      <span class="nx">born</span><span class="o">:</span> <span class="mi">2008</span><span class="p">,</span> 
-      <span class="nx">age</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">calcAge</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">);</span>
-      <span class="p">}</span>
-    <span class="p">},</span> 
-    <span class="p">{</span>
-      <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Gene&quot;</span><span class="p">,</span> 
-      <span class="nx">born</span><span class="o">:</span> <span class="mi">2010</span><span class="p">,</span> 
-      <span class="nx">age</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">calcAge</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">);</span>
-      <span class="p">}</span>
-    <span class="p">},</span> 
-    <span class="p">{</span>
-      <span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Louise&quot;</span><span class="p">,</span> 
-      <span class="nx">born</span><span class="o">:</span> <span class="mi">2012</span><span class="p">,</span> 
-      <span class="nx">age</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parent</span><span class="p">.</span><span class="nx">calcAge</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">born</span><span class="p">);</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
-  <span class="p">],</span> 
-  <span class="nx">ages</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">child</span> <span class="o">=&gt;</span> <span class="p">{</span>
-      <span class="nx">child</span><span class="p">.</span><span class="nx">_parent</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
-      <span class="k">return</span> <span class="nx">child</span><span class="p">.</span><span class="nx">age</span><span class="p">();</span>
-    <span class="p">});</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>The kids are 13, 11, and 9 years old.
-</pre></div>
-
-<p>There&rsquo;s a lot going on here, so let&rsquo;s break it down step by step. First, we defined the function <code>calcAge</code>, which uses its <code>this</code> context to access <code>year</code>. Note that as it takes in an input parameter, it cannot be called directly by Templatize which can&rsquo;t know how to pass said parameter (using <code>{{calcAge}}</code> in the template would result in &ldquo;NaN&rdquo;).</p>
-<p>This function is called by the function <code>age</code> within each instance of <code>children</code>. In <code>age</code>, the <code>this</code> context is used to pass each child&rsquo;s <code>born</code> property as an input parameter to <code>calcAge</code>. Because the scope is nested, it uses <code>this._parent</code> to access <code>calcAge</code>. When <code>calcAge</code> is called here, because it is called from the scope of <code>_parent</code>, the <code>this</code> context within <code>calcAge</code> still has access to <code>this.year</code>.</p>
-<p>Finally, the function <code>ages</code> maps each item in <code>children</code> to the result of the <code>age</code> function to create an array of just the ages. However, because we are manually calling a function within a function, and the inner function relies on <code>this._parent</code>, we need to supply <code>this._parent</code> as that variable is not automatically added in a manual function call.</p>
-<p>Confused yet? Don&rsquo;t worry, the above case is a very contrived scenario to force the issue for demonstration. There are many cleaner and more efficient solutions to the above example that avoid such scoping problems. E.g. the map function could simply return <code>this.year - child.born</code>, or the template could dynamically pass the repeating section&rsquo;s item of iteration of the function.</p>
+<h2 id="advanced-topics-and-more">Advanced topics and more<a class="headerlink" href="#advanced-topics-and-more" title="Permanent link"></a></h2>
+<p>The above only takes a cursory glance at some of the directives. Be sure to look into the additional documentation below.</p>
+<ul>
+<li><a href="#./more/sections/">Sections</a></li>
+<li><a href="#./more/functions/">Functions</a></li>
+</ul>
+<h4 id="edge-cases-mixing-directives-and-general-weirdness">Edge cases, mixing directives, and general weirdness<a class="headerlink" href="#edge-cases-mixing-directives-and-general-weirdness" title="Permanent link"></a></h4>
+<p><a href="#Edge-cases,-mixing-directives,-and-general weirdness">Edge cases, mixing directives, and general weirdness</a>.</p>
 <hr />
 <p>&nbsp;</p>
 <h3 id="acknowledgments">Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permanent link"></a></h3>

@@ -9,42 +9,19 @@ Lawrence Sim © 2021
 * [Usage](#usage)
 * [The Basics](#the-basics)
     * [Variables](#variables)
-        * [Naming restrictions](#naming-restrictions)
-        * [Comments and escaping](#comments-and-escaping)
-    * [Formatting](#formatting)
     * [Lists](#lists)
     * [Sections](#sections)
-        * [Section value evaluation](#section-value-evaluation)
-        * [Repeating Sections](#repeating-sections)
-    * [Scoping and the context directive](#scoping-and-the-context-directive)
+    * [Scoping and context](#scoping-and-the-context-directive)
     * [Functions](#functions)
-* [More](#more)
-* [Acknowledgments](#acknowledgments)
-
-* [Variables](#variables)
     * [Formatting](#formatting)
-* [Lists](#lists)
-* [Sections](#sections)
-    * [Evaluation of zero-value](#evaluation-of-zero-value)
-    * [More section behavior](#more-section-behavior)
-* [Repeating Sections](#repeating-sections)
-* [Nested Sections](#nested-sections)
-* [Functions](#functions)
-    * [Context and parent](#context-and-parent)
-    * [Nesting](#nesting)
-    * [Functions within functions](#functions-within-functions)
-    * [Dynamically scoping functions](#dynamically-scoping-functions)
-    * [Error handling](#error-handling)
-* [Putting it all together](#putting-it-all-together)
-* [Templatize vs Mustache](#templatize-vs-mustache)
-* [Common errors and more](#common-errors-and-more)
-    * [Missing bindings](#missing-bindings)
-    * [Formatting lists and functions](#formatting-lists-and-functions)
-    * [Scoping of functions within functions](#scoping-of-function-within-functions)
+* [Advanced Topics and More](#advanced-topics-and-more)
+* [Acknowledgments](#acknowledgments)
 
 ----------
 
+
 &nbsp; 
+
 
 ## Usage
 
@@ -163,11 +140,11 @@ Bob is {{age}} years old.
 **Restrictions for property names**
 
 * `_parent` is a special keyword (see [Context and parent](#context-and-parent)).
-* `_display` is a special keyword. While it is meant to be set (see [More section behavior](./docs/sections.md#more-section-behavior]), it should only be done when specifically calling said functionality.
+* `_display` is a special keyword. While it is meant to be set (see [More section behavior](./more/sections/#more-section-behavior]), it should only be done when specifically calling said functionality.
 * Any property name with a leading bang (`!`) will be treated as an [escaped tag](#comments-and-escaping) in the template code.
 * Any property name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
 * Ending a property name ending with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
-* Using in any place a double-colon (`::`), which is a [formatting](#formatting) directive, or a tilde (`~`), which is used for [dynamically scoping functions](./docs/sections.md#dynamically-scoping-functions), will be interpreted as their respective directives.
+* Using in any place a double-colon (`::`), which is a [formatting](#formatting) directive, or an arrow operator (`->`), which is used for [passing context to functions](./more/sections/#passing-context-to-functions), will be interpreted as their respective directives.
 
 **Things to avoid in property names**
 
@@ -176,54 +153,6 @@ Bob is {{age}} years old.
 
 
 &nbsp;
-
-
-## Formatting
-
-Formatting options are also available by suffixing the property name in the template code with a double-colon and format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the [d3-format library](https://github.com/d3/d3-format), which handles many number formats. See documentation there for various formatting options.
-
-| Directive | Description |
-| --- | :--- |
-| "html" | If the [option](#options) `escapeAll` is set true, this directive sets the output not to escape HTML special characters. |
-| "raw" | See above. |
-| "encode" | Encodes HTML special characters in rendered output. |
-| "upper" | Transforms all alphabetical characters to uppercase. |
-| "caps" | See above. |
-| "allcaps" | See above. |
-| "lower" | Transforms all alphabetical characters to lowercase. |
-| "capitalize" | Capitalizes the first letter in each word. |
-
-Additionally, you can short-hand by suffixing a semi-colon (`;`) to the variable name or format directive
-
-&nbsp; *Template:*
-
-```
-{{name:capitalize}} lives in {{locale::capitalize}} and sells burgers for {{price.burger::$.2f}}.
-{{break}}{{break::encode}}{{break::upper;}}{{break;}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  name: "bob", 
-  locale: "new england", 
-  price: { burger: 5 }, 
-  break: "<br />"
-}
-```
-
-&nbsp; *Outputs:*
-
-```
-Bob lives in New England and sells burgers for $5.00.
-<br /><BR /><br />
-```
-
-Formatting also works for [lists](#lists) and [functions](#functions).
-
-
-&nbsp; 
 
 
 ## Lists
@@ -295,11 +224,9 @@ Bob has no pets.
 
 The data bound to a section tag is evaluated for 'truthiness'. Values of `undefined`, `null`, an empty string or a string composed only of whitespace, an empty array, and `0` evaluate as false. Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
 
-&nbsp;
-
 ##### More
 
-See additional documentation for more on [sections](./docs/sections.md), [section value evaluation](./docs/sections.md#section-value-evaluation), [the `_display` parameter](./docs/sections.md#the-_display-parameter), and more.
+See additional documentation for more on [sections](./more/sections/), [section value evaluation](./more/sections/#section-value-evaluation), [the `_display` parameter](./more/sections/#the-_display-parameter), and more.
 
 &nbsp; 
 
@@ -307,7 +234,7 @@ See additional documentation for more on [sections](./docs/sections.md), [sectio
 
 If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array.
 
-Note that each item is also treated to the same [section value evaluation](./docs/sections.md#section-value-evaluation) to determine whether it is rendered.
+Note that each item is also treated to the same [section value evaluation](./more/sections/#section-value-evaluation) to determine whether it is rendered.
 
 For a flat array of values you may simply use the [context directive](#scoping-and-the-context-directive) alone to display the value of each item. 
 
@@ -333,7 +260,7 @@ Child: Louise
 
 ##### More
 
-See additional documentation for more on [repeating sections](./docs/sections.md#repeating-sections).
+See additional documentation for more on [repeating sections](./more/sections/#repeating-sections).
 
 
 &nbsp; 
@@ -373,7 +300,7 @@ All keys in template tags must provide the full path to the data-binding, even i
 
 Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via `this`).
 
-As the behavior of the function depends on what is returned, it may be used in a variety of contexts. Note however that functions that return a function will continue to be re-evaluated until it returns a non-function value or will error if it exceeds a maximum number of iterations without doing such.
+As the behavior of the function depends on what is returned, it may be used in a variety of contexts.
 
 &nbsp; *Template:*
 
@@ -410,60 +337,65 @@ As the behavior of the function depends on what is returned, it may be used in a
 Bob Belcher's friends include Teddy and Mort.
 ```
 
+### Error handling
+
+By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `errorOnFuncFailure` flag to `true` in the [options](../README.md#options).
+
 ##### More
 
-See additional documentation for more on [functions](#./docs/functions.md).
+See additional documentation for more on [functions](#./more/functions/), including [context and `_parent`](./more/functions/#context-and-_parent), and [passing context to functions](./more/functions/#passing-context-to-functions).
 
 
 &nbsp;
 
 
+## Formatting
 
+Formatting options are also available by suffixing the property name in the template code with a double-colon and format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the [d3-format library](https://github.com/d3/d3-format), which handles many number formats. See documentation there for various formatting options.
 
+| Directive | Description |
+| --- | :--- |
+| "html" | If the [option](#options) `escapeAll` is set true, this directive sets the output not to escape HTML special characters. |
+| "raw" | See above. |
+| "encode" | Encodes HTML special characters in rendered output. |
+| "upper" | Transforms all alphabetical characters to uppercase. |
+| "caps" | See above. |
+| "allcaps" | See above. |
+| "lower" | Transforms all alphabetical characters to lowercase. |
+| "capitalize" | Capitalizes the first letter in each word. |
 
-## Templatize vs Mustache ##
-
-It's not a competition, but it's worth mentioning why there's a big library that emulates most of what [Mustache.js](https://github.com/janl/mustache.js/) does, while while they are similar there are enough differences to make switching between incompatible beyond the basic variables and sections. As aforementioned, this originally developed as an extremely minimal and lightweight implementation of a templating system, that only eventually blew up and became quite a full-on project. Partly because it contains some customizations I prefer and partly just as a side-project for practice.
-
-#### Major syntax and usage differences ####
-
-The support for grammatically formatted [lists](#lists) and built-in formatters are unique to Templatize as well as the options to evaluate zero-values as true.
-
-**Scope for repeating sections**
-
-Mustache treats template code within a repeating section as scoped within (not requiring dot notation to grab values from each list item within that section). Templatize still requires the full dot notation to grab data within a repeating section.
-
-**Scope for functions**
-
-In Mustache, functions called within a section are given the `this` context of the data-binding of the section. Thus calling a function in a repeating section changes the context to the item per iteration. 
-
-In Templatize, functions are by default given the context of where the function lives within the data binding. To provide a different context, it must be explicitly called. See [Dynamically scoping functions](#dynamically-scoping-functions).
-
-**Partials** 
-
-Templatize has no inherent support for partials -- though as Templatize maps and renders on runtime, it is not really necessary.
-
-#### Architecture differences ####
-
-Templatize is data-binding-orientated. That it, it traverses the data bindings provided, and looks for tags in the template code that would be associated with said data binding. This results in [potential artifacts from unresolved template tags](#missing-bindings) unless the `clean` parameter is set.
-
-Mustache is template-oriented in that it first maps the template, finding all valid tags, then replaces them, if found, with the associated value in the data-binding object.
-
-
-
-&nbsp;
-
-
-
-### Formatting lists and functions ###
-
-The formatting feature also applies to lists and functions.
+Additionally, you can short-hand by suffixing a semi-colon (`;`) to the variable name or format directive
 
 &nbsp; *Template:*
 
 ```
-Order:<br />
-{{#order}}-{{order.name}}<br />{{/order}}
+{{name:capitalize}} lives in {{locale::capitalize}} and sells burgers for {{price.burger::$.2f}}.
+{{break}}{{break::encode}}{{break::upper;}}{{break;}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  name: "bob", 
+  locale: "new england", 
+  price: { burger: 5 }, 
+  break: "<br />"
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+Bob lives in New England and sells burgers for $5.00.
+<br /><BR /><br />
+```
+
+Formatting also works for [lists](#lists) and [functions](#functions).
+
+&nbsp; *Template:*
+
+```
 Item prices: {{&prices::$.2f}}<br />
 Sale tax: {{salesTax::.0%}}<br />
 Total (w/ tax): {{total::$.2f}}
@@ -495,84 +427,33 @@ Total (w/ tax): {{total::$.2f}}
 &nbsp; *Outputs:*
 
 ```
-Order:
--BURGER
--FRIES
 Item prices: $5.00 and $2.00
 Sale tax: 5%
 Total (w/ tax): $7.35
 ```
 
-&nbsp;
+&nbsp; 
 
-### Scoping of function within functions ###
 
-When calling a function manually within another function, the `this` context as it will not be automatically handled. You may at times need to explicitly set the `this` context (e.g. by using [*Function*.prototype.call()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call)). As well, `this._parent` will not be automatically created, if needed.
+## Advanced topics and more
 
-&nbsp; *Template:*
+The above only takes a cursory glance at some of the directives. Be sure to look into the additional documentation below.
 
-```
-The kids are {{&ages}} years old.
-```
+* [Sections](#./more/sections/)
+* [Functions](#./more/functions/)
 
-&nbsp; *Bindings:*
+#### Edge cases, mixing directives, and general weirdness
 
-```javascript
-{
-  year: 2021, 
-  calcAge: function(born) {
-    return this.year - born;
-  }, 
-  children: [
-    {
-      name: "Tina", 
-      born: 2008, 
-      age: function() {
-        return this._parent.calcAge(this.born);
-      }
-    }, 
-    {
-      name: "Gene", 
-      born: 2010, 
-      age: function() {
-        return this._parent.calcAge(this.born);
-      }
-    }, 
-    {
-      name: "Louise", 
-      born: 2012, 
-      age: function() {
-        return this._parent.calcAge(this.born);
-      }
-    }
-  ], 
-  ages: function() {
-    return this.children.map(child => {
-      child._parent = this;
-      return child.age();
-    });
-  }
-}
-```
+That's all great, you may be thinking, but what about if I [pass a function to itself]((./more/advanced/#passing-a-function-to-itself)? Or [use a context-passed-to-function as the section tag](./more/advanced/#mixing-directives-in-a-section-tag)? What about [multi-dimensional arrays](./more/advanced/#mutli-dimensional-arrays)? Did you think of all that?
 
-&nbsp; *Outputs:*
-
-```
-The kids are 13, 11, and 9 years old.
-```
-
-There's a lot going on here, so let's break it down step by step. First, we defined the function `calcAge`, which uses its `this` context to access `year`. Note that as it takes in an input parameter, it cannot be called directly by Templatize which can't know how to pass said parameter (using `{{calcAge}}` in the template would result in "NaN").
-
-This function is called by the function `age` within each instance of `children`. In `age`, the `this` context is used to pass each child's `born` property as an input parameter to `calcAge`. Because the scope is nested, it uses `this._parent` to access `calcAge`. When `calcAge` is called here, because it is called from the scope of `_parent`, the `this` context within `calcAge` still has access to `this.year`.
-
-Finally, the function `ages` maps each item in `children` to the result of the `age` function to create an array of just the ages. However, because we are manually calling a function within a function, and the inner function relies on `this._parent`, we need to supply `this._parent` as that variable is not automatically added in a manual function call.
-
-Confused yet? Don't worry, the above case is a very contrived scenario to force the issue for demonstration. There are many cleaner and more efficient solutions to the above example that avoid such scoping problems. E.g. the map function could simply return `this.year - child.born`, or the template could dynamically pass the repeating section's item of iteration of the function.
+Well, luckily for you, you absolute sadist, we have such a section on [edge cases, mixing directives, and general weirdness](./more/advanced/).
 
 -----
 
+
 &nbsp;
+
 
 ### Acknowledgments ###
 
-Number formatting using the [d3-format](https://github.com/d3/d3-format) module, which is Copyright under Mike Bostock. [The full license can be found here](https://github.com/d3/d3-format/blob/master/LICENSE).
+Number formatting utilizes the [d3-format](https://github.com/d3/d3-format) module, which is Copyright under Mike Bostock. [The full license can be found here](https://github.com/d3/d3-format/blob/master/LICENSE).
