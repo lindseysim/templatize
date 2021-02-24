@@ -139,11 +139,11 @@ Bob is {{age}} years old.
 
 **Restrictions for property names**
 
-* `_parent` is a special keyword (see [Context and parent](#context-and-parent)).
+* `_parent` is a special keyword (see [scoping and context](#scoping-and-context)).
 * `_display` is a special keyword. While it is meant to be set (see [More section behavior](./more/sections/#more-section-behavior]), it should only be done when specifically calling said functionality.
 * Any property name with a leading bang (`!`) will be treated as an [escaped tag](#comments-and-escaping) in the template code.
 * Any property name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
-* Ending a property name ending with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
+* Ending a property name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
 * Using in any place a double-colon (`::`), which is a [formatting](#formatting) directive, or an arrow operator (`->`), which is used for [passing context to functions](./more/sections/#passing-context-to-functions), will be interpreted as their respective directives.
 
 **Things to avoid in property names**
@@ -157,7 +157,7 @@ Bob is {{age}} years old.
 
 ## Lists
 
-Lists are marked with a `&`-directive and can only take in an array (or a function that returns an array). The output is grammatically formatted with appropriate use of commas and/or the 'and'-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.
+Lists are marked with an ampersand (`&`) and can only take in an array (or a function that returns an array). The output is grammatically formatted with appropriate use of commas and/or the 'and'-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.
 
 &nbsp; *Template:*
 
@@ -226,7 +226,7 @@ The data bound to a section tag is evaluated for 'truthiness'. Values of `undefi
 
 ##### More
 
-See additional documentation for more on [sections](./more/sections/), [section value evaluation](./more/sections/#section-value-evaluation), [the `_display` parameter](./more/sections/#the-_display-parameter), and more.
+See additional documentation for more on [sections](./more/sections/), including [section value evaluation](./more/sections/#section-value-evaluation), the [`_display` parameter](./more/sections/#the-_display-parameter), and more.
 
 &nbsp; 
 
@@ -298,7 +298,7 @@ All keys in template tags must provide the full path to the data-binding, even i
 
 ## Functions
 
-Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via `this`).
+Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via `this`) and given the argument of the root data.
 
 As the behavior of the function depends on what is returned, it may be used in a variety of contexts.
 
@@ -316,8 +316,9 @@ As the behavior of the function depends on what is returned, it may be used in a
     first: "Bob", 
     last: "Belcher"
   }, 
-  fullname: function() {
-    return this.name.first + " " + this.name.last;
+  fullname: function(root) {
+    // in this case, this/root will refer to the same
+    return this.name.first + " " + root.name.last;
   }, 
   relations: [
     {name: "Teddy", friendly: true}, 
@@ -351,7 +352,7 @@ See additional documentation for more on [functions](#./more/functions/), includ
 
 ## Formatting
 
-Formatting options are also available by suffixing the property name in the template code with a double-colon and format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the [d3-format library](https://github.com/d3/d3-format), which handles many number formats. See documentation there for various formatting options.
+Formatting options are also available by suffixing the property name in the template code with a double-colon (`::`) and format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the [d3-format library](https://github.com/d3/d3-format), which handles many number formats. See documentation there for various formatting options.
 
 | Directive | Description |
 | --- | :--- |
@@ -396,39 +397,44 @@ Formatting also works for [lists](#lists) and [functions](#functions).
 &nbsp; *Template:*
 
 ```
-Item prices: {{&prices::$.2f}}<br />
+Order: {{&order}}<br />
+Prices: {{&ticket::$.2f}}<br />
 Sale tax: {{salesTax::.0%}}<br />
-Total (w/ tax): {{total::$.2f}}
+Total: {{total::$.2f}}<br />
+Total (w/ tax): {{addTax::$.2f}}
 ```
 
 &nbsp; *Bindings:*
 
 ```javascript
 {
-  order: [
-    {name: "BURGER", price: 5}, 
-    {name: "FRIES", price: 2}
-  ], 
-  ticket: function() {
-    return this.order.map(item => item.price*(1.0+this.salesTax));
+  order: ["BURGER", "FRIES"], 
+  prices: {
+    BURGER: 5, 
+    FRIES: 2
   }, 
-  prices: [5, 2], 
+  ticket: function() {
+    return this.order.map(item => this.prices[item]);
+  }, 
   salesTax: 0.05, 
   total: function() {
     var sum = 0;
     this.order.forEach(item => {
-      sum += item.price*(1.0+this.salesTax);
+      sum += this.prices[item]*(1.0+this.salesTax);
     });
     return sum;
-  }
+  }, 
+  addTax: function() { return this.total()*(1+this.salesTax); }
 }
 ```
 
 &nbsp; *Outputs:*
 
 ```
-Item prices: $5.00 and $2.00
+Order: BURGER and FRIES
+Prices: $5.00 and $2.00
 Sale tax: 5%
+Total: $7.00
 Total (w/ tax): $7.35
 ```
 

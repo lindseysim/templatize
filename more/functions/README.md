@@ -1,6 +1,6 @@
 ## Functions
 
-Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via `this`).
+Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via `this`) and given the argument of the root data.
 
 As the behavior of the function depends on what is returned, it may be used in a variety of contexts.
 
@@ -18,8 +18,9 @@ As the behavior of the function depends on what is returned, it may be used in a
     first: "Bob", 
     last: "Belcher"
   }, 
-  fullname: function() {
-    return this.name.first + " " + this.name.last;
+  fullname: function(root) {
+    // in this case, this/root will refer to the same
+    return this.name.first + " " + root.name.last;
   }, 
   relations: [
     {name: "Teddy", friendly: true}, 
@@ -86,12 +87,12 @@ Soda - $2.00.
 
 ### Context and `_parent`
 
-In the previous example, the functions were all at the root level, and thus the `this` context was the root data binding. For nested, variables, `this` will also include a `_parent` to allow traversal up the data structure.
+In the previous example, the functions were all at the root level, and thus the `this` context was the root data binding. For nested, variables, `this` will also include a `_parent` to allow traversal up the data structure. (Assuming this is easier than just using the `root` argument supplied to every function call).
 
 &nbsp; *Template:*
 
 ```
-{{main.name}} is married to {{relations.wife.name}}.
+{{main.name}} is married to {{relations.wife.name}} and has a first child named {{relations.child.name}}.
 ```
 
 &nbsp; *Bindings:*
@@ -107,6 +108,10 @@ In the previous example, the functions were all at the root level, and thus the 
     wife: {
       firstName: "Linda", 
       name: function() { return this.firstName + " " + this._parent._parent.familyName }
+    }, 
+    child: {
+      firstName: "Tina", 
+      name: function(root) { return this.firstName + " " + root.familyName }
     }
   }
 }
@@ -115,10 +120,8 @@ In the previous example, the functions were all at the root level, and thus the 
 &nbsp; *Outputs:*
 
 ```
-Bob Belcher is married to Linda Belcher.
+Bob Belcher is married to Linda Belcher and has a first child named Tina Belcher.
 ```
-
-Note in the more deeply-nested case, `this._parent` can be used twice to traverse upwards two levels.
 
 &nbsp;
 
@@ -148,8 +151,8 @@ To specify a specific context in which the function should be called, you may us
     {name: "Gene", born: 2010}, 
     {name: "Louise", born: 2012}
   ], 
-  fullname: function() {
-    return this.name + " " + this._parent.familyName;
+  fullname: function(root) {
+    return this.name + " " + root.familyName;
   },
   age: function() {
     return 2021 - this.born;
@@ -167,3 +170,40 @@ Louise Belcher (9 years old)
 ```
 
 &nbsp;
+
+### Function evaluation and caching
+
+As demonstrated earlier, functions can return almost anything and be appropriately handled from there. However, functions that return a function will continue to be re-evaluated until it returns a non-function value. Or it will error if it begins to detect an infinite loop (the max. iterations is kept quite strict at 12).
+
+Functions are evaluated when they are first called (or never if they are not). After the first call however, the returned value from the first evaluation is cached. If the function is passed to a context however, it is considered dynamic and re-evaluated each time (even if the same context).
+
+&nbsp; *Template:*
+
+```
+{{count}} {{.->count}} {{.->count}} {{count}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  i: 0, 
+  count: function() {
+    return ++this.i;
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+1 2 3 1
+```
+
+Note in the above, any call to `{{count}}` will render "1" as that was value returned at first render. However, by passing a context (even if the same root context), we can force the function to re-evaluate. That said, calling `{{count}}` again after these context calls will still return the original, cached value.
+
+&nbsp;
+
+#### More
+
+Functions and the pass-context-to-function directives represent one of the most flexible and powerful use-cases of Templatize (though sometimes the most frustrating to debug). For a run down of some of the advanced uses, edge cases, and particular behaviors, read the section: [Edge cases, mixing directives, and general weirdness](../advanced/)/

@@ -1062,23 +1062,12 @@ body .markdown-body
 <ul>
 <li><a href="#usage">Usage</a></li>
 <li><a href="#the-basics">The Basics</a><ul>
-<li><a href="#variables">Variables</a><ul>
-<li><a href="#naming-restrictions">Naming restrictions</a></li>
-<li><a href="#comments-and-escaping">Comments and escaping</a></li>
-</ul>
-</li>
-<li><a href="#formatting">Formatting</a></li>
+<li><a href="#variables">Variables</a></li>
 <li><a href="#lists">Lists</a></li>
-<li><a href="#sections">Sections</a><ul>
-<li><a href="#section-value-evaluation">Section value evaluation</a></li>
-<li><a href="#repeating-sections">Repeating Sections</a></li>
-</ul>
-</li>
-<li><a href="#scoping-and-the-context-directive">Scoping and the context directive</a></li>
-<li><a href="#functions">Functions</a><ul>
-<li><a href="#error-handling">Error handling</a></li>
-</ul>
-</li>
+<li><a href="#sections">Sections</a></li>
+<li><a href="#scoping-and-the-context-directive">Scoping and context</a></li>
+<li><a href="#functions">Functions</a></li>
+<li><a href="#formatting">Formatting</a></li>
 </ul>
 </li>
 <li><a href="#advanced-topics-and-more">Advanced Topics and More</a></li>
@@ -1245,12 +1234,12 @@ body .markdown-body
 <h3 id="naming-restrictions">Naming restrictions<a class="headerlink" href="#naming-restrictions" title="Permanent link"></a></h3>
 <p><strong>Restrictions for property names</strong></p>
 <ul>
-<li><code>_parent</code> is a special keyword (see <a href="#context-and-parent">Context and parent</a>).</li>
+<li><code>_parent</code> is a special keyword (see <a href="#scoping-and-context">scoping and context</a>).</li>
 <li><code>_display</code> is a special keyword. While it is meant to be set (see <a href="D:/ProjectsWeb/templatize/more/sections#more-section-behavior]">More section behavior</a>, it should only be done when specifically calling said functionality.</li>
 <li>Any property name with a leading bang (<code>!</code>) will be treated as an <a href="#comments-and-escaping">escaped tag</a> in the template code.</li>
 <li>Any property name with a leading directive used for <a href="#lists">lists</a> and <a href="#sections">sections</a> &ndash; which include ampersand (<code>&amp;</code>), hash (<code>#</code>), and caret (<code>^</code>) &ndash; will be interpreted as such and not considered part of the key name.</li>
-<li>Ending a property name ending with a semi-colon (<code>;</code>) will be interpreted as the escape <a href="#formatting">formatting</a> directive and not part of the key name.</li>
-<li>Using in any place a double-colon (<code>::</code>), which is a <a href="#formatting">formatting</a> directive, or a double right-pointed-bracket (<code>&gt;&gt;</code>), which is used for <a href="D:/ProjectsWeb/templatize/more/sections#passing-context-to-functions">passing context to functions</a>, will be interpreted as their respective directives.</li>
+<li>Ending a property name with a semi-colon (<code>;</code>) will be interpreted as the escape <a href="#formatting">formatting</a> directive and not part of the key name.</li>
+<li>Using in any place a double-colon (<code>::</code>), which is a <a href="#formatting">formatting</a> directive, or an arrow operator (<code>-&gt;</code>), which is used for <a href="D:/ProjectsWeb/templatize/more/sections#passing-context-to-functions">passing context to functions</a>, will be interpreted as their respective directives.</li>
 </ul>
 <p><strong>Things to avoid in property names</strong></p>
 <ul>
@@ -1258,8 +1247,135 @@ body .markdown-body
 <li>While dots (<code>.</code>) can mostly be used in the property name without failing (though a few edge-cases may still result in odd behavior), it is generally to be avoided to reduce naming confusion.</li>
 </ul>
 <p>&nbsp;</p>
+<h2 id="lists">Lists<a class="headerlink" href="#lists" title="Permanent link"></a></h2>
+<p>Lists are marked with an ampersand (<code>&amp;</code>) and can only take in an array (or a function that returns an array). The output is grammatically formatted with appropriate use of commas and/or the &lsquo;and&rsquo;-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{&amp;name::capitalize}} sells {{&amp;sells}} with {{&amp;with}}. 
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="nx">name</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;bob&quot;</span><span class="p">],</span> 
+  <span class="nx">sells</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;burgers&quot;</span><span class="p">,</span> <span class="s2">&quot;sodas&quot;</span><span class="p">,</span> <span class="s2">&quot;fries&quot;</span><span class="p">],</span> 
+  <span class="kd">with</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;his wife&quot;</span><span class="p">,</span> <span class="s2">&quot;kids&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>Bob sells burgers, sodas, and fries with his wife and kids.
+</pre></div>
+
+<p><em>Note, the Oxford-comma is the default &ndash; and only &ndash; behavior, as the universe intended.</em></p>
+<p>&nbsp; </p>
+<h2 id="sections">Sections<a class="headerlink" href="#sections" title="Permanent link"></a></h2>
+<p>Section starts are tags with the <code>#</code>-directive and the sections end at tags with the <code>/</code>-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (<code>#</code>) starting prefix with a caret (<code>^</code>). Such sections will only be displayed if the section is evaluated to <code>false</code>.</p>
+<p>Data may be put inside of a section, whether from elsewhere or the same data-binding.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>Bob is {{#married}}married{{/married}}{{#single}}single{{/single}}.&lt;br /&gt;
+{{#spouse}}Bob is married to {{spouse}}.{{/spouse}}&lt;br /&gt;
+Bob has {{^haspets}}no pets{{/haspets}}{{#haspets}}pets{{/haspets}}.
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="nx">married</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> 
+  <span class="nx">single</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span> 
+  <span class="nx">spouse</span><span class="o">:</span> <span class="s2">&quot;Linda&quot;</span><span class="p">,</span> 
+  <span class="nx">haspets</span><span class="o">:</span> <span class="kc">false</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>Bob is married.
+Bob is married to Linda.
+Bob has no pets.
+</pre></div>
+
+<h3 id="section-value-evaluation">Section value evaluation<a class="headerlink" href="#section-value-evaluation" title="Permanent link"></a></h3>
+<p>The data bound to a section tag is evaluated for &lsquo;truthiness&rsquo;. Values of <code>undefined</code>, <code>null</code>, an empty string or a string composed only of whitespace, an empty array, and <code>0</code> evaluate as false. Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. </p>
+<h5 id="more">More<a class="headerlink" href="#more" title="Permanent link"></a></h5>
+<p>See additional documentation for more on <a href="D:/ProjectsWeb/templatize/more/sections">sections</a>, including <a href="D:/ProjectsWeb/templatize/more/sections#section-value-evaluation">section value evaluation</a>, the <a href="D:/ProjectsWeb/templatize/more/sections#the-_display-parameter"><code>_display</code> parameter</a>, and more.</p>
+<p>&nbsp; </p>
+<h3 id="repeating-sections">Repeating Sections<a class="headerlink" href="#repeating-sections" title="Permanent link"></a></h3>
+<p>If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array.</p>
+<p>Note that each item is also treated to the same <a href="D:/ProjectsWeb/templatize/more/sections#section-value-evaluation">section value evaluation</a> to determine whether it is rendered.</p>
+<p>For a flat array of values you may simply use the <a href="#scoping-and-the-context-directive">context directive</a> alone to display the value of each item. </p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{#children}}Child: {{.}}&lt;br /&gt;{{/children}}
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span><span class="nx">children</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;Tina&quot;</span><span class="p">,</span> <span class="s2">&quot;Gene&quot;</span><span class="p">,</span> <span class="s2">&quot;Louise&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">]}</span>
+</pre></div>
+
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>Child: Tina
+Child: Gene
+Child: Louise
+</pre></div>
+
+<h5 id="more_1">More<a class="headerlink" href="#more_1" title="Permanent link"></a></h5>
+<p>See additional documentation for more on <a href="D:/ProjectsWeb/templatize/more/sections#repeating-sections">repeating sections</a>.</p>
+<p>&nbsp; </p>
+<h2 id="scoping-and-the-context-directive">Scoping and the context directive<a class="headerlink" href="#scoping-and-the-context-directive" title="Permanent link"></a></h2>
+<p>All keys in template tags must provide the full path to the data-binding, even if within a section. However, one way to shortcut to the inner-most context is by prefacing the tag key with the context directive (<code>.</code>).</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{#name}}1. {{name.first}}{{/name}}&lt;br /&gt;
+{{#name}}2. {{first}}{{/name}}&lt;br /&gt;
+{{#name}}3. {{.first}}{{/name}}
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="p">{</span><span class="nx">first</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">}}</span>
+</pre></div>
+
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>1. Bob
+2.
+3. Bob
+</pre></div>
+
+<p>&nbsp;</p>
+<h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link"></a></h2>
+<p>Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via <code>this</code>) and given the argument of the root data.</p>
+<p>As the behavior of the function depends on what is returned, it may be used in a variety of contexts.</p>
+<p>&nbsp; <em>Template:</em></p>
+<div class="codehilite"><pre>{{fullname}}&#39;s friends include {{&amp;friends}}.
+</pre></div>
+
+<p>&nbsp; <em>Bindings:</em></p>
+<div class="codehilite"><pre><span class="p">{</span>
+  <span class="nx">name</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">first</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span> 
+    <span class="nx">last</span><span class="o">:</span> <span class="s2">&quot;Belcher&quot;</span>
+  <span class="p">},</span> 
+  <span class="nx">fullname</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">root</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// in this case, this/root will refer to the same</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">first</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nx">root</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">last</span><span class="p">;</span>
+  <span class="p">},</span> 
+  <span class="nx">relations</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Teddy&quot;</span><span class="p">,</span> <span class="nx">friendly</span><span class="o">:</span> <span class="kc">true</span><span class="p">},</span> 
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Mort&quot;</span><span class="p">,</span> <span class="nx">friendly</span><span class="o">:</span> <span class="kc">true</span><span class="p">},</span> 
+    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Jimmy Pesto&quot;</span><span class="p">,</span> <span class="nx">friendly</span><span class="o">:</span> <span class="kc">false</span><span class="p">}</span>
+  <span class="p">],</span> 
+  <span class="nx">friends</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> 
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">relations</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">person</span> <span class="o">=&gt;</span> <span class="nx">person</span><span class="p">.</span><span class="nx">friendly</span><span class="p">)</span>
+                         <span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">person</span> <span class="o">=&gt;</span> <span class="nx">person</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>&nbsp; <em>Outputs:</em></p>
+<div class="codehilite"><pre>Bob Belcher&#39;s friends include Teddy and Mort.
+</pre></div>
+
+<h3 id="error-handling">Error handling<a class="headerlink" href="#error-handling" title="Permanent link"></a></h3>
+<p>By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the <code>errorOnFuncFailure</code> flag to <code>true</code> in the <a href="D:/ProjectsWeb/README.md#options">options</a>.</p>
+<h5 id="more_2">More<a class="headerlink" href="#more_2" title="Permanent link"></a></h5>
+<p>See additional documentation for more on <a href="#./more/functions/">functions</a>, including <a href="D:/ProjectsWeb/templatize/more/functions#context-and-_parent">context and <code>_parent</code></a>, and <a href="D:/ProjectsWeb/templatize/more/functions#passing-context-to-functions">passing context to functions</a>.</p>
+<p>&nbsp;</p>
 <h2 id="formatting">Formatting<a class="headerlink" href="#formatting" title="Permanent link"></a></h2>
-<p>Formatting options are also available by suffixing the property name in the template code with a double-colon and format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the <a href="https://github.com/d3/d3-format">d3-format library</a>, which handles many number formats. See documentation there for various formatting options.</p>
+<p>Formatting options are also available by suffixing the property name in the template code with a double-colon (<code>::</code>) and format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the <a href="https://github.com/d3/d3-format">d3-format library</a>, which handles many number formats. See documentation there for various formatting options.</p>
 <table>
 <thead>
 <tr>
@@ -1323,134 +1439,45 @@ body .markdown-body
 </pre></div>
 
 <p>Formatting also works for <a href="#lists">lists</a> and <a href="#functions">functions</a>.</p>
-<p>&nbsp; </p>
-<h2 id="lists">Lists<a class="headerlink" href="#lists" title="Permanent link"></a></h2>
-<p>Lists are marked with a <code>&amp;</code>-directive and can only take in an array (or a function that returns an array). The output is grammatically formatted with appropriate use of commas and/or the &lsquo;and&rsquo;-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.</p>
 <p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{&amp;name::capitalize}} sells {{&amp;sells}} with {{&amp;with}}. 
+<div class="codehilite"><pre>Order: {{&amp;order}}&lt;br /&gt;
+Prices: {{&amp;ticket::$.2f}}&lt;br /&gt;
+Sale tax: {{salesTax::.0%}}&lt;br /&gt;
+Total: {{total::$.2f}}&lt;br /&gt;
+Total (w/ tax): {{addTax::$.2f}}
 </pre></div>
 
 <p>&nbsp; <em>Bindings:</em></p>
 <div class="codehilite"><pre><span class="p">{</span>
-  <span class="nx">name</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;bob&quot;</span><span class="p">],</span> 
-  <span class="nx">sells</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;burgers&quot;</span><span class="p">,</span> <span class="s2">&quot;sodas&quot;</span><span class="p">,</span> <span class="s2">&quot;fries&quot;</span><span class="p">],</span> 
-  <span class="kd">with</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;his wife&quot;</span><span class="p">,</span> <span class="s2">&quot;kids&quot;</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>Bob sells burgers, sodas, and fries with his wife and kids.
-</pre></div>
-
-<p><em>Note, the Oxford-comma is the default &ndash; and only &ndash; behavior, as the universe intended.</em></p>
-<p>&nbsp; </p>
-<h2 id="sections">Sections<a class="headerlink" href="#sections" title="Permanent link"></a></h2>
-<p>Section starts are tags with the <code>#</code>-directive and the sections end at tags with the <code>/</code>-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (<code>#</code>) starting prefix with a caret (<code>^</code>). Such sections will only be displayed if the section is evaluated to <code>false</code>.</p>
-<p>Data may be put inside of a section, whether from elsewhere or the same data-binding.</p>
-<p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>Bob is {{#married}}married{{/married}}{{#single}}single{{/single}}.&lt;br /&gt;
-{{#spouse}}Bob is married to {{spouse}}.{{/spouse}}&lt;br /&gt;
-Bob has {{^haspets}}no pets{{/haspets}}{{#haspets}}pets{{/haspets}}.
-</pre></div>
-
-<p>&nbsp; <em>Bindings:</em></p>
-<div class="codehilite"><pre><span class="p">{</span>
-  <span class="nx">married</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> 
-  <span class="nx">single</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span> 
-  <span class="nx">spouse</span><span class="o">:</span> <span class="s2">&quot;Linda&quot;</span><span class="p">,</span> 
-  <span class="nx">haspets</span><span class="o">:</span> <span class="kc">false</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>Bob is married.
-Bob is married to Linda.
-Bob has no pets.
-</pre></div>
-
-<h3 id="section-value-evaluation">Section value evaluation<a class="headerlink" href="#section-value-evaluation" title="Permanent link"></a></h3>
-<p>The data bound to a section tag is evaluated for &lsquo;truthiness&rsquo;. Values of <code>undefined</code>, <code>null</code>, an empty string or a string composed only of whitespace, an empty array, and <code>0</code> evaluate as false. Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. </p>
-<p>&nbsp;</p>
-<h5 id="more">More<a class="headerlink" href="#more" title="Permanent link"></a></h5>
-<p>See additional documentation for more on <a href="D:/ProjectsWeb/templatize/more/sections">sections</a>, <a href="D:/ProjectsWeb/templatize/more/sections#section-value-evaluation">section value evaluation</a>, <a href="D:/ProjectsWeb/templatize/more/sections#the-_display-parameter">the <code>_display</code> parameter</a>, and more.</p>
-<p>&nbsp; </p>
-<h3 id="repeating-sections">Repeating Sections<a class="headerlink" href="#repeating-sections" title="Permanent link"></a></h3>
-<p>If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array.</p>
-<p>Note that each item is also treated to the same <a href="D:/ProjectsWeb/templatize/more/sections#section-value-evaluation">section value evaluation</a> to determine whether it is rendered.</p>
-<p>For a flat array of values you may simply use the <a href="#scoping-and-the-context-directive">context directive</a> alone to display the value of each item. </p>
-<p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{#children}}Child: {{.}}&lt;br /&gt;{{/children}}
-</pre></div>
-
-<p>&nbsp; <em>Bindings:</em></p>
-<div class="codehilite"><pre><span class="p">{</span><span class="nx">children</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;Tina&quot;</span><span class="p">,</span> <span class="s2">&quot;Gene&quot;</span><span class="p">,</span> <span class="s2">&quot;Louise&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">]}</span>
-</pre></div>
-
-<p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>Child: Tina
-Child: Gene
-Child: Louise
-</pre></div>
-
-<h5 id="more_1">More<a class="headerlink" href="#more_1" title="Permanent link"></a></h5>
-<p>See additional documentation for more on <a href="D:/ProjectsWeb/templatize/more/sections#repeating-sections">repeating sections</a>.</p>
-<p>&nbsp; </p>
-<h2 id="scoping-and-the-context-directive">Scoping and the context directive<a class="headerlink" href="#scoping-and-the-context-directive" title="Permanent link"></a></h2>
-<p>All keys in template tags must provide the full path to the data-binding, even if within a section. However, one way to shortcut to the inner-most context is by prefacing the tag key with the context directive (<code>.</code>).</p>
-<p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{#name}}1. {{name.first}}{{/name}}&lt;br /&gt;
-{{#name}}2. {{first}}{{/name}}&lt;br /&gt;
-{{#name}}3. {{.first}}{{/name}}
-</pre></div>
-
-<p>&nbsp; <em>Bindings:</em></p>
-<div class="codehilite"><pre><span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="p">{</span><span class="nx">first</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">}}</span>
-</pre></div>
-
-<p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>1. Bob
-2.
-3. Bob
-</pre></div>
-
-<p>&nbsp;</p>
-<h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link"></a></h2>
-<p>Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via <code>this</code>).</p>
-<p>As the behavior of the function depends on what is returned, it may be used in a variety of contexts. Note however that functions that return a function will continue to be re-evaluated until it returns a non-function value or will error if it exceeds a maximum number of iterations without doing such.</p>
-<p>&nbsp; <em>Template:</em></p>
-<div class="codehilite"><pre>{{fullname}}&#39;s friends include {{&amp;friends}}.
-</pre></div>
-
-<p>&nbsp; <em>Bindings:</em></p>
-<div class="codehilite"><pre><span class="p">{</span>
-  <span class="nx">name</span><span class="o">:</span> <span class="p">{</span>
-    <span class="nx">first</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span> 
-    <span class="nx">last</span><span class="o">:</span> <span class="s2">&quot;Belcher&quot;</span>
+  <span class="nx">order</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;BURGER&quot;</span><span class="p">,</span> <span class="s2">&quot;FRIES&quot;</span><span class="p">],</span> 
+  <span class="nx">prices</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">BURGER</span><span class="o">:</span> <span class="mi">5</span><span class="p">,</span> 
+    <span class="nx">FRIES</span><span class="o">:</span> <span class="mi">2</span>
   <span class="p">},</span> 
-  <span class="nx">fullname</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">first</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">last</span><span class="p">;</span>
+  <span class="nx">ticket</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">order</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">item</span> <span class="o">=&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">prices</span><span class="p">[</span><span class="nx">item</span><span class="p">]);</span>
   <span class="p">},</span> 
-  <span class="nx">relations</span><span class="o">:</span> <span class="p">[</span>
-    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Teddy&quot;</span><span class="p">,</span> <span class="nx">friendly</span><span class="o">:</span> <span class="kc">true</span><span class="p">},</span> 
-    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Mort&quot;</span><span class="p">,</span> <span class="nx">friendly</span><span class="o">:</span> <span class="kc">true</span><span class="p">},</span> 
-    <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Jimmy Pesto&quot;</span><span class="p">,</span> <span class="nx">friendly</span><span class="o">:</span> <span class="kc">false</span><span class="p">}</span>
-  <span class="p">],</span> 
-  <span class="nx">friends</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> 
-    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">relations</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">person</span> <span class="o">=&gt;</span> <span class="nx">person</span><span class="p">.</span><span class="nx">friendly</span><span class="p">)</span>
-                         <span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">person</span> <span class="o">=&gt;</span> <span class="nx">person</span><span class="p">.</span><span class="nx">name</span><span class="p">);</span>
-  <span class="p">}</span>
+  <span class="nx">salesTax</span><span class="o">:</span> <span class="mf">0.05</span><span class="p">,</span> 
+  <span class="nx">total</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">order</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">item</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="nx">sum</span> <span class="o">+=</span> <span class="k">this</span><span class="p">.</span><span class="nx">prices</span><span class="p">[</span><span class="nx">item</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mf">1.0</span><span class="o">+</span><span class="k">this</span><span class="p">.</span><span class="nx">salesTax</span><span class="p">);</span>
+    <span class="p">});</span>
+    <span class="k">return</span> <span class="nx">sum</span><span class="p">;</span>
+  <span class="p">},</span> 
+  <span class="nx">addTax</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">total</span><span class="p">()</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="k">this</span><span class="p">.</span><span class="nx">salesTax</span><span class="p">);</span> <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
 <p>&nbsp; <em>Outputs:</em></p>
-<div class="codehilite"><pre>Bob Belcher&#39;s friends include Teddy and Mort.
+<div class="codehilite"><pre>Order: BURGER and FRIES
+Prices: $5.00 and $2.00
+Sale tax: 5%
+Total: $7.00
+Total (w/ tax): $7.35
 </pre></div>
 
-<h3 id="error-handling">Error handling<a class="headerlink" href="#error-handling" title="Permanent link"></a></h3>
-<p>By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the <code>errorOnFuncFailure</code> flag to <code>true</code> in the <a href="D:/ProjectsWeb/README.md#options">options</a>.</p>
-<h5 id="more_2">More<a class="headerlink" href="#more_2" title="Permanent link"></a></h5>
-<p>See additional documentation for more on <a href="#./more/functions/">functions</a>, including <a href="D:/ProjectsWeb/templatize/more/functions#context-and-_parent">context and <code>_parent</code></a>, and <a href="D:/ProjectsWeb/templatize/more/functions#passing-context-to-functions">passing context to functions</a>.</p>
-<p>&nbsp;</p>
+<p>&nbsp; </p>
 <h2 id="advanced-topics-and-more">Advanced topics and more<a class="headerlink" href="#advanced-topics-and-more" title="Permanent link"></a></h2>
 <p>The above only takes a cursory glance at some of the directives. Be sure to look into the additional documentation below.</p>
 <ul>
@@ -1458,8 +1485,9 @@ Child: Louise
 <li><a href="#./more/functions/">Functions</a></li>
 </ul>
 <h4 id="edge-cases-mixing-directives-and-general-weirdness">Edge cases, mixing directives, and general weirdness<a class="headerlink" href="#edge-cases-mixing-directives-and-general-weirdness" title="Permanent link"></a></h4>
-<p><a href="#Edge-cases,-mixing-directives,-and-general weirdness">Edge cases, mixing directives, and general weirdness</a>.</p>
+<p>That&rsquo;s all great, you may be thinking, but what about if I [pass a function to itself]((./more/advanced/#passing-a-function-to-itself)? Or <a href="D:/ProjectsWeb/templatize/more/advanced#mixing-directives-in-a-section-tag">use a context-passed-to-function as the section tag</a>? What about <a href="D:/ProjectsWeb/templatize/more/advanced#mutli-dimensional-arrays">multi-dimensional arrays</a>? Did you think of all that?</p>
+<p>Well, luckily for you, you absolute sadist, we have such a section on <a href="D:/ProjectsWeb/templatize/more/advanced">edge cases, mixing directives, and general weirdness</a>.</p>
 <hr />
 <p>&nbsp;</p>
 <h3 id="acknowledgments">Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permanent link"></a></h3>
-<p>Number formatting using the <a href="https://github.com/d3/d3-format">d3-format</a> module, which is Copyright under Mike Bostock. <a href="https://github.com/d3/d3-format/blob/master/LICENSE">The full license can be found here</a>.</p></article></body></html>
+<p>Number formatting utilizes the <a href="https://github.com/d3/d3-format">d3-format</a> module, which is Copyright under Mike Bostock. <a href="https://github.com/d3/d3-format/blob/master/LICENSE">The full license can be found here</a>.</p></article></body></html>

@@ -1,38 +1,5 @@
 ## Edge cases, mixing directives, and general weirdness
 
-#### Functions evaluation and caching
-
-Functions that return a function will continue to be re-evaluated until it returns a non-function value or will error if it detects the start of an endless loop (the max. iterations is kept quite strict at 12).
-
-Functions are evaluated when they are first called (or never if they are not). After the first call however, the returned value from the first evaluation is cached. If the function is passed to a context however, it is considered dynamic and re-evaluated each time (even if the same context).
-
-&nbsp; *Template:*
-
-```
-{{count}} {{.->count}} {{.->count}} {{count}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  i: 0, 
-  count: function() {
-    return ++this.i;
-  }
-}
-```
-
-&nbsp; *Outputs:*
-
-```
-1 2 3 1
-```
-
-Note in the above, any call to `{{count}}` will render "1" as that was value returned at first render. However, by passing a context (even if the same root context), we can force the function to re-evaluate. That said, calling `{{count}}` again after these context calls will still return the original, cached value.
-
-&nbsp;
-
 #### Passing a function to itself
 
 When passing a function as a context to itself, the function will first be evaluated as is until it returns a valid context (that is, a non-function), then pass to itself as a function. Normally, this is kind of pointless or results in weird behavior, but it might be worth knowing as an edge case.
@@ -123,7 +90,7 @@ Additionally, as shown a bit previously, you can set a context-passed-to-functio
 {{#burger}}
   Available add-ons:<br />
   {{#.addons->withPrices}}
-    {{tab}}- {{.name}} {{.price::$.2f}}<br />
+    {{tab}}- {{.name}} +{{.price::$.2f}}<br />
   {{/.addons}}
 {{/burger}} 
 ```
@@ -136,15 +103,15 @@ Additionally, as shown a bit previously, you can set a context-passed-to-functio
   burger: {
     addons: ["cheese", "bacon", "avocado"]
   }, 
-  withPrices: function() {
-    var prices = { 
-      cheese: 0.5, 
-      bacon: 2, 
-      avocado: 1.5
-    };
+  prices: { 
+    cheese: 0.5, 
+    bacon: 2, 
+    avocado: 1.5
+  }, 
+  withPrices: function(root) {
     return this.map(name => ({
       name: name, 
-      price: prices[name]
+      price: root.prices[name]
     }));
   }
 }
@@ -154,9 +121,9 @@ Additionally, as shown a bit previously, you can set a context-passed-to-functio
 
 ```
 Available add-ons:
-    - cheese $0.50
-    - bacon $2.00
-    - avocado $1.50
+    - cheese +$0.50
+    - bacon +$2.00
+    - avocado +$1.50
 ```
 
 &nbsp;
