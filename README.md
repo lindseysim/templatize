@@ -41,33 +41,26 @@ However, this will not take advantage of caching the processed template. If reus
 
 *Templatize*.**from**(*template*[, *options*]) : Renders template.
 
-| Name | Type | Description |
-| --- | --- | :--- |
-| `template` | String | The template. |
-| `options` | Object | The default options. See [Options](#options). |
-
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (Interface) An instance of the Templatize rendering interface based off this template.
 
 From this object, simply call: 
 
 *Interface*.prototype.**render**(*bindings*[, *options*]) : Renders template.
 
-| Name | Type | Description |
-| --- | --- | :--- |
-| `bindings` | Object | The object literal of data-bindings. |
-| `options` | Object | Any overrides of the default options. See [Options](#options). |
+```javascript
+var writer = Templatize.from(template, {evalZeroAsTrue: true});
+var rendered = writer.render(bindings);
+```
 
 &nbsp;
 
 ##### Options
 
-| Name | Default | Description |
-| --- | --- | :--- |
-| `delimiters` | `["{{", "}}"]` | Set custom delimiters here as array of strings. Only available in `Templatize.from()` when creating a new instance off a preprocessed template. |
-| `errorOnFuncFailure` | `false` | If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated. |
-| `evalZeroAsTrue` | `false` | If true, zero-values are treated as a real value for section evaluation. See [Section value evaluation](#section-value-evaluation). |
-| `escapeAll` | `false` | If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [Formatting](#formatting). |
-| `errorOnMissingTags` | `false` | If true, throw exceptions when a data-binding called by the template is missing. Otherwise, simply warns in the console and returns empty. |
+* **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings. Only available in `Templatize.from()`** when creating a new instance off a preprocessed template.
+* **`errorOnFuncFailure`** - (*default:* `false`) If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated.
+* **`evalZeroAsTrue`** - (*default:* `false`) If true, zero-values are treated as a real value for section evaluation. See [Section value evaluation](#section-value-evaluation).
+* **`escapeAll`** - (*default:* `false`) If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [Formatting](#formatting).
+* **`errorOnMissingTags`** - (*default:* `false`) If true, throw exceptions when a data-binding called by the template is missing. Otherwise, simply warns in the console and returns empty.
 
 ----------
 
@@ -232,16 +225,14 @@ See additional documentation for more on [sections](./more/sections/), including
 
 ### Repeating Sections
 
-If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array.
+If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array. 
 
-Note that each item is also treated to the same [section value evaluation](./more/sections/#section-value-evaluation) to determine whether it is rendered.
-
-For a flat array of values you may simply use the [context directive](#scoping-and-the-context-directive) alone to display the value of each item. 
+Within the context of the repeating section, the same tag is temporarily bound to the value of each item during each iteration. Thus the below section tag key and value key are the same for this array of flat values.
 
 &nbsp; *Template:*
 
 ```
-{{#children}}Child: {{.}}<br />{{/children}}
+{{#children}}Child: {{children}}<br />{{/children}}
 ```
 
 &nbsp; *Bindings:*
@@ -258,6 +249,8 @@ Child: Gene
 Child: Louise
 ```
 
+Note that each item is also treated to the same [section value evaluation](./more/sections/#section-value-evaluation) to determine whether it is rendered.
+
 ##### More
 
 See additional documentation for more on [repeating sections](./more/sections/#repeating-sections).
@@ -268,7 +261,7 @@ See additional documentation for more on [repeating sections](./more/sections/#r
 
 ## Scoping and the context directive
 
-All keys in template tags must provide the full path to the data-binding, even if within a section. However, one way to shortcut to the inner-most context is by prefacing the tag key with the context directive (`.`).
+All keys in template tags must provide the full path to the data-binding, even if within a section. However, one way to shortcut to the inner-most context is by prefacing the tag key with the context directive (`.`). A naked context tag (`{{.}}`) is particular useful for repeating sections with flat values.
 
 &nbsp; *Template:*
 
@@ -276,12 +269,17 @@ All keys in template tags must provide the full path to the data-binding, even i
 {{#name}}1. {{name.first}}{{/name}}<br />
 {{#name}}2. {{first}}{{/name}}<br />
 {{#name}}3. {{.first}}{{/name}}
+<br /><br />
+Friends: {{#friends}}{{.}} {{/friends}}
 ```
 
 &nbsp; *Bindings:*
 
 ```javascript
-{name: {first: "Bob"}}
+{
+  name: {first: "Bob"}, 
+  friends: ["Teddy", "Mort"]
+}
 ```
 
 &nbsp; *Outputs:*
@@ -290,7 +288,11 @@ All keys in template tags must provide the full path to the data-binding, even i
 1. Bob
 2.
 3. Bob
+
+Friends: Teddy Mort
 ```
+
+Note however that line 2 does not render as the reference to `first` is not specified as under the `name` context or given an in-context directive, and the property `first` does not exist under the root binding object.
 
 
 &nbsp;
@@ -344,7 +346,9 @@ By default, functions fail silently. If an error occurs during function call, ex
 
 ##### More
 
-See additional documentation for more on [functions](#./more/functions/), including [context and `_parent`](./more/functions/#context-and-_parent), and [passing context to functions](./more/functions/#passing-context-to-functions).
+Functions are arguably the most powerful (and sometimes frustrating) aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions). This section only covers the most superficial use of functions.
+
+See additional documentation for more on [functions](#./more/functions/).
 
 
 &nbsp;
@@ -354,16 +358,15 @@ See additional documentation for more on [functions](#./more/functions/), includ
 
 Formatting options are also available by suffixing the property name in the template code with a double-colon (`::`) and format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the [d3-format library](https://github.com/d3/d3-format), which handles many number formats. See documentation there for various formatting options.
 
-| Directive | Description |
-| --- | :--- |
-| "html" | If the [option](#options) `escapeAll` is set true, this directive sets the output not to escape HTML special characters. |
-| "raw" | See above. |
-| "encode" | Encodes HTML special characters in rendered output. |
-| "upper" | Transforms all alphabetical characters to uppercase. |
-| "caps" | See above. |
-| "allcaps" | See above. |
-| "lower" | Transforms all alphabetical characters to lowercase. |
-| "capitalize" | Capitalizes the first letter in each word. |
+
+* **html** - If the [option](#options) `escapeAll` is set true, this directive sets the output not to escape HTML special characters.
+    * **raw** - Same as above.
+* **encode** - Encodes HTML special characters in rendered output.
+* **upper** - Transforms all alphabetical characters to uppercase.
+    * **caps** - Same as above.
+    * **allcaps** - Same as above.
+* **lower** - Transforms all alphabetical characters to lowercase.
+* **capitalize** - Capitalizes the first letter in each word.
 
 Additionally, you can short-hand by suffixing a semi-colon (`;`) to the variable name or format directive
 
@@ -450,7 +453,7 @@ The above only takes a cursory glance at some of the directives. Be sure to look
 
 #### Edge cases, mixing directives, and general weirdness
 
-That's all great, you may be thinking, but what about if I [pass a function to itself]((./more/advanced/#passing-a-function-to-itself)? Or [use a context-pass-to-function directive in the section tag](./more/advanced/#mixing-directives-in-a-section-tag)? What about [multi-dimensional arrays](./more/advanced/#mutli-dimensional-arrays)? Did you think of all that?
+That's all great, you may be thinking, but what about if I [pass a function to itself](./more/advanced/#passing-a-function-to-itself)? Or [use a context-pass-to-function directive in the section tag](./more/advanced/#mixing-directives-in-a-section-tag)? What about [multi-dimensional arrays](./more/advanced/#mutli-dimensional-arrays)? Did you think of all that?
 
 Well luckily for you, you sadist, we have such a section on [edge cases, mixing directives, and general weirdness](./more/advanced/).
 

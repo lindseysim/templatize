@@ -2,11 +2,13 @@
 
 #### Mutli-dimensional arrays
 
-By using the in-context directive, you can access multi-dimensional arrays. However, because it will require naked-context tags `{{.}}`, the template can get a little tricky to decipher.
+By using the in-context directive, you can access multi-dimensional arrays.
+
+&nbsp; *Template:*
 
 ```
 {{#a}}
-  {{.}} => {{#.}}{{.}}, {{/.}}<br />
+  {{a}} => {{#a}}{{.}}, {{/a}}<br />
 {{/a}}
 ```
 
@@ -24,13 +26,133 @@ By using the in-context directive, you can access multi-dimensional arrays. Howe
 [] =>
 ```
 
-Note the value before the `=>` is the raw array content. The naked-context tag here is evaluated to its context, which is each item of the array bound to `a`. After the `=>` we enter a section with that data, which will be another repeating section with the context shifted to the inner level. The naked-context tag inside this section is now referencing each inner array's value.
+Note the value before the `=>` is the raw array content. The tag here is evaluated as the item of the array for `a` inside each iteration of the repeating section (not 'a' itself). After the `=>` we enter a section with that data, which will be another repeating section with the context shifted to the inner level. The naked-context tag inside this section is now referencing each inner array's value.
 
 Note that in the first line, after the split, "0" is not printed as the default behavior is to treat zero-values as false, hence skipping that iteration of the repeating section. And in the third line, nothing prints after the split since the array is empty.
+
+**Another wrinkle**
+
+We could in fact use all naked-context tags. E.g. the below template produces the same output:
+
+```
+{{#a}}
+  {{.}} => {{#.}}{{.}}, {{/.}}<br />
+{{/a}}
+```
+
+However, replacing all the naked-context tags with the `a` key will eventually result in confusion in interpreting the context for the inner-most section. Hence, for this edge-case, we recommend using the naked-context tags after one level of nesting.
+
+&nbsp; *Template:*
+
+```
+{{#a}}
+  {{a}} => {{#a}}{{a}}, {{/a}}<br />
+{{/a}}
+```
+
+&nbsp; *Outputs:*
+
+```
+[0,1] => [0,1],
+[2,3] => [2,3], [2,3],
+[] =>
+```
+
+Generally though, it's not recommended to use multi-dimension arrays and instead wrap the nested array as a property of an array of objects.
+
+&nbsp; *Template:*
+
+```
+{{#a}}
+  {{#.b}}{{.}} {{/.b}} -
+{{/a}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  a: [
+    {b: [1, 2]}, 
+    {b: [3, 4]}, 
+    {b: [5, 6]}
+  ]
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+1 2 - 3 4 - 5 6 -
+```
 
 &nbsp;
 
 #### Arrays of functions
+
+You can in fact supply an array of functions for a repeating section, then use each function in the section's context.
+
+&nbsp; *Template:*
+
+```
+{{#people}}
+  {{#funcs}}
+    {{people->funcs}}
+  {{/funcs}}
+  <br />
+{{/people}} 
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  people: [ 
+    {
+      name: {first: "Linda", last: "Belcher"}, 
+      friendly: true
+    }, 
+    {
+      name: {first: "Teddy", last: ""}, 
+      friendly: true
+    }, 
+    {
+      name: {first: "Jimmy", last: "Pesto"}, 
+      friendly: false
+    } 
+  ], 
+  funcs: [
+    function() {
+      if(!this.name) return true;
+      return this.name.first + " " + this.name.last + "<br />";
+    }, 
+    function() {
+      if(!this.name) return true;
+      return this.name.last === "Belcher" ? "- is family<br />" : "";
+    }, 
+    function() {
+      if(!this.name) return true;
+      return this.friendly ? "- is a friend<br />" : "";
+    }
+  ]
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+Linda Belcher
+- is family
+- is a friend
+
+Teddy
+- is a friend
+
+Jimmy Pesto
+
+```
+
+Note however that the function will be evaluated in it's own context to determine whether to render the section. In the above example, the functions only make sense within the context of an item in `people`. Thus the if statements were added to each to protect against and error when traversing into an undefined property of the context.
 
 &nbsp;
 
@@ -82,7 +204,7 @@ Section tags may have in-context or pass-to-function directives. This will resol
 ```
 {{#burger}}
   Available toppings:<br />
-  {{#.toppings}}{{tab}}- {{.}}<br />{{/.toppings}}
+  {{#.toppings}}{{spacer}}- {{.}}<br />{{/.toppings}}
 {{/burger}} 
 ```
 
@@ -90,7 +212,7 @@ Section tags may have in-context or pass-to-function directives. This will resol
 
 ```javascript
 {
-  tab: "&nbsp;&nbsp;&nbsp;&nbsp;",
+  spacer: "&nbsp;&nbsp;&nbsp;&nbsp;",
   burger: {
     toppings: ["cheese", "onions", "lettuce", "tomato"]
   }
@@ -112,7 +234,7 @@ Ensure for in-context directives used as section tags that the closing tag appea
 ```
 {{#burger}}
   Available toppings:<br />
-  {{#.toppings}}{{tab}}- {{.}}<br />{{/burger.toppings}}
+  {{#.toppings}}{{spacer}}- {{.}}<br />{{/burger.toppings}}
 {{/burger}} 
 ```
 
@@ -122,7 +244,7 @@ Additionally, as shown in the last section, you can set a context-passed-to-func
 {{#burger}}
   Available add-ons:<br />
   {{#.addons->withPrices}}
-    {{tab}}- {{.name}} +{{.price::$.2f}}<br />
+    {{spacer}}- {{.name}} +{{.price::$.2f}}<br />
   {{/.addons}}
 {{/burger}} 
 ```
@@ -131,7 +253,7 @@ Additionally, as shown in the last section, you can set a context-passed-to-func
 
 ```javascript
 {
-  tab: "&nbsp;&nbsp;&nbsp;&nbsp;",
+  spacer: "&nbsp;&nbsp;&nbsp;&nbsp;",
   burger: {
     addons: ["cheese", "bacon", "avocado"]
   }, 

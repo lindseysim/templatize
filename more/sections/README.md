@@ -63,7 +63,7 @@ Using the above, one common pattern is to use the same data-binding for both the
 Occupation: Chef
 ```
 
-With the [context directive](../README.md#scoping-and-the-context-directive), this can be even further simplified in the template.
+With the [context directive](../../#scoping-and-the-context-directive), this can be even further simplified in the template.
 
 &nbsp; *Template:*
 
@@ -121,7 +121,7 @@ Sunday - Closed
 Saturday - $122.00
 ```
 
-By setting `evalZeroAsTrue` to true in the [options](../README.md#options), you can change this behavior to treat zero-values as truthy. Which will change to output as follows.
+By setting `evalZeroAsTrue` to true in the [options](../../#options), you can change this behavior to treat zero-values as truthy. Which will change to output as follows.
 
 &nbsp; *Outputs:*
 
@@ -171,14 +171,14 @@ Note in the above that `_display` does not reverse the behavior of inverse secti
 
 ## Repeating Sections
 
-If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array.
+If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array. 
 
-For a flat array of values you may simply use the [context directive](../README.md#scoping-and-the-context-directive) alone to display the value of each item. Note that each item is also treated to the same [section value evaluation](#section-value-evaluation) to determine whether it is rendered.
+Within the context of the repeating section, the same tag is temporarily bound to the value of each item during each iteration. Thus the below section tag key and value key are the same for this array of flat values.
 
 &nbsp; *Template:*
 
 ```
-{{#children}}Child: {{.}}<br />{{/children}}
+{{#children}}Child: {{children}}<br />{{/children}}
 ```
 
 &nbsp; *Bindings:*
@@ -195,12 +195,14 @@ Child: Gene
 Child: Louise
 ```
 
-Arrays may contain objects or functions as well. In objects, you can use the `_display` parameter to hide a particular item, same as you would for a section.
+Note that each item is also treated to the same [section value evaluation](./more/sections/#section-value-evaluation) to determine whether it is rendered.
+
+Arrays may contain objects or functions as well. In objects, you can use the `_display` parameter to hide a particular item, same as you would for a section. Below, we also take advantage of the [in-context directive](#../#scoping-and-the context-directive).
 
 &nbsp; *Template:*
 
 ```
-{{#children}}Child: {{children.firstName}}<br />{{/children}}
+{{#children}}Child: {{.firstName}}<br />{{/children}}
 ```
 
 &nbsp; *Bindings:*
