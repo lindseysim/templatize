@@ -299,10 +299,66 @@ Gene Belcher's hobbies include music and farts.
 Louise Belcher's hobbies include mischief.
 ```
 
+For standard sections, nesting sections, even within itself, adds no major complication as sections are simply treated as on/off tags. However, when dealing with repeating sections or sections created with dynamic data (e.g. [mixing pass-to-function directing in a section tag](../advanced/#mixing-directives-in-a-section-tag)), the inner context will be specific to the directly nested section.
+
+&nbsp; *Template:*
+
+```
+{{#n->increment}}
+  {{#n->increment}}
+    {{n}}
+  {{/n}}
+{{/n}}
+-- {{n}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  n: 1,
+  increment: function() { return this+1; }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+3 -- 1
+```
+
+Note the first output is `3` due to being in two nested where the contexts are incremented. However, when `n` is called again outside the nesting, the value of `n` is unchanged outside of the previous contexts.
+
+This gets particularly confusing with repeating contexts but makes sense when you consider the context changes instead each nested section.
+
+&nbsp; *Template:*
+
+```
+{{#repeat}}
+  {{#repeat}}
+    {{.}}
+  {{/repeat}}
+{{/repeat}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{repeat: [1,2,3]} 
+```
+
+&nbsp; *Outputs:*
+
+```
+1 2 3
+```
+
+Your initial inclination might be to expect the output to be `1 2 3 1 2 3 1 2 3`. But consider that within the first `{{#repeat}}` section, the context of repeat has now changed to be the value of each item for each iteration. So in the second, nested section, the `{{#repeat}}` tag is simply a standard section tag (not a repeating section), as the value of repeat being passed each iteration is a single number.
+
 ----
 
 &nbsp;
 
 #### More
 
-There are a few edge cases you can create with sections, such as mixing in directives in the section tag or handling multi-dimensional arrays in repeating sections. For a run down of some these, read the section: [Edge cases, mixing directives, and general weirdness](../advanced/).
+There are a few other things you can create with sections, such as mixing in directives in the section tag (briefly covered) or handling multi-dimensional arrays in repeating sections. For a run down of some these, read the section: [Advanced usage, edge cases, and general weirdness](../advanced/).

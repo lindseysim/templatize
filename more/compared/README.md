@@ -1,0 +1,64 @@
+## Templatize vs Mustache.js
+
+It's not a competition, but it's worth mentioning why there's a big library that emulates most of what [Mustache.js](https://github.com/janl/mustache.js/) does, while while they are similar there are enough differences to make switching between incompatible beyond the basic variables and sections.
+
+&nbsp;
+
+#### Differences
+
+While the most basic usage is similar, there are a few minor syntactic and conceptual differences.
+
+Mustache pre-escapes all rendering content for HTML special characters, requiring the `&`-directive (or triple curley braces) to specifically unescape. Templatize, by default, does the opposite (not pre-escaping any render, unless specified different in the options).
+
+The `&`-directive is handled differently. In Mustache it is a formatting operator. In Templatize it is a [list](../../#lists) operator.
+
+Passing data to functions means turning the function into a section tag and putting content in between. The function will then be passed the template text and rendering function inside the section, but not the actual data. 
+
+In Templatize, functions in a section tag are treated as sections using the output of the function. Additionally, functions are called with the context of where they hierarchically exist in the data-binding, and to pass data to functions, one can use the [pass-context-to-function directive](../functions/#passing-context-to-functions).
+
+**Data context in sections**
+
+Data context is one of the biggest usage differences that may trip up someone switching between the two libraries. Context in Mustache is automatically assumed from within a section. If the data binding is:
+
+```javascript
+{
+  outer: {inner: "inside"}, 
+  inner: "outside"
+}
+```
+
+Within an `outer` section you can call `inner` without traversing the data-tree. The following would print `"inside"`. It would only print `"outside"` if `outside.inner` did not exist as a fallback as it traverses to the outer context.
+
+```
+{{#outer}} {{inner}} {{/outer}}
+```
+
+However, in Templatize, all variables are explicitly path-ed from the root, even within a section. The above would print `"outer"` as the `{{inner}}` tag is resolved from the root. To print `"inside"` the full data path or [in-context directive](../../#scoping-and-the-context-directive) must be used.
+
+```
+{{#outer}} {{outer.inner}} or {{.inner}} {{/outer}}
+```
+
+&nbsp;
+
+#### Advantages to Templatize
+
+The support for grammatically formatted [lists](../../#lists) and built-in [formatters](../../#formatting) are unique to Templatize.
+
+[Functions](../functions/) are incredibly powerful when combined with the [pass-context-to-function directive](../functions/#passing-context-to-functions) or [mixed in with section tags](../advanced/#mixing-directives-in-a-section-tag).
+
+Ability to evaluated zero-values as true in the [options](../../#options). Sometimes useful, especially for data where 0 is a real value but `null` is not.
+
+&nbsp;
+
+#### Which is better?
+
+Both run quite fast (depends on input template and data, of course, but rendering a first pass on the order of a handful of milliseconds and subsequent passes on the same template [utilizing some caching] under a single millisecond), but in general, Mustache.js is faster.
+
+The dynamic way Templatize treats functions, sections, and repeating-sections have added some overhead to the data-binding handling and rendering procedures that come at a minor cost. That said, outside of some exceptional cases, there is unlikely to be a factor in which either rendering library is a limiting factor.
+
+Templatize has much more versatility with the enhanced power for functions and ability to pass data to them. That said, most uses cases wouldn't need them or could work around them by preprocessing the data-bindings first.
+
+That said, this has really just become a pet project of mine, so considering the larger developing community, support, active development, and user-base, Mustache.js is probably, maybe, subjectively better for most use cases :)
+
+&nbsp;

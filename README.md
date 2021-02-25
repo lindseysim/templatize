@@ -1,6 +1,6 @@
 # Templatize
 
-Basic templating code, similar to Mustache.js. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, the core code just a little over 100 lines. For a brief comparison versus Mustache, see the last section.
+Basic templating code. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements (and also just personal curiosity on where I could take it) turned it into a powerful templating library of its own.
 
 Lawrence Sim © 2021
 
@@ -14,7 +14,7 @@ Lawrence Sim © 2021
     * [Scoping and context](#scoping-and-the-context-directive)
     * [Functions](#functions)
     * [Formatting](#formatting)
-* [Advanced Topics and More](#advanced-topics-and-more)
+* [More Topics](#more-topics)
 * [Acknowledgments](#acknowledgments)
 
 ----------
@@ -27,25 +27,27 @@ Lawrence Sim © 2021
 
 Import the source or minified javascript. If regular script import, uses name `Templatize`. The most basic use-case will simply call the `Templatize.render()` function.
 
-*Templatize*.**render**(*template*, *bindings*[, *options*]) : Renders template.
+*Templatize*.**render**(*template*, *bindings*[, *options*])
 
 | Name | Type | Description |
 | --- | --- | :--- |
 | `template` | String | The template. |
 | `bindings` | Object | The object literal of data-bindings. |
-| `options` | Object | See [Options](#options). |
+| `options` | Object | See [options](#options). |
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
 
 However, this will not take advantage of caching the processed template. If reusing the template, first clone a rendering instance from said template using `Templatize.from()`, then call the render function on that. With the options here, you may set custom delimiters.
 
-*Templatize*.**from**(*template*[, *options*]) : Renders template.
+*Templatize*.**from**(*template*[, *options*])
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (Interface) An instance of the Templatize rendering interface based off this template.
 
 From this object, simply call: 
 
-*Interface*.prototype.**render**(*bindings*[, *options*]) : Renders template.
+*Interface*.prototype.**render**(*bindings*[, *options*])
+
+&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
 
 ```javascript
 var writer = Templatize.from(template, {evalZeroAsTrue: true});
@@ -58,8 +60,8 @@ var rendered = writer.render(bindings);
 
 * **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings. Only available in `Templatize.from()`** when creating a new instance off a preprocessed template.
 * **`errorOnFuncFailure`** - (*default:* `false`) If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated.
-* **`evalZeroAsTrue`** - (*default:* `false`) If true, zero-values are treated as a real value for section evaluation. See [Section value evaluation](#section-value-evaluation).
-* **`escapeAll`** - (*default:* `false`) If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [Formatting](#formatting).
+* **`evalZeroAsTrue`** - (*default:* `false`) If true, zero-values are treated as a real value for section evaluation. See [section value evaluation](#section-value-evaluation).
+* **`escapeAll`** - (*default:* `false`) If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [formatting](#formatting).
 * **`errorOnMissingTags`** - (*default:* `false`) If true, throw exceptions when a data-binding called by the template is missing. Otherwise, simply warns in the console and returns empty.
 
 ----------
@@ -217,7 +219,9 @@ Bob has no pets.
 
 The data bound to a section tag is evaluated for 'truthiness'. Values of `undefined`, `null`, an empty string or a string composed only of whitespace, an empty array, and `0` evaluate as false. Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
 
-##### More
+&nbsp;
+
+##### More on sections
 
 See additional documentation for more on [sections](./more/sections/), including [section value evaluation](./more/sections/#section-value-evaluation), the [`_display` parameter](./more/sections/#the-_display-parameter), and more.
 
@@ -251,7 +255,9 @@ Child: Louise
 
 Note that each item is also treated to the same [section value evaluation](./more/sections/#section-value-evaluation) to determine whether it is rendered.
 
-##### More
+&nbsp;
+
+##### More on repeating sections
 
 See additional documentation for more on [repeating sections](./more/sections/#repeating-sections).
 
@@ -344,7 +350,9 @@ Bob Belcher's friends include Teddy and Mort.
 
 By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `errorOnFuncFailure` flag to `true` in the [options](../README.md#options).
 
-##### More
+&nbsp;
+
+##### More on functions
 
 Functions are arguably the most powerful (and sometimes frustrating) aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions). This section only covers the most superficial use of functions.
 
@@ -444,18 +452,27 @@ Total (w/ tax): $7.35
 &nbsp; 
 
 
-## Advanced topics and more
+## More Topics
 
 The above only takes a cursory glance at some of the directives. Be sure to look into the additional documentation below.
 
-* [Sections](#./more/sections/)
-* [Functions](#./more/functions/)
+* [More about sections and repeating sections](#./more/sections/)
+* [More about functions](#./more/functions/)
 
-#### Edge cases, mixing directives, and general weirdness
+&nbsp;
+
+#### Advanced usage, edge cases, and general weirdness
 
 That's all great, you may be thinking, but what about if I [pass a function to itself](./more/advanced/#passing-a-function-to-itself)? Or [use a context-pass-to-function directive in the section tag](./more/advanced/#mixing-directives-in-a-section-tag)? What about [multi-dimensional arrays](./more/advanced/#mutli-dimensional-arrays)? Did you think of all that?
 
-Well luckily for you, you sadist, we have such a section on [edge cases, mixing directives, and general weirdness](./more/advanced/).
+Well luckily for you, you sadist, we have such a section on [advanced usage, edge cases, and general weirdness](./more/advanced/).
+
+&nbsp;
+
+#### Templatize vs Mustache.js
+
+Time to address the elephant in the room. Why recreate what Mustache.js (basically) already does? How does Templatize differ? Which is better? Which is faster? The quick answers are: just because, much more powerful function directives (among a few other syntactic differences), depends what you want, and probably Mustache.js. But if you want a little more substance to those answers, see [Templatize vs. Mustache.js](./more/compared/).
+
 
 -----
 

@@ -1056,7 +1056,7 @@ body .markdown-body
 .codehilite .il{color:#009999}
 .codehilite .gc{color:#999;background-color:#EAF2F5}
 </style><title>README</title></head><body><article class="markdown-body"><h1 id="templatize">Templatize<a class="headerlink" href="#templatize" title="Permanent link"></a></h1>
-<p>Basic templating code, similar to Mustache.js. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it&rsquo;s much lighter, the core code just a little over 100 lines. For a brief comparison versus Mustache, see the last section.</p>
+<p>Basic templating code. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements (and also just personal curiosity on where I could take it) turned it into a powerful templating library of its own.</p>
 <p>Lawrence Sim © 2021</p>
 <h2 id="contents">Contents<a class="headerlink" href="#contents" title="Permanent link"></a></h2>
 <ul>
@@ -1070,14 +1070,14 @@ body .markdown-body
 <li><a href="#formatting">Formatting</a></li>
 </ul>
 </li>
-<li><a href="#advanced-topics-and-more">Advanced Topics and More</a></li>
+<li><a href="#more-topics">More Topics</a></li>
 <li><a href="#acknowledgments">Acknowledgments</a></li>
 </ul>
 <hr />
 <p>&nbsp; </p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link"></a></h2>
 <p>Import the source or minified javascript. If regular script import, uses name <code>Templatize</code>. The most basic use-case will simply call the <code>Templatize.render()</code> function.</p>
-<p><em>Templatize</em>.<strong>render</strong>(<em>template</em>, <em>bindings</em>[, <em>options</em>]) : Renders template.</p>
+<p><em>Templatize</em>.<strong>render</strong>(<em>template</em>, <em>bindings</em>[, <em>options</em>])</p>
 <table>
 <thead>
 <tr>
@@ -1100,16 +1100,17 @@ body .markdown-body
 <tr>
 <td><code>options</code></td>
 <td>Object</td>
-<td align="left">See <a href="#options">Options</a>.</td>
+<td align="left">See <a href="#options">options</a>.</td>
 </tr>
 </tbody>
 </table>
 <p>&nbsp; &nbsp; &nbsp; &nbsp;<strong>Returns:</strong> (String) The rendered template.</p>
 <p>However, this will not take advantage of caching the processed template. If reusing the template, first clone a rendering instance from said template using <code>Templatize.from()</code>, then call the render function on that. With the options here, you may set custom delimiters.</p>
-<p><em>Templatize</em>.<strong>from</strong>(<em>template</em>[, <em>options</em>]) : Renders template.</p>
+<p><em>Templatize</em>.<strong>from</strong>(<em>template</em>[, <em>options</em>])</p>
 <p>&nbsp; &nbsp; &nbsp; &nbsp;<strong>Returns:</strong> (Interface) An instance of the Templatize rendering interface based off this template.</p>
 <p>From this object, simply call: </p>
-<p><em>Interface</em>.prototype.<strong>render</strong>(<em>bindings</em>[, <em>options</em>]) : Renders template.</p>
+<p><em>Interface</em>.prototype.<strong>render</strong>(<em>bindings</em>[, <em>options</em>])</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;<strong>Returns:</strong> (String) The rendered template.</p>
 <div class="codehilite"><pre><span class="kd">var</span> <span class="nx">writer</span> <span class="o">=</span> <span class="nx">Templatize</span><span class="p">.</span><span class="nx">from</span><span class="p">(</span><span class="nx">template</span><span class="p">,</span> <span class="p">{</span><span class="nx">evalZeroAsTrue</span><span class="o">:</span> <span class="kc">true</span><span class="p">});</span>
 <span class="kd">var</span> <span class="nx">rendered</span> <span class="o">=</span> <span class="nx">writer</span><span class="p">.</span><span class="nx">render</span><span class="p">(</span><span class="nx">bindings</span><span class="p">);</span>
 </pre></div>
@@ -1119,8 +1120,8 @@ body .markdown-body
 <ul>
 <li><strong><code>delimiters</code></strong> - (<em>default:</em> <code>["{{", "}}"]</code>) Set custom delimiters here as array of strings. Only available in <code>Templatize.from()</code>** when creating a new instance off a preprocessed template.</li>
 <li><strong><code>errorOnFuncFailure</code></strong> - (<em>default:</em> <code>false</code>) If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated.</li>
-<li><strong><code>evalZeroAsTrue</code></strong> - (<em>default:</em> <code>false</code>) If true, zero-values are treated as a real value for section evaluation. See <a href="#section-value-evaluation">Section value evaluation</a>.</li>
-<li><strong><code>escapeAll</code></strong> - (<em>default:</em> <code>false</code>) If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See <a href="#formatting">Formatting</a>.</li>
+<li><strong><code>evalZeroAsTrue</code></strong> - (<em>default:</em> <code>false</code>) If true, zero-values are treated as a real value for section evaluation. See <a href="#section-value-evaluation">section value evaluation</a>.</li>
+<li><strong><code>escapeAll</code></strong> - (<em>default:</em> <code>false</code>) If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See <a href="#formatting">formatting</a>.</li>
 <li><strong><code>errorOnMissingTags</code></strong> - (<em>default:</em> <code>false</code>) If true, throw exceptions when a data-binding called by the template is missing. Otherwise, simply warns in the console and returns empty.</li>
 </ul>
 <hr />
@@ -1226,12 +1227,13 @@ Bob has no pets.
 
 <h3 id="section-value-evaluation">Section value evaluation<a class="headerlink" href="#section-value-evaluation" title="Permanent link"></a></h3>
 <p>The data bound to a section tag is evaluated for &lsquo;truthiness&rsquo;. Values of <code>undefined</code>, <code>null</code>, an empty string or a string composed only of whitespace, an empty array, and <code>0</code> evaluate as false. Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. </p>
-<h5 id="more">More<a class="headerlink" href="#more" title="Permanent link"></a></h5>
+<p>&nbsp;</p>
+<h5 id="more-on-sections">More on sections<a class="headerlink" href="#more-on-sections" title="Permanent link"></a></h5>
 <p>See additional documentation for more on <a href="D:/ProjectsWeb/templatize/more/sections">sections</a>, including <a href="D:/ProjectsWeb/templatize/more/sections#section-value-evaluation">section value evaluation</a>, the <a href="D:/ProjectsWeb/templatize/more/sections#the-_display-parameter"><code>_display</code> parameter</a>, and more.</p>
 <p>&nbsp; </p>
 <h3 id="repeating-sections">Repeating Sections<a class="headerlink" href="#repeating-sections" title="Permanent link"></a></h3>
-<p>If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array.</p>
-<p>Note that each item is also treated to the same <a href="D:/ProjectsWeb/templatize/more/sections#section-value-evaluation">section value evaluation</a> to determine whether it is rendered.</p>
+<p>If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array. </p>
+<p>Within the context of the repeating section, the same tag is temporarily bound to the value of each item during each iteration. Thus the below section tag key and value key are the same for this array of flat values.</p>
 <p>&nbsp; <em>Template:</em></p>
 <div class="codehilite"><pre>{{#children}}Child: {{children}}&lt;br /&gt;{{/children}}
 </pre></div>
@@ -1246,7 +1248,9 @@ Child: Gene
 Child: Louise
 </pre></div>
 
-<h5 id="more_1">More<a class="headerlink" href="#more_1" title="Permanent link"></a></h5>
+<p>Note that each item is also treated to the same <a href="D:/ProjectsWeb/templatize/more/sections#section-value-evaluation">section value evaluation</a> to determine whether it is rendered.</p>
+<p>&nbsp;</p>
+<h5 id="more-on-repeating-sections">More on repeating sections<a class="headerlink" href="#more-on-repeating-sections" title="Permanent link"></a></h5>
 <p>See additional documentation for more on <a href="D:/ProjectsWeb/templatize/more/sections#repeating-sections">repeating sections</a>.</p>
 <p>&nbsp; </p>
 <h2 id="scoping-and-the-context-directive">Scoping and the context directive<a class="headerlink" href="#scoping-and-the-context-directive" title="Permanent link"></a></h2>
@@ -1311,7 +1315,8 @@ Friends: Teddy Mort
 
 <h3 id="error-handling">Error handling<a class="headerlink" href="#error-handling" title="Permanent link"></a></h3>
 <p>By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the <code>errorOnFuncFailure</code> flag to <code>true</code> in the <a href="D:/ProjectsWeb/README.md#options">options</a>.</p>
-<h5 id="more_2">More<a class="headerlink" href="#more_2" title="Permanent link"></a></h5>
+<p>&nbsp;</p>
+<h5 id="more-on-functions">More on functions<a class="headerlink" href="#more-on-functions" title="Permanent link"></a></h5>
 <p>Functions are arguably the most powerful (and sometimes frustrating) aspect of Templatize, especially paired with the <a href="D:/ProjectsWeb/templatize/more/functions#passing-context-to-functions">pass-context-to-function directive</a>. This section only covers the most superficial use of functions.</p>
 <p>See additional documentation for more on <a href="#./more/functions/">functions</a>.</p>
 <p>&nbsp;</p>
@@ -1391,15 +1396,19 @@ Total (w/ tax): $7.35
 </pre></div>
 
 <p>&nbsp; </p>
-<h2 id="advanced-topics-and-more">Advanced topics and more<a class="headerlink" href="#advanced-topics-and-more" title="Permanent link"></a></h2>
+<h2 id="more-topics">More Topics<a class="headerlink" href="#more-topics" title="Permanent link"></a></h2>
 <p>The above only takes a cursory glance at some of the directives. Be sure to look into the additional documentation below.</p>
 <ul>
-<li><a href="#./more/sections/">Sections</a></li>
-<li><a href="#./more/functions/">Functions</a></li>
+<li><a href="#./more/sections/">More about sections and repeating sections</a></li>
+<li><a href="#./more/functions/">More about functions</a></li>
 </ul>
-<h4 id="edge-cases-mixing-directives-and-general-weirdness">Edge cases, mixing directives, and general weirdness<a class="headerlink" href="#edge-cases-mixing-directives-and-general-weirdness" title="Permanent link"></a></h4>
+<p>&nbsp;</p>
+<h4 id="advanced-usage-edge-cases-and-general-weirdness">Advanced usage, edge cases, and general weirdness<a class="headerlink" href="#advanced-usage-edge-cases-and-general-weirdness" title="Permanent link"></a></h4>
 <p>That&rsquo;s all great, you may be thinking, but what about if I <a href="D:/ProjectsWeb/templatize/more/advanced#passing-a-function-to-itself">pass a function to itself</a>? Or <a href="D:/ProjectsWeb/templatize/more/advanced#mixing-directives-in-a-section-tag">use a context-pass-to-function directive in the section tag</a>? What about <a href="D:/ProjectsWeb/templatize/more/advanced#mutli-dimensional-arrays">multi-dimensional arrays</a>? Did you think of all that?</p>
-<p>Well luckily for you, you sadist, we have such a section on <a href="D:/ProjectsWeb/templatize/more/advanced">edge cases, mixing directives, and general weirdness</a>.</p>
+<p>Well luckily for you, you sadist, we have such a section on <a href="D:/ProjectsWeb/templatize/more/advanced">Advanced usage, edge cases, and general weirdness</a>.</p>
+<p>&nbsp;</p>
+<h4 id="templatize-vs-mustachejs">Templatize vs Mustache.js<a class="headerlink" href="#templatize-vs-mustachejs" title="Permanent link"></a></h4>
+<p>Time to address the elephant in the room. Why recreate what Mustache.js (basically) already does? How does Templatize differ? Which is better? Which is faster? The quick answers are: just because, much more powerful function directives (among a few other syntactic differences), depends what you want, and probably Mustache.js. But if you want a little more substance to those answers, see <a href="D:/ProjectsWeb/templatize/more/compared">Templatize vs. Mustache.js</a>.</p>
 <hr />
 <p>&nbsp;</p>
 <h3 id="acknowledgments">Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permanent link"></a></h3>
