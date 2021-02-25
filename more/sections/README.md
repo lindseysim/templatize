@@ -296,3 +296,11 @@ Tina Belcher's hobbies include butts, Equestranauts, and Boyz 4 Now.
 Gene Belcher's hobbies include music and farts.
 Louise Belcher's hobbies include mischief.
 ```
+
+----
+
+&nbsp;
+
+#### More
+
+There are a few edge cases you can create with sections, such as mixing in directives in the section tag or handling multi-dimensional arrays in repeating sections. For a run down of some these, read the section: [Edge cases, mixing directives, and general weirdness](../advanced/).

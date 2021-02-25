@@ -1,5 +1,39 @@
 ## Edge cases, mixing directives, and general weirdness
 
+#### Mutli-dimensional arrays
+
+By using the in-context directive, you can access multi-dimensional arrays. However, because it will require naked-context tags `{{.}}`, the template can get a little tricky to decipher.
+
+```
+{{#a}}
+  {{.}} => {{#.}}{{.}}, {{/.}}<br />
+{{/a}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{a: [[0,1], [2,3], []]}
+```
+
+&nbsp; *Outputs:*
+
+```
+[0,1] => 1,
+[2,3] => 2, 3,
+[] =>
+```
+
+Note the value before the `=>` is the raw array content. The naked-context tag here is evaluated to its context, which is each item of the array bound to `a`. After the `=>` we enter a section with that data, which will be another repeating section with the context shifted to the inner level. The naked-context tag inside this section is now referencing each inner array's value.
+
+Note that in the first line, after the split, "0" is not printed as the default behavior is to treat zero-values as false, hence skipping that iteration of the repeating section. And in the third line, nothing prints after the split since the array is empty.
+
+&nbsp;
+
+#### Arrays of functions
+
+&nbsp;
+
 #### Passing a function to itself
 
 When passing a function as a context to itself, the function will first be evaluated as is until it returns a valid context (that is, a non-function), then pass to itself as a function. Normally, this is kind of pointless or results in weird behavior, but it might be worth knowing as an edge case.
@@ -43,8 +77,6 @@ Now we're getting slightly ahead of ourselves, but line 3 works around this by t
 
 Section tags may have in-context or pass-to-function directives. This will resolve automatically, and in the latter case, ensure the data context is what results from the operations called in the opening tag. 
 
-Ensure for in-context directives that the closing tag appears *exactly* as shown in the opening tag.
-
 &nbsp; *Template:*
 
 ```
@@ -75,7 +107,7 @@ Available toppings:
     - tomato
 ```
 
-But note the below template would result in an error, even if the section tags refer to the same binding.
+Ensure for in-context directives used as section tags that the closing tag appears *exactly* as shown in the opening tag. The below template would result in an error, even if the section tags refer to the same binding.
 
 ```
 {{#burger}}
@@ -84,7 +116,7 @@ But note the below template would result in an error, even if the section tags r
 {{/burger}} 
 ```
 
-Additionally, as shown a bit previously, you can set a context-passed-to-function as the section tag. This will also create a dynamic context for any tags with in-context directives directly under this section. Note that the closing tag does not need to mimic the pass-to-function part of the opening tag.
+Additionally, as shown in the last section, you can set a context-passed-to-function as the section tag. This will also create a dynamic context for any tags with in-context directives directly under this section. Note that the closing tag does not need to mimic the pass-to-function part of the opening tag.
 
 ```
 {{#burger}}
@@ -125,13 +157,5 @@ Available add-ons:
     - bacon +$2.00
     - avocado +$1.50
 ```
-
-&nbsp;
-
-#### Arrays of functions
-
-&nbsp;
-
-#### Mutli-dimensional arrays
 
 &nbsp;

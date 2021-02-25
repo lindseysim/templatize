@@ -450,9 +450,9 @@ The above only takes a cursory glance at some of the directives. Be sure to look
 
 #### Edge cases, mixing directives, and general weirdness
 
-That's all great, you may be thinking, but what about if I [pass a function to itself]((./more/advanced/#passing-a-function-to-itself)? Or [use a context-passed-to-function as the section tag](./more/advanced/#mixing-directives-in-a-section-tag)? What about [multi-dimensional arrays](./more/advanced/#mutli-dimensional-arrays)? Did you think of all that?
+That's all great, you may be thinking, but what about if I [pass a function to itself]((./more/advanced/#passing-a-function-to-itself)? Or [use a context-pass-to-function directive in the section tag](./more/advanced/#mixing-directives-in-a-section-tag)? What about [multi-dimensional arrays](./more/advanced/#mutli-dimensional-arrays)? Did you think of all that?
 
-Well, luckily for you, you absolute sadist, we have such a section on [edge cases, mixing directives, and general weirdness](./more/advanced/).
+Well luckily for you, you sadist, we have such a section on [edge cases, mixing directives, and general weirdness](./more/advanced/).
 
 -----
 

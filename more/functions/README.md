@@ -202,8 +202,10 @@ Functions are evaluated when they are first called (or never if they are not). A
 
 Note in the above, any call to `{{count}}` will render "1" as that was value returned at first render. However, by passing a context (even if the same root context), we can force the function to re-evaluate. That said, calling `{{count}}` again after these context calls will still return the original, cached value.
 
+----
+
 &nbsp;
 
 #### More
 
-Functions and the pass-context-to-function directives represent one of the most flexible and powerful use-cases of Templatize (though sometimes the most frustrating to debug). For a run down of some of the advanced uses, edge cases, and particular behaviors, read the section: [Edge cases, mixing directives, and general weirdness](../advanced/)/
+Functions and the pass-context-to-function directives represent one of the most flexible and powerful use-cases of Templatize (though sometimes the most frustrating to debug). For a run down of some of the advanced uses, edge cases, and particular behaviors, read the section: [Edge cases, mixing directives, and general weirdness](../advanced/).
