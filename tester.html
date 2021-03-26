@@ -12,14 +12,26 @@
         display: flex;
         flex-direction: column;
         margin: auto;
-        width: 80%;
-        max-width: 600px;
+        width: 90%;
         align-items: center;
         padding: 2em 0;
       }
+      #row {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+      }
+      .control {
+        flex: 1 1 auto;
+        box-sizing: border-box;
+        width: 50%;
+        max-width: 540px;
+        padding: 0 0.5em;
+      }
       .spacer {
         flex: 0 0 auto;
-        height: 1em;
+        height: 2em;
       }
       label {
         flex: 0 0 auto;
@@ -28,20 +40,30 @@
       }
       textarea {
         flex: 0 0 auto;
+        box-sizing: border-box;
         width: 100%;
+        height: 300px;
+        min-height: 50px;
         resize: vertical;
-        margin: 1em;
-        margin-top: 0;
+        margin: 0;
         display: block;
         padding: 0.4em;
         background: #363d4a;
         color: #fff;
+        white-space: nowrap;
       }
       #input-template {
-        height: 240px;
+        color: #f8fbeb;
       }
       #input-bindings {
-        height: 240px;
+        background: #252525;
+        color: #f3f2ff;
+      }
+      #output-row {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 1080px;
+        padding: 0 0.5em;
       }
       #output {
         width: 100%;
@@ -59,63 +81,97 @@
   </head>
   <body>
     <div id="container">
-      <label>Template:</label>
-      <textarea id="input-template">{{name->fullname}} has {{numChildrenText}}.<br />
+      <div id="row">
+        <div class="control">
+          <label>Template:</label>
+          <textarea id="input-template">{{name->fullname}} has {{numChildrenText}}.
+<br /><br />
 {{&kidsNamesAndAges}}.
 <br /><br />
-{{#relations}}His {{relations.relation}} is {{relations.fullname}}. {{/relations}}</textarea>
-      <div class="spacer"></div>
-      <label>Bindings:</label>
-      <textarea id="input-bindings">{
-  familyName: "Belcher", 
+{{#notChildren}}
+  His {{.relation}} is 
+  {{#.related}}{{notChildren->fullname}}.{{/.related}}
+  {{^.related}}{{notChildren.name}}.{{/.related}}
+{{/notChildren}}</textarea>
+        </div>
+        <div class="control">
+          <label>Bindings:</label>
+          <textarea id="input-bindings">{
   name: {
     first: "Bob", 
-    full: function() {
-      return this.first + " " + this._parent.familyName;          
-    }
+    last: "Belcher"
   }, 
-  children: [
-    {name: "Tina", born: 2008}, 
-    {name: "Gene", born: 2010}, 
-    {name: "Louise", born: 2012}
-  ],  
-  numChildrenText: function() {
-    switch(this.children.length) {
+  fullname: function(root) { 
+    return (this.first || this.name) + " " + root.name.last;
+  }, 
+  children: function() {
+    return this.relations.filter(person => person.related && person.relation === "child");
+  }, 
+  notChildren: function() {
+     return this.relations.filter(person => person.relation !== "child");
+  }, 
+  numChildrenText: function(root) {
+    var children = this.children(root);
+    switch(children.length) {
       case 0:
         return "no children"
       case 1:
         return "one child"
       default:
-        return this.children.length + " children"
+        return children.length + " children"
     }
   }, 
-  year: 2021, 
-  kidsNamesAndAges: function() {
-    return this.children.map(child => {
-      child._parent = this;  // helper functions being manually called need '_parent'
-      var fullname = this.fullname.call(child), 
-          age = this.year - child.born;
-      return fullname + " is " + age + " years old";
+  kidsNamesAndAges: function(root) {
+    var children = this.children(root);
+    return children.map(child => {
+      var name = root.fullname.call(child, root), 
+          age = 2021 - child.born;
+      return `${name} is ${age} years old`;
     });
   }, 
   relations: [
     {
       relation: "wife", 
       name: "Linda", 
-      fullname: function() { return this._parent.fullname.call(this); }
+      related: true
+    }, 
+    {
+      relation: "child", 
+      name: "Tina", 
+      related: true, 
+      born: 2008
+    }, 
+    {
+      relation: "child", 
+      name: "Gene", 
+      related: true, 
+      born: 2010
+    }, 
+    {
+      relation: "child", 
+      name: "Louise", 
+      related: true, 
+      born: 2012
+    }, 
+    {
+      relation: "friend", 
+      name: "Teddy",
+      related: false
     }, 
     {
       relation: "rival", 
-      fullname: "Jimmy Pesto"
+      name: "Jimmy Pesto",
+      related: false
     }
-  ], 
-  fullname: function() {
-    return (this.first || this.name) + " " + this._parent.familyName;
-  }
+  ]
 }</textarea>
+        </div>
+      </div>
       <div class="spacer"></div>
-      <label>Output:</label>
-      <div id="output"></div>
+      <div id="output-row">
+        <label>Output:</label>
+        <div id="output"></div>
+      </div>
     <div>
     <script src="./templatize.min.js"></script>
     <script>

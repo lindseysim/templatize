@@ -53,7 +53,7 @@ Ability to evaluated zero-values as true in the [options](../../#options). Somet
 
 #### Which is better?
 
-Both run quite fast (depends on input template and data, of course, but rendering a first pass on the order of a handful of milliseconds and subsequent passes on the same template [utilizing some caching] under a single millisecond), but in general, Mustache.js is faster.
+Both run quickly -- depending on input template and data, of course -- the first pass render will be on the order of a one to a few milliseconds and subsequent passes on the same template (utilizing caching strategies on the parsed template) will be multiple times faster. But in general, Mustache.js is faster.
 
 The dynamic way Templatize treats functions, sections, and repeating-sections have added some overhead to the data-binding handling and rendering procedures that come at a minor cost. That said, outside of some exceptional cases, there is unlikely to be a factor in which either rendering library is a limiting factor.
 

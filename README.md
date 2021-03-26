@@ -58,7 +58,7 @@ var rendered = writer.render(bindings);
 
 ##### Options
 
-* **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings. Only available in `Templatize.from()`** when creating a new instance off a preprocessed template.
+* **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings. Only available in *Templatize*.**from()** when creating a new instance off a preprocessed template.
 * **`errorOnFuncFailure`** - (*default:* `false`) If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated.
 * **`evalZeroAsTrue`** - (*default:* `false`) If true, zero-values are treated as a real value for section evaluation. See [section value evaluation](#section-value-evaluation).
 * **`escapeAll`** - (*default:* `false`) If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [formatting](#formatting).
@@ -134,7 +134,6 @@ Bob is {{age}} years old.
 
 **Restrictions for property names**
 
-* `_parent` is a special keyword (see [scoping and context](#scoping-and-context)).
 * `_display` is a special keyword. While it is meant to be set (see [More section behavior](./more/sections/#more-section-behavior]), it should only be done when specifically calling said functionality.
 * Any property name with a leading bang (`!`) will be treated as an [escaped tag](#comments-and-escaping) in the template code.
 * Any property name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
@@ -356,7 +355,7 @@ By default, functions fail silently. If an error occurs during function call, ex
 
 Functions are arguably the most powerful (and sometimes frustrating) aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions). This section only covers the most superficial use of functions.
 
-See additional documentation for more on [functions](#./more/functions/).
+See additional documentation for more on [functions](./more/functions/).
 
 
 &nbsp;
@@ -456,8 +455,8 @@ Total (w/ tax): $7.35
 
 The above only takes a cursory glance at some of the directives. Be sure to look into the additional documentation below.
 
-* [More about sections and repeating sections](#./more/sections/)
-* [More about functions](#./more/functions/)
+* [More about sections and repeating sections](./more/sections/)
+* [More about functions](./more/functions/)
 
 &nbsp;
 

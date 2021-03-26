@@ -85,46 +85,6 @@ Soda - $2.00.
 
 &nbsp;
 
-### Context and `_parent`
-
-In the previous example, the functions were all at the root level, and thus the `this` context was the root data binding. For nested, variables, `this` will also include a `_parent` to allow traversal up the data structure. (Assuming this is easier than just using the `root` argument supplied to every function call).
-
-&nbsp; *Template:*
-
-```
-{{main.name}} is married to {{relations.wife.name}} and has a first child named {{relations.child.name}}.
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  familyName: "Belcher", 
-  main: {
-    firstName: "Bob", 
-    name: function() { return this.firstName + " " + this._parent.familyName }
-  }, 
-  relations: {
-    wife: {
-      firstName: "Linda", 
-      name: function() { return this.firstName + " " + this._parent._parent.familyName }
-    }, 
-    child: {
-      firstName: "Tina", 
-      name: function(root) { return this.firstName + " " + root.familyName }
-    }
-  }
-}
-```
-
-&nbsp; *Outputs:*
-
-```
-Bob Belcher is married to Linda Belcher and has a first child named Tina Belcher.
-```
-
-&nbsp;
-
 ### Passing context to functions
 
 To specify a specific context in which the function should be called, you may use the pass-context-to-function directive, by separating the context (first) and function to call it on (second) with a double-right-pointed-bracket (`->`).
@@ -203,9 +163,9 @@ Functions are evaluated when they are first called (or never if they are not). A
 
 Note in the above, any call to `{{count}}` will render "1" as that was value returned at first render. However, by passing a context, we can force the function to re-evaluate, which we do for the repeating section. That said, calling `{{count}}` again after these context calls will still return the cached value. 
 
-Additionally the value of `i` render dynamically when it is first called (where it equals '2' since the function `count` has been evaluated twice), but after that point, all tags referencing `i` use the cached value of '2' as well, despite the fact that function is actively modifying the value since.
+Additionally the value of `i` render dynamically when it is first called (where it equals "2" since the function `count` has been evaluated twice), but after that point, all tags referencing `i` use the cached value of "2" as well, despite the fact that function is actively modifying the value since.
 
-**In general, it is highly discouraged for functions to modify the data binding or return different results depending on number of times called** as the results may be quite unintuitive between the caching strategy and rendering optimizations built into Templatize. For an even weirder example, see the documentation on [function evaluation and modifying binding data](../advanced/#function-evaluation-and modifying-binding-data).
+**In general, it is highly discouraged for functions to modify the data binding or return different results depending on number of times called** as the results may be quite unintuitive between the caching strategy and rendering optimizations built into Templatize. For an even weirder example, see the documentation on [function evaluation and modifying binding data](../advanced/#function-evaluation-and-modifying-binding-data).
 
 ----
 
@@ -213,4 +173,4 @@ Additionally the value of `i` render dynamically when it is first called (where 
 
 #### More
 
-Functions and the pass-context-to-function directives represent one of the most flexible and powerful use-cases of Templatize (though sometimes the most frustrating to debug). For a run down of some of the advanced uses, edge cases, and particular behaviors, read the section: [Advanced usage, edge cases, and general weirdness](../advanced/).
+Functions and the pass-context-to-function directives represent one of the most flexible and powerful use-cases of Templatize (though sometimes the most frustrating to debug). For a run down of some of the advanced uses, edge cases, and particular behaviors, read the section: [advanced usage, edge cases, and general weirdness](../advanced/).
