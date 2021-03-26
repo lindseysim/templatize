@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Templatize</title>
+    <style>
+      body {
+        font-size: 0.9em;
+        font-family: arial, san-serif;
+      }
+      #container {
+        display: flex;
+        flex-direction: column;
+        margin: auto;
+        width: 90%;
+        align-items: center;
+        padding: 2em 0;
+      }
+      #row {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+      }
+      .control {
+        flex: 1 1 auto;
+        box-sizing: border-box;
+        width: 50%;
+        max-width: 540px;
+        padding: 0 0.5em;
+      }
+      .spacer {
+        flex: 0 0 auto;
+        height: 2em;
+      }
+      label {
+        flex: 0 0 auto;
+        width: 100%;
+        font-weight: bold;
+      }
+      textarea {
+        flex: 0 0 auto;
+        box-sizing: border-box;
+        width: 100%;
+        height: 300px;
+        min-height: 50px;
+        resize: vertical;
+        margin: 0;
+        display: block;
+        padding: 0.4em;
+        background: #363d4a;
+        color: #fff;
+        white-space: nowrap;
+      }
+      #input-template {
+        color: #f8fbeb;
+      }
+      #input-bindings {
+        background: #252525;
+        color: #f3f2ff;
+      }
+      #output-row {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 1080px;
+        padding: 0 0.5em;
+      }
+      #output {
+        width: 100%;
+        min-height: 3em;
+        box-sizing: border-box;
+        border: 1px solid #444;
+        border-radius: 2px;
+        padding: 1em;
+      }
+      .error {
+        font-family: monospace;
+        color: #d01;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="row">
+        <div class="control">
+          <label>Template:</label>
+          <textarea id="input-template">{{name->fullname}} has {{numChildrenText}}.
+<br /><br />
+{{&kidsNamesAndAges}}.
+<br /><br />
+{{#notChildren}}
+  His {{.relation}} is 
+  {{#.related}}{{notChildren->fullname}}.{{/.related}}
+  {{^.related}}{{notChildren.name}}.{{/.related}}
+{{/notChildren}}</textarea>
+        </div>
+        <div class="control">
+          <label>Bindings:</label>
+          <textarea id="input-bindings">{
+  name: {
+    first: "Bob", 
+    last: "Belcher"
+  }, 
+  fullname: function(root) { 
+    return (this.first || this.name) + " " + root.name.last;
+  }, 
+  children: function() {
+    return this.relations.filter(person => person.related && person.relation === "child");
+  }, 
+  notChildren: function() {
+     return this.relations.filter(person => person.relation !== "child");
+  }, 
+  numChildrenText: function(root) {
+    var children = this.children(root);
+    switch(children.length) {
+      case 0:
+        return "no children"
+      case 1:
+        return "one child"
+      default:
+        return children.length + " children"
+    }
+  }, 
+  kidsNamesAndAges: function(root) {
+    var children = this.children(root);
+    return children.map(child => {
+      var name = root.fullname.call(child, root), 
+          age = 2021 - child.born;
+      return `${name} is ${age} years old`;
+    });
+  }, 
+  relations: [
+    {
+      relation: "wife", 
+      name: "Linda", 
+      related: true
+    }, 
+    {
+      relation: "child", 
+      name: "Tina", 
+      related: true, 
+      born: 2008
+    }, 
+    {
+      relation: "child", 
+      name: "Gene", 
+      related: true, 
+      born: 2010
+    }, 
+    {
+      relation: "child", 
+      name: "Louise", 
+      related: true, 
+      born: 2012
+    }, 
+    {
+      relation: "friend", 
+      name: "Teddy",
+      related: false
+    }, 
+    {
+      relation: "rival", 
+      name: "Jimmy Pesto",
+      related: false
+    }
+  ]
+}</textarea>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <div id="output-row">
+        <label>Output:</label>
+        <div id="output"></div>
+      </div>
+    <div>
+    <script src="./templatize.min.js"></script>
+    <script>
+      window.onload = () => {
+        var inputTemplate = document.querySelector("#input-template"), 
+            inputBindings = document.querySelector("#input-bindings"), 
+            output = document.querySelector("#output"), 
+            bindings;
+        Templatize.errorOnFuncFailure = true;
+        function render() {
+          try {
+            bindings = window.Function("let window=null;return "+inputBindings.value+";")();
+            try {
+              output.innerHTML = Templatize.render(inputTemplate.value, bindings);
+            } catch(e) {
+              console.error(e);
+              output.innerHTML = "<span class='error'>"+(typeof e === "string" ? e : e.message)+"</span>";
+            }
+          } catch {
+            output.innerHTML = "";
+          }
+        };
+        render();
+        inputTemplate.addEventListener("input", render);
+        inputBindings.addEventListener("input", render);
+      };
+    </script>
+  </body>
+</html>

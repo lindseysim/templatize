@@ -1,45 +1,86 @@
-# Templatize #
+# Templatize
 
-Basic templating code, similar to Mustache.js. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements basically made it almost the same functional capacity as Mustache.js. On the plus side, it's much lighter, the core code just a little over 100 lines. For a brief comparison versus Mustache, see the last section.
+Basic templating code. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements (and also just personal curiosity on where I could take it) turned it into a powerful templating library of its own.
 
 Lawrence Sim © 2021
 
-## Contents ##
+## Contents
 
-* [How to Use](#how-to-use)
-* [Variables](#variables)
-    * [Escaping](#escaping)
-* [Lists](#lists)
-* [Sections](#sections)
-    * [Basic sections](#basic-sections)
-    * [Section value evaluation](#section-value-evaluation)
-    * [Sections with data](#sections-with-data)
-    * [More section behavior](#more-section-behavior)
-* [Repeating Sections](#repeating-sections)
-* [Nested Sections](#nested-sections)
-* [Functions](#functions)
-* [Putting it all together](#putting-it-all-together)
-* [Templatize vs Mustache](#templatize-vs-mustache)
-
-## How to Use ##
-
-Import the source or minified javascript. If regular script import, uses name `Templatize`. There is only one function you need to know:
-
-**`Templatize.render(template, bindings, cleanup)`** : Renders template.
-
-| Name | Type | Description |
-| --- | --- | :--- |
-| `template` | `String` | The template. |
-| `bindings` | `Object` | The object literal of data-bindings. |
-| `cleanup` | `Boolean` | Whether to cleanup unrendered markups. Defaults to false. |
-
-&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
+* [Usage](#usage)
+* [The Basics](#the-basics)
+    * [Variables](#variables)
+    * [Lists](#lists)
+    * [Sections](#sections)
+    * [Scoping and context](#scoping-and-the-context-directive)
+    * [Functions](#functions)
+    * [Formatting](#formatting)
+* [More Topics](#more-topics)
+* [Acknowledgments](#acknowledgments)
 
 ----------
 
-## Variables ##
 
-Parts related to templates to be encased in double curly braces, with dot notation to traverse nested structures. Example below where above the break is the template and below the data-bindings.
+&nbsp; 
+
+
+## Usage
+
+Import the source or minified javascript. If regular script import, uses name `Templatize`. The most basic use-case will simply call the `Templatize.render()` function.
+
+*Templatize*.**render**(*template*, *bindings*[, *options*])
+
+| Name | Type | Description |
+| --- | --- | :--- |
+| `template` | String | The template. |
+| `bindings` | Object | The object literal of data-bindings. |
+| `options` | Object | See [options](#options). |
+
+&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
+
+However, this will not take advantage of caching the processed template. If reusing the template, first clone a rendering instance from said template using `Templatize.from()`, then call the render function on that. With the options here, you may set custom delimiters.
+
+*Templatize*.**from**(*template*[, *options*])
+
+&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (Interface) An instance of the Templatize rendering interface based off this template.
+
+From this object, simply call: 
+
+*Interface*.prototype.**render**(*bindings*[, *options*])
+
+&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
+
+```javascript
+var writer = Templatize.from(template, {evalZeroAsTrue: true});
+var rendered = writer.render(bindings);
+```
+
+&nbsp;
+
+##### Options
+
+* **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings. Only available in *Templatize*.**from()** when creating a new instance off a preprocessed template.
+* **`errorOnFuncFailure`** - (*default:* `false`) If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated.
+* **`evalZeroAsTrue`** - (*default:* `false`) If true, zero-values are treated as a real value for section evaluation. See [section value evaluation](#section-value-evaluation).
+* **`escapeAll`** - (*default:* `false`) If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [formatting](#formatting).
+* **`errorOnMissingTags`** - (*default:* `false`) If true, throw exceptions when a data-binding called by the template is missing. Otherwise, simply warns in the console and returns empty.
+
+----------
+
+
+&nbsp;
+
+
+## The Basics
+
+Templates are strings in which tags define where the text will be dynamically replaced and updated. By default, tags use the double-curly-braces delimiters (e.g. `{{likeThis}}`). The value inside the tag is the key, which may be supplemented by special characters called directives, which instruction special-case use or handling for the tag.
+
+Whitespace between the delimiters and the inner key (and directives) are generally trimmed, but as a general rule, either use no whitespaces or only between the opening delimiter and the start of the inner value, and between the end of the inner value and closing delimiter -- e.g. `{{likeThis}}` or `{{ likeThis }}` but `{{ not like this }}`.
+
+&nbsp;
+
+### Variables
+
+Variables are the most basic use-case, where you simply replace the tag with the value of the associated data-binding. Dot-notation may be used to traverse the data-structure.
 
 &nbsp; *Template:*
 
@@ -62,16 +103,16 @@ Parts related to templates to be encased in double curly braces, with dot notati
 Bob is 46 years old.
 ```
 
-Generally avoid any data-binding names starting with an underscore (`_`) as some reserved values use the underscore prefix (e.g. `_display` and `_parent`).
+The default behavior is to treat missing bindings as empty. You may also throw an exception when encounter a missing binding by setting the `errorOnMissingTags` parameter in [the render options](#options).
 
-### Escaping ###
+### Comments and escaping
 
-Escaping is simply done by prefixing the key with a bang (`!`).
+Both comments and escaping is done with a bang directive (`!`). For comments, place the bang within the opening delimiter. For escaping, place the bang just outside the opening delimiter.
 
 &nbsp; *Template:*
 
 ```
-{{name.first}} is {{!age}} years old.
+{{name.first}} is !{{age}} years old. {{! note to self: is this the right age? }}
 ```
 
 &nbsp; *Bindings:*
@@ -89,21 +130,40 @@ Escaping is simply done by prefixing the key with a bang (`!`).
 Bob is {{age}} years old.
 ```
 
-## Lists ##
+### Naming restrictions
 
-Lists are marked with a `&`-prefix and can only take in an array. The output is grammatically formatted with appropriate use of commas and/or the 'and'-conjunction, as dicated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.
+**Restrictions for property names**
+
+* `_display` is a special keyword. While it is meant to be set (see [More section behavior](./more/sections/#more-section-behavior]), it should only be done when specifically calling said functionality.
+* Any property name with a leading bang (`!`) will be treated as an [escaped tag](#comments-and-escaping) in the template code.
+* Any property name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
+* Ending a property name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
+* Using in any place a double-colon (`::`), which is a [formatting](#formatting) directive, or an arrow operator (`->`), which is used for [passing context to functions](./more/sections/#passing-context-to-functions), will be interpreted as their respective directives.
+
+**Things to avoid in property names**
+
+* While whitespaces can be part of the property name, it is generally not good practice. At the very least avoid using it as leading or trailing character(s). Templatize will generally handle trimming and adjust in cases where it does exist, but proper behavior cannot be fully guaranteed.
+* While dots (`.`) can mostly be used in the property name without failing (though a few edge-cases may still result in odd behavior), it is generally to be avoided to reduce naming confusion.
+
+
+&nbsp;
+
+
+## Lists
+
+Lists are marked with an ampersand (`&`) and can only take in an array (or a function that returns an array). The output is grammatically formatted with appropriate use of commas and/or the 'and'-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.
 
 &nbsp; *Template:*
 
 ```
-{{&name}} sells {{&sells}} with {{&with}}. 
+{{&name::capitalize}} sells {{&sells}} with {{&with}}. 
 ```
 
 &nbsp; *Bindings:*
 
 ```javascript
 {
-  name: ["Bob"], 
+  name: ["bob"], 
   sells: ["burgers", "sodas", "fries"], 
   with: ["his wife", "kids"]
 }
@@ -115,16 +175,24 @@ Lists are marked with a `&`-prefix and can only take in an array. The output is 
 Bob sells burgers, sodas, and fries with his wife and kids.
 ```
 
-## Sections ##
+*Note, the Oxford-comma is the default -- and only -- behavior, as the universe intended.*
 
-### Basic Sections ###
 
-Section are marked with start at `#`-prefix and end at `/`-prefix. By binding section to a `true` or `false` value, they may be shown or removed.
+&nbsp; 
+
+
+## Sections
+
+Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) starting prefix with a caret (`^`). Such sections will only be displayed if the section is evaluated to `false`.
+
+Data may be put inside of a section, whether from elsewhere or the same data-binding.
 
 &nbsp; *Template:*
 
 ```
-{{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
+Bob is {{#married}}married{{/married}}{{#single}}single{{/single}}.<br />
+{{#spouse}}Bob is married to {{spouse}}.{{/spouse}}<br />
+Bob has {{^haspets}}no pets{{/haspets}}{{#haspets}}pets{{/haspets}}.
 ```
 
 &nbsp; *Bindings:*
@@ -132,196 +200,48 @@ Section are marked with start at `#`-prefix and end at `/`-prefix. By binding se
 ```javascript
 {
   married: true, 
-  single: false
+  single: false, 
+  spouse: "Linda", 
+  haspets: false
 }
 ```
 
 &nbsp; *Outputs:*
 
 ```
-Is married.
+Bob is married.
+Bob is married to Linda.
+Bob has no pets.
 ```
 
-You may also do an inverse section by replacing `#` starting prefix with `^`. Such sections will only be displayed if the section is evaluated to `false`.
+### Section value evaluation
+
+The data bound to a section tag is evaluated for 'truthiness'. Values of `undefined`, `null`, an empty string or a string composed only of whitespace, an empty array, and `0` evaluate as false. Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
+
+&nbsp;
+
+##### More on sections
+
+See additional documentation for more on [sections](./more/sections/), including [section value evaluation](./more/sections/#section-value-evaluation), the [`_display` parameter](./more/sections/#the-_display-parameter), and more.
+
+&nbsp; 
+
+### Repeating Sections
+
+If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array. 
+
+Within the context of the repeating section, the same tag is temporarily bound to the value of each item during each iteration. Thus the below section tag key and value key are the same for this array of flat values.
 
 &nbsp; *Template:*
 
 ```
-{{^single}}Is not single.{{/single}}
+{{#children}}Child: {{children}}<br />{{/children}}
 ```
 
 &nbsp; *Bindings:*
 
 ```javascript
-{single: false}
-```
-
-&nbsp; *Outputs:*
-
-```
-Is not single.
-```
-
-Data may be put inside of a section. E.g.:
-
-&nbsp; *Template:*
-
-```javascript
-{{#married}}Is married to {{spouse}}.{{/married}}
-```
-
-&nbsp; *Bindings:*
-
-```
-{
-  married: true, 
-  spouse: "Linda"
-}
-```
-
-&nbsp; *Outputs:*
-
-```
-Is married to Linda.
-```
-
-### Section value evaluation ###
-
-Section data may be other values besides boolean. However, evaluation of non-boolean values have minor differences from normal Javascript behavior. Values of `undefined`, `null`, an empty string, or a string composed only of whitespace (if you want to add whitespace, use `&nbsp;`), evaluate to `false`. Conversely, a value of `0` is evaluated as `true`.
-
-If section key does not exist, that section is simply not evaluated in the template, which is a common error. E.g.: 
-
-
-&nbsp; *Template:*
-
-```
-{{#married}}Is married.{{/married}}{{#single}}Is single.{{/single}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{married: true}
-```
-
-&nbsp; *Outputs:*
-
-```
-Is married.{{#single}}Is single.{{/single}}
-```
-
-### Sections with data ###
-
-As long as data-binding for section evaluates to `true` ([see above](#section-value-evaluation)), it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value:
-
-&nbsp; *Template:*
-
-```
-{{#job}}Occupation: {{job}}{{/job}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{job: "Chef"}
-```
-
-&nbsp; *Outputs:*
-
-```
-Occupation: Chef
-```
-
-The above though is somewhat messy of an implementation. One alternative is to separate a "display" variable like so:
-
-&nbsp; *Template:*
-
-```
-{{#showJob}}Occupation: {{job}}{{/showJob}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  showJob: true, 
-  job: "Chef"
-}
-```
-
-Or, even better, used a nested structure for the section like below:
-
-&nbsp; *Template:*
-
-```
-{{#job}}Occupation: {{job.title}}{/job}}
-```
- 
-&nbsp; *Bindings:*
-
-```javascript
-{
-  job: {title: "Chef"}
-}
-// or conversely, which will hide the entire section..
-{
-  job: false
-}
-```
-
-Note that section data (excluding repeating sections) are scoped for the entire template. E.g., given the above example, `{{job.title}}` may be used anywhere in the template inside or outside of a `{{#job}}{{/job}}` section and will be replaced with `"Chef"` when rendered.
-
-### More section behavior ###
-
-Section data may still be filled out but removed/hidden if a `_display` variable exists and evaluates to  `false` (this behavior evaluates "truthiness" in a standard fashion -- e.g. unlike for the section value itself, `0` evaluates to `false`).
-
-&nbsp; *Template:*
-
-```
-Occupation: {{#job}}{{job.title}}{/job}} {{^job}}Unemployed{{/job}}<br />
-Bob is a {{job.title}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  job: {
-    title: "Chef", 
-    _display: false
-  }
-}
-```
-
-&nbsp; *Outputs:*
-
-```
-Occupation: 
-Bob is a chef.
-```
-
-Note in the above that `_display` does not reverse the behavior of inverse sections (the section `{{^job}}Unemployed{/job}}` is still hidden as `job` itself is not evaluated to `false`). Also, nested section data may still be accessed and rendered outside of the section, even if the section itself is set not to display.
-
-## Repeating Sections ##
-
-For repeating sections, set the section value to an array of objects and section html will be repeated. May still use `_display` to not use particular array item. Values within any array item are limited in scope only to that section given that array item.
-
-&nbsp; *Template:*
-
-```
-{{#children}}Child: {{children.firstName}}<br />{{/children}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  children: [
-    {firstName: "Tina"}, 
-    {firstName: "Gene"}, 
-    {firstName: "Louise"}
-  ]
-}
+{children: ["Tina", "Gene", "Louise", "", null, false, 0]}
 ```
 
 &nbsp; *Outputs:*
@@ -332,64 +252,67 @@ Child: Gene
 Child: Louise
 ```
 
-Note value must be an array of objects. E.g., the above template with the following data-bindings will error:
+Note that each item is also treated to the same [section value evaluation](./more/sections/#section-value-evaluation) to determine whether it is rendered.
+
+&nbsp;
+
+##### More on repeating sections
+
+See additional documentation for more on [repeating sections](./more/sections/#repeating-sections).
 
 
-&nbsp; *Data:*
+&nbsp; 
 
-```javascript
-{
-  children: ["Tina", "Gene", "Louise"]
-}
-```
 
-However, the above case makes sense with [lists](#lists).
+## Scoping and the context directive
 
-Unlike regular sections, repeating sections are limited in scope to its own section. Thus, variables within a repeating section's data bindings will not evaluate outside the portion of the template within the repeating section. Values from outside, however, can be scoped within the repeating section.
+All keys in template tags must provide the full path to the data-binding, even if within a section. However, one way to shortcut to the inner-most context is by prefacing the tag key with the context directive (`.`). A naked context tag (`{{.}}`) is particular useful for repeating sections with flat values.
 
 &nbsp; *Template:*
 
 ```
-{{#children}}Child: {{children.firstName}} {{lastName}}<br />{{/children}}
-<br />
-These won't evaluate: {{children}} {{children.firstName}} {{children[0].firstName}}
+{{#name}}1. {{name.first}}{{/name}}<br />
+{{#name}}2. {{first}}{{/name}}<br />
+{{#name}}3. {{.first}}{{/name}}
+<br /><br />
+Friends: {{#friends}}{{.}} {{/friends}}
 ```
 
 &nbsp; *Bindings:*
 
 ```javascript
 {
-  lastName: "Belcher", 
-  children: [
-    {firstName: "Tina"}, 
-    {firstName: "Gene"}, 
-    {firstName: "Louise"}
-  ]
+  name: {first: "Bob"}, 
+  friends: ["Teddy", "Mort"]
 }
 ```
 
 &nbsp; *Outputs:*
 
 ```
-Child: Tina Belcher
-Child: Gene Belcher
-Child: Louise Belcher
+1. Bob
+2.
+3. Bob
 
-These won't evaluate: {{children}} {{children.firstName}} {{children[0].firstName}}
+Friends: Teddy Mort
 ```
 
-## Nested Sections ##
+Note however that line 2 does not render as the reference to `first` is not specified as under the `name` context or given an in-context directive, and the property `first` does not exist under the root binding object.
 
-Nested sections should behave as expected, even mixing regular versus repeating sections, as long as you properly manage the scope.
+
+&nbsp;
+
+
+## Functions
+
+Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via `this`) and given the argument of the root data.
+
+As the behavior of the function depends on what is returned, it may be used in a variety of contexts.
 
 &nbsp; *Template:*
 
 ```
-{{#children}}
-  {{#children.lastChild}}and {{/children.lastChild}}
-  {{children.name.first}} {{name.last}}
-  {{^children.lastChild}}, {{/children.lastChild}}
-{{/children}}
+{{fullname}}'s friends include {{&friends}}.
 ```
 
 &nbsp; *Bindings:*
@@ -400,150 +323,18 @@ Nested sections should behave as expected, even mixing regular versus repeating 
     first: "Bob", 
     last: "Belcher"
   }, 
-  children: [
-    {
-      name: {first: "Tina"},
-      lastChild: false
-    }, 
-    {
-      name: {first: "Gene"},
-      lastChild: false
-    }, 
-    {
-      name: {first: "Louise"},
-      lastChild: true
-    }
-  ]
-}
-```
-
-&nbsp; *Outputs:*
-
-```
-Tina Belcher, Gene Belcher, and Louise Belcher.
-```
-
-A few behaviors to note for the above example:
-
-* Within the template for the repeating section, scope is still from the top level, hence we can render `name.last` within, and subvariables of `children` must be called via dot notation.
-* `children[].lastChild` must be specified for all array items, as the evaluation for `lastChild` in each repeat of the section will only happen where such a key exists.
-
-## Functions ##
-
-Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides.
-
-&nbsp; *Template:*
-
-```
-{{name.full}} has {{numChildrenText}}.
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  name: {
-    first: "Bob", 
-    last: "Belcher", 
-    full: function() {
-      return this.first + " " + this._parent.name.last;
-    }
+  fullname: function(root) {
+    // in this case, this/root will refer to the same
+    return this.name.first + " " + root.name.last;
   }, 
-  numChildrenText: function() {
-    switch(this.children.length) {
-      case 0:
-        return "no children"
-      case 1:
-        return "one child"
-      default:
-        return this.children.length + " children"
-    }
-  }, 
-  children: [
-    {firstName: "Tina"}, 
-    {firstName: "Gene"}, 
-    {firstName: "Louise"}
-  ]
-}
-```
-
-&nbsp; *Outputs:*
-
-```
-Bob Belcher has 3 children.
-```
-
-Note `name.full` is called within context of `name`, whereas `numChildrenText` is called within the context of the root data-bindings object. However, each context is given a `_parent` parameter to traverse upwards in scope. In `name.full`, this is used in a somewhat contrived example to traverse up to the full context (before returning back to the same).
-
-By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `errorOnFuncFailure` flag to `true`: 
-
-```javascript
-Templatize.errorOnFuncFailure = true;
-```
-
-Depending on your dependency manager, this may or may not affect all references to `Templatize`. Generally speaking, assume `Templatize` is a static reference, so either adjust for all uses, and/or have it reset back to a desired behavior after using it with non-default behavior.
-
-## Putting it all together ##
-
-Below is a complex example using a bit of everything covered above.
-
-&nbsp; *Template:*
-
-```javascript
-{{name.full}} has {{numChildrenText}}: {{&childrenNames}}.<br />
-{{#children}}
-  {{#children.lastChild}}and{{/children.lastChild}}
-  {{children.firstName}} {{name.last}} is {{children.age}}
-  {{^children.lastChild}}, {{/children.lastChild}}
-  {{#children.lastChild}}.{{/children.lastChild}}
-{{/children}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  name: {
-    first: "Bob", 
-    last: "Belcher", 
-    full: function() {
-      return this.first + " " + this.last;          
-    }
-  }, 
-  numChildrenText: function() {
-    switch(this.children.length) {
-      case 0:
-        return "no children"
-      case 1:
-        return "one child"
-      default:
-        return this.children.length + " children"
-    }
-  }, 
-  childrenNames: ["Tina", "Gene", "Louise"], 
-  children: [
-    {
-      firstName: "Tina", 
-      born: 2007, 
-      age: function() { return this._parent.thisYear - this.born; }, 
-      lastChild: function() { return this._parent.isLastChild(this); }
-    }, 
-    {
-      firstName: "Gene", 
-      born: 2009, 
-      age: function() { return this._parent.thisYear - this.born; }, 
-      lastChild: function() { return this._parent.isLastChild(this); }
-    }, 
-    {
-      firstName: "Louise", 
-      born: 2011, 
-      age: function() { return this._parent.thisYear - this.born; }, 
-      lastChild: function() { return this._parent.isLastChild(this); }
-    }
-  ],  
-  thisYear: 2020, 
-  isLastChild: function(childObj) {
-    return childObj === this.children[this.children.length-1];
+  relations: [
+    {name: "Teddy", friendly: true}, 
+    {name: "Mort", friendly: true}, 
+    {name: "Jimmy Pesto", friendly: false}
+  ], 
+  friends: function() { 
+    return this.relations.filter(person => person.friendly)
+                         .map(person => person.name);
   }
 }
 ```
@@ -551,48 +342,143 @@ Below is a complex example using a bit of everything covered above.
 &nbsp; *Outputs:*
 
 ```
-Bob Belcher has 3 children: Tina, Gene, and Louise.
-Tina Belcher is 13, Gene Belcher is 11, and Louise Belcher is 9.
+Bob Belcher's friends include Teddy and Mort.
 ```
 
-Note that the `children[].lastChild` function calls a function from the parent scope (`isLastChild`) to dynamically determine if it is the last object in the array. This is somewhat contrived, and it would easier just to preprocess the children data-bindings object and assign values to each child's attributes, but this is just a demonstration of possible design patterns.
+### Error handling
 
-## Templatize vs Mustache ##
+By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `errorOnFuncFailure` flag to `true` in the [options](../README.md#options).
 
-The support for grammatically formatted [lists](#lists) and escaping with `!` are unique to Templatize.
+&nbsp;
 
-Minor syntactic differences are [evaluation of "truthiness"](#section-value-evaluation) (e.g. Mustache reads `0` as false when evaluating a section whereas Templatize treats 0 as a valid value), and scope within sections and when calling functions. Additionally, there is no inherent support for partials (though as Templatize maps and renders on runtime, a design pattern can easily work around this) and no support for custom delimiters.
+##### More on functions
 
-### Caching ###
+Functions are arguably the most powerful (and sometimes frustrating) aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions). This section only covers the most superficial use of functions.
 
-Mustache parses templates before rendering and maps all recognized markup locations. This introduces a bit of an overhead when first rendering a template and subsequently, Templatize is faster in that regard. However, the preprocessed map is cached in Mustache and all subsequent renders that use the same template are greatly improved in speed. If the same template is reused multiple times and speed is of the essence, Mustache may be a better choice.
+See additional documentation for more on [functions](./more/functions/).
 
-### Missing Bindings ###
 
-As aforementioned, templates are not preprocessed to map data-bindings. Instead, templates are rendered at call, using the supplied data bindings, and finding the appropriate, matching markup in the template. Consequently, **missing bindings in the template are rendered as is**. This may be particularly tricky when using inverse sections. The binding must still exist, even if it evaluates to `false` -- if undefined, the section syntax is ignored in the template.
+&nbsp;
 
-Additionally, formatting issues are not checked and validated. Thus, providing an incomplete data-binding or badly formatted template will result in rendering issues.
+
+## Formatting
+
+Formatting options are also available by suffixing the property name in the template code with a double-colon (`::`) and format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the [d3-format library](https://github.com/d3/d3-format), which handles many number formats. See documentation there for various formatting options.
+
+
+* **html** - If the [option](#options) `escapeAll` is set true, this directive sets the output not to escape HTML special characters.
+    * **raw** - Same as above.
+* **encode** - Encodes HTML special characters in rendered output.
+* **upper** - Transforms all alphabetical characters to uppercase.
+    * **caps** - Same as above.
+    * **allcaps** - Same as above.
+* **lower** - Transforms all alphabetical characters to lowercase.
+* **capitalize** - Capitalizes the first letter in each word.
+
+Additionally, you can short-hand by suffixing a semi-colon (`;`) to the variable name or format directive
 
 &nbsp; *Template:*
 
 ```
-{{name.first}} {{#age}}is {{age}} years old.
+{{name:capitalize}} lives in {{locale::capitalize}} and sells burgers for {{price.burger::$.2f}}.
+{{break}}{{break::encode}}{{break::upper;}}{{break;}}
 ```
 
-&nbsp; *Data:*
+&nbsp; *Bindings:*
 
 ```javascript
-{age: 46}
+{
+  name: "bob", 
+  locale: "new england", 
+  price: { burger: 5 }, 
+  break: "<br />"
+}
 ```
 
 &nbsp; *Outputs:*
 
 ```
-{{name.first}} {{#age}}is 46 years old.
+Bob lives in New England and sells burgers for $5.00.
+<br /><BR /><br />
 ```
 
-In the above, `{{name.first}}` is not replaced because the binding does not exist in the supplied data. As well, the use of the `{{#age}}` section is erroneously rendered as the expected closing tag (`{{/age}}`) was not found.
+Formatting also works for [lists](#lists) and [functions](#functions).
 
-To cleanup any remaining markup, set the `cleanup` parameter in `Templatize.render()` as `true`.
+&nbsp; *Template:*
+
+```
+Order: {{&order}}<br />
+Prices: {{&ticket::$.2f}}<br />
+Sale tax: {{salesTax::.0%}}<br />
+Total: {{total::$.2f}}<br />
+Total (w/ tax): {{addTax::$.2f}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  order: ["BURGER", "FRIES"], 
+  prices: {
+    BURGER: 5, 
+    FRIES: 2
+  }, 
+  ticket: function() {
+    return this.order.map(item => this.prices[item]);
+  }, 
+  salesTax: 0.05, 
+  total: function() {
+    var sum = 0;
+    this.order.forEach(item => {
+      sum += this.prices[item]*(1.0+this.salesTax);
+    });
+    return sum;
+  }, 
+  addTax: function() { return this.total()*(1+this.salesTax); }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+Order: BURGER and FRIES
+Prices: $5.00 and $2.00
+Sale tax: 5%
+Total: $7.00
+Total (w/ tax): $7.35
+```
+
+&nbsp; 
 
 
+## More Topics
+
+The above only takes a cursory glance at some of the directives. Be sure to look into the additional documentation below.
+
+* [More about sections and repeating sections](./more/sections/)
+* [More about functions](./more/functions/)
+
+&nbsp;
+
+#### Advanced usage, edge cases, and general weirdness
+
+That's all great, you may be thinking, but what about if I [pass a function to itself](./more/advanced/#passing-a-function-to-itself)? Or [use a context-pass-to-function directive in the section tag](./more/advanced/#mixing-directives-in-a-section-tag)? What about [multi-dimensional arrays](./more/advanced/#mutli-dimensional-arrays)? Did you think of all that?
+
+Well luckily for you, you sadist, we have such a section on [advanced usage, edge cases, and general weirdness](./more/advanced/).
+
+&nbsp;
+
+#### Templatize vs Mustache.js
+
+Time to address the elephant in the room. Why recreate what Mustache.js (basically) already does? How does Templatize differ? Which is better? Which is faster? The quick answers are: just because, much more powerful function directives (among a few other syntactic differences), depends what you want, and probably Mustache.js. But if you want a little more substance to those answers, see [Templatize vs. Mustache.js](./more/compared/).
+
+
+-----
+
+
+&nbsp;
+
+
+### Acknowledgments ###
+
+Number formatting utilizes the [d3-format](https://github.com/d3/d3-format) module, which is Copyright under Mike Bostock. [The full license can be found here](https://github.com/d3/d3-format/blob/master/LICENSE).

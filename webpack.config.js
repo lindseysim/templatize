@@ -5,13 +5,13 @@ const webpack  = require('webpack'),
 module.exports = {
     mode: 'production', 
     entry: {
-        'Templatize': './src/templatize.js'
+        'Templatize': './templatize.js'
     }, 
     output: {
         library: '[name]', 
         libraryTarget: 'umd', 
         libraryExport: 'default', 
-        path: path.join(path.resolve(__dirname), "dist"), 
+        path: path.resolve(__dirname), 
         filename: '[name].min.js'
     },
     module: {
