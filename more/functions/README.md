@@ -87,7 +87,9 @@ Soda - $2.00.
 
 ### Passing context to functions
 
-To specify a specific context in which the function should be called, you may use the pass-context-to-function directive, by separating the context (first) and function to call it on (second) with a double-right-pointed-bracket (`->`).
+To specify a specific context in which the function should be called, you may use the pass-context-to-function directive, by separating the context (first) and function to call it on (second) with an arrow directive (`->`).
+
+When in a passed context, the `this` context for the function will the be the data-binding of the context, but the root will also be supplied as an argument.
 
 &nbsp; *Template:*
 

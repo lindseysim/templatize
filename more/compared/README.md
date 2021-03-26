@@ -8,13 +8,13 @@ It's not a competition, but it's worth mentioning why there's a big library that
 
 While the most basic usage is similar, there are a few minor syntactic and conceptual differences.
 
-Mustache pre-escapes all rendering content for HTML special characters, requiring the `&`-directive (or triple curley braces) to specifically unescape. Templatize, by default, does the opposite (not pre-escaping any render, unless specified different in the options).
+Mustache pre-escapes all rendering content for HTML special characters, requiring the `&`-directive (or triple curly braces) to specifically unescape. Templatize, by default, does the opposite (not pre-escaping any render, unless specified to escape all in the options).
 
 The `&`-directive is handled differently. In Mustache it is a formatting operator. In Templatize it is a [list](../../#lists) operator.
 
-Passing data to functions means turning the function into a section tag and putting content in between. The function will then be passed the template text and rendering function inside the section, but not the actual data. 
+Passing data to functions in Mustache means turning the function into a section tag and putting content in between. The function will then be passed the template text and rendering function inside the section, but not the actual data. 
 
-In Templatize, functions in a section tag are treated as sections using the output of the function. Additionally, functions are called with the context of where they hierarchically exist in the data-binding, and to pass data to functions, one can use the [pass-context-to-function directive](../functions/#passing-context-to-functions).
+In Templatize, functions bound to a section tag use the output of the function as the binding to the section tag. Additionally, functions are called with the context of where they hierarchically exist in the data-binding. To pass data to functions, one can use the [pass-context-to-function directive](../functions/#passing-context-to-functions).
 
 **Data context in sections**
 
@@ -27,13 +27,13 @@ Data context is one of the biggest usage differences that may trip up someone sw
 }
 ```
 
-Within an `outer` section you can call `inner` without traversing the data-tree. The following would print `"inside"`. It would only print `"outside"` if `outside.inner` did not exist as a fallback as it traverses to the outer context.
+In Mustache, within an `outer` section you can call `inner` without traversing the data-tree. The following would print `"inside"`. It would only print `"outside"` if `outside.inner` did not exist as a fallback as it traverses to the outer context.
 
 ```
 {{#outer}} {{inner}} {{/outer}}
 ```
 
-However, in Templatize, all variables are explicitly path-ed from the root, even within a section. The above would print `"outer"` as the `{{inner}}` tag is resolved from the root. To print `"inside"` the full data path or [in-context directive](../../#scoping-and-the-context-directive) must be used.
+However, in Templatize, all variables search from the root, even within a section. The above would print `"outside"` as the `{{inner}}` tag is resolved from the root. To print `"inside"` the full data path or [in-context directive](../../#scoping-and-the-context-directive) must be used.
 
 ```
 {{#outer}} {{outer.inner}} or {{.inner}} {{/outer}}
@@ -47,7 +47,7 @@ The support for grammatically formatted [lists](../../#lists) and built-in [form
 
 [Functions](../functions/) are incredibly powerful when combined with the [pass-context-to-function directive](../functions/#passing-context-to-functions) or [mixed in with section tags](../advanced/#mixing-directives-in-a-section-tag).
 
-Ability to evaluated zero-values as true in the [options](../../#options). Sometimes useful, especially for data where 0 is a real value but `null` is not.
+Templatize has [an option to evaluate zero-values as true](../../#options). Sometimes useful, especially for data where 0 is a real value but `null` is not.
 
 &nbsp;
 

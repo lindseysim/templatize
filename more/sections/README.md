@@ -1,6 +1,6 @@
 ## Sections
 
-Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) starting prefix with a caret (`^`). Such sections will only be displayed if the section is evaluated to `false`.
+Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) with a caret (`^`). Such sections will only be displayed if the section is evaluated to `false`.
 
 Data may be put inside of a section, whether from elsewhere or the same data-binding.
 
@@ -35,7 +35,7 @@ Bob has no pets.
 
 ### Section value evaluation
 
-The data bound to a section tag is evaluated for 'truthiness'. Values of `undefined`, `null`, an empty string or a string composed only of whitespace, an empty array, and `0` evaluate as false. Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value.
+The data bound to a section tag is evaluated for 'truthiness'. Values of `undefined`, `null`, an empty string or a string composed only of whitespace, an empty array, and `0` evaluate as false (though in certain cases you may want to [treat 0-values as true](#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value.
 
 &nbsp;
 
@@ -259,7 +259,7 @@ Repeating sections may be combined with the list directive to grammatically form
 &nbsp; *Template:*
 
 ```
-{{name.first}}'s children are {{&#children}}{{.}}{{/children}}.
+{{name.first}}'s children are {{&#children}}{{.}} {{name.last}}{{/children}}.
 ```
 
 &nbsp; *Bindings:*
@@ -277,7 +277,7 @@ Repeating sections may be combined with the list directive to grammatically form
 &nbsp; *Outputs:*
 
 ```
-Bob's children are Tina, Gene, and Louise.
+Bob's children are Tina Belcher, Gene Belcher, and Louise Belcher.
 ```
 
 

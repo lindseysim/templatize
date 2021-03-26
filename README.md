@@ -25,7 +25,9 @@ Lawrence Sim © 2021
 
 ## Usage
 
-Import the source or minified javascript. If regular script import, uses name `Templatize`. The most basic use-case will simply call the `Templatize.render()` function.
+Import the source or minified javascript. If regular script import, uses name `Templatize`. 
+
+The most basic use-case will simply call the `Templatize.render()` function.
 
 *Templatize*.**render**(*template*, *bindings*[, *options*])
 
@@ -37,24 +39,24 @@ Import the source or minified javascript. If regular script import, uses name `T
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
 
-However, this will not take advantage of caching the processed template. If reusing the template, first clone a rendering instance from said template using `Templatize.from()`, then call the render function on that. With the options here, you may set custom delimiters.
+```javascript
+var rendered = Templatize.render(myTemplate, bindings);
+```
+
+However, this will not take advantage of caching the processed template. If reusing the template, first clone a rendering instance from said template using `Templatize.from()`, then call the render function on that.
+
+```javascript
+var myTemplatizer = Templatize.from(myTemplate, {evalZeroAsTrue: true});
+var rendered = myTemplatizer.render(bindings);
+```
 
 *Templatize*.**from**(*template*[, *options*])
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (Interface) An instance of the Templatize rendering interface based off this template.
 
-From this object, simply call: 
-
 *Interface*.prototype.**render**(*bindings*[, *options*])
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
-
-```javascript
-var writer = Templatize.from(template, {evalZeroAsTrue: true});
-var rendered = writer.render(bindings);
-```
-
-&nbsp;
 
 ##### Options
 
@@ -72,15 +74,15 @@ var rendered = writer.render(bindings);
 
 ## The Basics
 
-Templates are strings in which tags define where the text will be dynamically replaced and updated. By default, tags use the double-curly-braces delimiters (e.g. `{{likeThis}}`). The value inside the tag is the key, which may be supplemented by special characters called directives, which instruction special-case use or handling for the tag.
+Templates are strings in which tags define where the text will be dynamically replaced and updated. By default, tags use the double-curly-braces delimiters (e.g. `{{likeThis}}`). The value inside the tag is the key, which may be supplemented by special characters called directives, which instruct for special-case use or handling of the tag.
 
-Whitespace between the delimiters and the inner key (and directives) are generally trimmed, but as a general rule, either use no whitespaces or only between the opening delimiter and the start of the inner value, and between the end of the inner value and closing delimiter -- e.g. `{{likeThis}}` or `{{ likeThis }}` but `{{ not like this }}`.
+Whitespace between the delimiters and the inner key (and directives) are generally trimmed, but as a general rule, either use no whitespaces or only between the delimiters and key, not within the key value itself -- e.g. `{{likeThis}}` or `{{ likeThis }}` but `{{ not like this }}`.
 
 &nbsp;
 
 ### Variables
 
-Variables are the most basic use-case, where you simply replace the tag with the value of the associated data-binding. Dot-notation may be used to traverse the data-structure.
+Variables are the most basic use-case, where the tag will render the data-binding value associated with the tag's key. Dot-notation may be used to traverse the data-structure.
 
 &nbsp; *Template:*
 
@@ -134,8 +136,8 @@ Bob is {{age}} years old.
 
 **Restrictions for property names**
 
-* `_display` is a special keyword. While it is meant to be set (see [More section behavior](./more/sections/#more-section-behavior]), it should only be done when specifically calling said functionality.
-* Any property name with a leading bang (`!`) will be treated as an [escaped tag](#comments-and-escaping) in the template code.
+* `_display` is a special keyword. While it is meant to be set (see the [`_display` parameter](./more/sections/#the-_display-parameter)), it should only be done when specifically calling said functionality.
+* Any property name with a leading bang (`!`) will be treated as an [comment](#comments-and-escaping) in the template code.
 * Any property name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
 * Ending a property name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
 * Using in any place a double-colon (`::`), which is a [formatting](#formatting) directive, or an arrow operator (`->`), which is used for [passing context to functions](./more/sections/#passing-context-to-functions), will be interpreted as their respective directives.
@@ -151,7 +153,9 @@ Bob is {{age}} years old.
 
 ## Lists
 
-Lists are marked with an ampersand (`&`) and can only take in an array (or a function that returns an array). The output is grammatically formatted with appropriate use of commas and/or the 'and'-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.
+Lists are marked with an ampersand (`&`) and can take in an array (or a function that returns an array). The output is grammatically formatted with appropriate use of commas and/or the 'and'-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.
+
+One special case exists with the list functionality, the combination of the list and section directive (`&#`) which can be used to [grammatically list repeating sections](./more/sections#repeating-list-sections).
 
 &nbsp; *Template:*
 
@@ -183,7 +187,7 @@ Bob sells burgers, sodas, and fries with his wife and kids.
 
 ## Sections
 
-Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) starting prefix with a caret (`^`). Such sections will only be displayed if the section is evaluated to `false`.
+Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) with a caret (`^`). Such sections will only be displayed if the section is evaluated to `false`.
 
 Data may be put inside of a section, whether from elsewhere or the same data-binding.
 
@@ -216,7 +220,7 @@ Bob has no pets.
 
 ### Section value evaluation
 
-The data bound to a section tag is evaluated for 'truthiness'. Values of `undefined`, `null`, an empty string or a string composed only of whitespace, an empty array, and `0` evaluate as false. Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
+The data bound to a section tag is evaluated for 'truthiness'. Values of `undefined`, `null`, an empty string or a string composed only of whitespace, an empty array, and `0` evaluate as false (though in certain cases you may want to [treat 0-values as true](./more/sections/#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
 
 &nbsp;
 
