@@ -250,6 +250,36 @@ Finally, note that data within an array cannot be accessed outside of a section.
 3.
 ```
 
+&nbsp;
+
+### Repeating list sections
+
+Repeating sections may be combined with the list directive to grammatically format a list from the rendered pieces of the repeating section. The list directive must appear first -- i.e. `&#`.
+
+&nbsp; *Template:*
+
+```
+{{name.first}}'s children are {{&#children}}{{.}}{{/children}}.
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  name: {
+    first: "Bob", 
+    last: "Belcher"
+  }, 
+  children: ["Tina", "Gene", "Louise"]
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+Bob's children are Tina, Gene, and Louise.
+```
+
 
 &nbsp;
 
