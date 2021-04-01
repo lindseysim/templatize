@@ -165,7 +165,7 @@ Functions are evaluated when they are first called (or never if they are not). A
 
 Note in the above, any call to `{{count}}` will render "1" as that was value returned at first render. However, by passing a context, we can force the function to re-evaluate, which we do for the repeating section. That said, calling `{{count}}` again after these context calls will still return the cached value. 
 
-Additionally the value of `i` render dynamically when it is first called (where it equals "2" since the function `count` has been evaluated twice), but after that point, all tags referencing `i` use the cached value of "2" as well, despite the fact that function is actively modifying the value since.
+Additionally the value of `i` is not evaluated until it is first called (when it equals "2" since the function `count` has been evaluated twice), but after that point, all tags referencing `i` use the now cached value ("2"), even when future evaluations of `count` modify `i`.
 
 **In general, it is highly discouraged for functions to modify the data binding or return different results depending on number of times called** as the results may be quite unintuitive between the caching strategy and rendering optimizations built into Templatize. For an even weirder example, see the documentation on [function evaluation and modifying binding data](../advanced/#function-evaluation-and-modifying-binding-data).
 
