@@ -140,7 +140,7 @@ Bob is {{age}} years old.
 * Any property name with a leading bang (`!`) will be treated as an [comment](#comments-and-escaping) in the template code.
 * Any property name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
 * Ending a property name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
-* Using in any place a double-colon (`::`), which is a [formatting](#formatting) directive, or an arrow operator (`->`), which is used for [passing context to functions](./more/sections/#passing-context-to-functions), will be interpreted as their respective directives.
+* Using in any place a double-colon (`::`), which is a [formatting](#formatting) directive, or an arrow operator (`->`), which is used for [passing context to functions](./more/functions/#passing-context-to-functions), will be interpreted as their respective directives.
 
 **Things to avoid in property names**
 
@@ -379,12 +379,12 @@ Formatting options are also available by suffixing the property name in the temp
 * **lower** - Transforms all alphabetical characters to lowercase.
 * **capitalize** - Capitalizes the first letter in each word.
 
-Additionally, you can short-hand by suffixing a semi-colon (`;`) to the variable name or format directive
+Additionally, you can short-hand the encode formatting by suffixing a semi-colon (`;`) to the end of the tag name.
 
 &nbsp; *Template:*
 
 ```
-{{name:capitalize}} lives in {{locale::capitalize}} and sells burgers for {{price.burger::$.2f}}.
+{{name::capitalize}} lives in {{locale::capitalize}} and sells burgers for {{price.burger::$.2f}}.
 {{break}}{{break::encode}}{{break::upper;}}{{break;}}
 ```
 
