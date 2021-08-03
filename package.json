@@ -11,13 +11,13 @@
   },
   "main": "templatize.min.js",
   "devDependencies": {
-    "@babel/core": "^7.12.16",
-    "@babel/preset-env": "^7.12.16",
+    "@babel/core": "^7.14.8",
+    "@babel/preset-env": "^7.14.9",
     "babel-loader": "^8.2.2",
-    "webpack": "^4.46.0",
-    "webpack-cli": "^3.3.12"
+    "webpack": "^5.48.0",
+    "webpack-cli": "^4.7.2"
   },
   "dependencies": {
-    "d3-format": "^2.0.0"
+    "d3-format": "^3.0.1"
   }
 }
