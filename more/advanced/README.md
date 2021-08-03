@@ -1,5 +1,13 @@
 ## Advanced usage, edge cases, and general weirdness
 
+* [Mutli-dimensional arrays](#mutli-dimensional-arrays)
+* [Arrays of functions](#arrays-of-functions)
+* [Passing a function to itself](#passing-a-function-to-itself)
+* [Mixing directives in a section tag](#mixing-directives-in-a-section-tag)
+* [Function evaluation and modifying binding data](#function-evaluation-and-modifying-binding-data)
+
+&nbsp; 
+
 #### Mutli-dimensional arrays
 
 By using the in-context directive, you can access multi-dimensional arrays.
@@ -30,7 +38,7 @@ The tag before the `=>` prints the raw array value. As this is within a repeatin
 
 After the `=>` we further enter that item as another section -- in this case a repeating section with the context shifted to second-level of the array. The naked-context tag inside this section is now referencing each inner array's value.
 
-Note that in the first line, after the split, "0" is not printed as the default behavior is to treat zero-values as false, hence skipping that iteration of the repeating section (an example where we would want to treat 0-values as true). And in the third line, nothing prints after the split since the array is empty.
+Note that in the first line, after the split, "0" is not printed as the default behavior is to treat zero-values as false, hence skipping that iteration of the repeating section (an example where we would want to [treat 0-values as true](../sections/#treating-zero-values-as-true)). And in the third line, nothing prints after the split since the array is empty.
 
 **Another wrinkle**
 

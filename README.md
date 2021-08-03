@@ -144,7 +144,7 @@ Bob is {{age}} years old.
 
 **Things to avoid in property names**
 
-* While whitespaces can be part of the property name, it is generally not good practice. At the very least avoid using it as leading or trailing character(s). Templatize will generally handle trimming and adjust in cases where it does exist, but proper behavior cannot be fully guaranteed.
+* While whitespaces can be part of the property name, it is generally not good practice. At the very least avoid using it as leading or trailing characters. Templatize will generally handle trimming and adjust in cases where it does exist, but proper behavior cannot be fully guaranteed.
 * While dots (`.`) can mostly be used in the property name without failing (though a few edge-cases may still result in odd behavior), it is generally to be avoided to reduce naming confusion.
 
 
