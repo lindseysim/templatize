@@ -293,13 +293,11 @@ In the below, the `count` function is always passed to a context to force re-eva
 1 - 10 - 8 9
 ```
 
-To understand what's happening here it's worth overviewing the Templatize rendering process. Templatize first renders normal sections from the outside-in. This allows optimization in the case where a hidden section is encountered, by skipping the section entirely and avoiding rendering of all interior content. It then renders all repeating sections from the inside-out to avoid redundancy. However, the interior of repeating sections are checked in the first pass to render tags bound to (assumedly) non-dynamic content unrelated to the repeating section, again, to prevent the redundancy of calling the same thing multiple times.
+To understand what's happening here it's worth overviewing the Templatize rendering procedure. Templatize first renders normal sections from the outside-in. This allows optimization in the case where a hidden section is encountered, by skipping the section entirely and avoiding computing of all interior content (which will not be displayed). It then renders all repeating sections from the inside-out to avoid redundancy. The interior of repeating sections are checked in their first pass to render tags bound to (assumedly) non-dynamic content unrelated to the repeating section in the hopes of preventing the redundant calling the same thing multiple times.
 
-So in the first pass, the `{{#section}}` tags and the inner call to `count` therein are handled, first putting the value of '1' inside the outer repeating section.
+So in the first pass, the `{{#section}}` section and the inner call to `count` therein are handled, first putting the value of '1' as the first part of the `{{#outer}}` repeating section. The other calls to `count` require the dynamic context of the repeating sections (since the context `.` in each is the repeating section data, which changes with each repeat rendering). So these tag are not rendered in this first pass.
 
-The other calls to `count` require the dynamic context of the repeating sections (since the context `.` in each passed to the function -- even if not really used in the function -- points to the repeating section data). So these tag are not rendered in this first pass.
-
-On the next pass, the repeating sections are rendered. The first part has been pre-rendered (as '1'), which is why it repeats to start each line. Because the optimization renders repeating sections from the inside out, the `{{#inner}}` section is rendered first, evaluation the inner calls to `count` there, then the outer call to `count` next, even if it occurs before the inner section.
+On the next pass, the repeating sections are rendered. The first part has been pre-rendered (as '1'), which is why it repeats at the start of each line. Because the optimization renders repeating sections from the inside out, the `{{#inner}}` section is rendered first, evaluating the inner calls to `count` there, then the outer call to `count` next, even if it occurs before the inner section.
 
 I'm sure someone could construe a scenario in which this pattern could be taken advantage of, but it's hard to imagine. Thus as a general rule, **avoid functions that modifying the data bindings or return different values depending on the number of times called.**
 
