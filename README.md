@@ -2,7 +2,7 @@
 
 Basic templating code. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements (and also just personal curiosity on where I could take it) turned it into a powerful templating library of its own.
 
-Lawrence Sim © 2021
+Lawrence Sim © 2022
 
 ## Contents
 
