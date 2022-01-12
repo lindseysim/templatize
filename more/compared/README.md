@@ -1,20 +1,17 @@
 ## Templatize vs Mustache.js
 
-It's not a competition, but it's worth mentioning why there's a big library that emulates most of what [Mustache.js](https://github.com/janl/mustache.js/) does, while while they are similar there are enough differences to make switching between incompatible beyond the basic variables and sections.
-
-&nbsp;
+It's not a competition, but it's worth mentioning why there's a big library that emulates most of what [Mustache.js](https://github.com/janl/mustache.js/) does. While they are similar in many ways, there are enough differences to make switching between incompatible beyond the basic variables and sections.
 
 #### Differences
 
 While the most basic usage is similar, there are a few minor syntactic and conceptual differences.
 
-Mustache pre-escapes all rendering content for HTML special characters, requiring the `&`-directive (or triple curly braces) to specifically unescape. Templatize, by default, does the opposite (not pre-escaping any render, unless specified to escape all in the options).
+Mustache pre-escapes all rendering content for HTML special characters, requiring the `&`-directive (or triple curly braces) to specifically not escape. Templatize, by default, does the opposite (not pre-escaping any render, unless specified to escape all in the options).
 
 The `&`-directive is handled differently. In Mustache it is a formatting operator. In Templatize it is a [list](../../#lists) operator.
 
-Passing data to functions in Mustache means turning the function into a section tag and putting content in between. The function will then be passed the template text and rendering function inside the section, but not the actual data. 
+Passing data to functions in Mustache means turning the function into a section tag and putting context in between. The function will then be passed the template text and rendering function inside the section, but not the actual data. In Templatize, functions bound to a section tag use the output of the function as the binding to the section tag (see [basic usage of functions](../../#functions)). Additionally, functions are called with the context of where they hierarchically exist in the data-binding. To pass data to functions, one can use the [pass-context-to-function directive](../functions/README.md#passing-context-to-functions).
 
-In Templatize, functions bound to a section tag use the output of the function as the binding to the section tag. Additionally, functions are called with the context of where they hierarchically exist in the data-binding. To pass data to functions, one can use the [pass-context-to-function directive](../functions/#passing-context-to-functions).
 
 **Data context in sections**
 
@@ -33,7 +30,7 @@ In Mustache, within an `outer` section you can call `inner` without traversing t
 {{#outer}} {{inner}} {{/outer}}
 ```
 
-However, in Templatize, all variables search from the root, even within a section. The above would print `"outside"` as the `{{inner}}` tag is resolved from the root. To print `"inside"` the full data path or [in-context directive](../../#scoping-and-the-context-directive) must be used.
+However, in Templatize, all variables search from the root, even within a section. The above would print `"outside"` as the `{{inner}}` tag is resolved from the root. To print `"inside"` the full data path or [in-context directive](../../README.md#scoping-and-the-context-directive) must be used.
 
 ```
 {{#outer}} {{outer.inner}} or {{.inner}} {{/outer}}
@@ -53,12 +50,12 @@ Templatize has [an option to evaluate zero-values as true](../../#options). Some
 
 #### Which is better?
 
-Both run quickly -- depending on input template and data, of course -- the first pass render will be on the order of a one to a few milliseconds and subsequent passes on the same template (utilizing caching strategies on the parsed template) will be multiple times faster. But in general, Mustache.js is faster.
+Both run quickly -- depending on input template and data of course -- the first pass render will be on the order of a one to a few milliseconds and subsequent passes on the same template (utilizing caching strategies on the parsed template) will be multiple times faster. But in general, Mustache.js is faster.
 
 The dynamic way Templatize treats functions, sections, and repeating-sections have added some overhead to the data-binding handling and rendering procedures that come at a minor cost. That said, outside of some exceptional cases, there is unlikely to be a factor in which either rendering library is a limiting factor.
 
 Templatize has much more versatility with the enhanced power for functions and ability to pass data to them. That said, most uses cases wouldn't need them or could work around them by preprocessing the data-bindings first.
 
-That said, this has really just become a pet project of mine, so considering the larger developing community, support, active development, and user-base, Mustache.js is probably, maybe, subjectively better for most use cases :)
+This has really just become a pet project of mine, so considering the larger developing community, support, active development, and user-base, Mustache.js is probably, maybe, very-slightly, subjectively better for most use cases :)
 
 &nbsp;

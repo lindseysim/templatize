@@ -14,7 +14,7 @@ Lawrence Sim © 2022
     * [Scoping and context](#scoping-and-the-context-directive)
     * [Functions](#functions)
     * [Formatting](#formatting)
-* [More Topics](#more-topics)
+* [More Topics (including comparison with Mustache)](#more-topics)
 * [Acknowledgments](#acknowledgments)
 
 ----------
@@ -25,7 +25,13 @@ Lawrence Sim © 2022
 
 ## Usage
 
-Import the source or minified javascript. If regular script import, uses name `Templatize`. 
+Templatize may be installed via NPM: `npm install @lawrencesim/templatize`.
+
+Once installed, import the source or minified javascript. If installed via NPM, you can import it as shown below. If regular script import, automatically maps to name `Templatize`. 
+
+```javascript
+import Templatize from '@lawrencesim/templatize';
+```
 
 The most basic use-case will simply call the `Templatize.render()` function.
 
@@ -311,7 +317,7 @@ Note however that line 2 does not render as the reference to `first` is not spec
 
 Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via `this`) and given the argument of the root data.
 
-As the behavior of the function depends on what is returned, it may be used in a variety of contexts.
+As the behavior of the function depends on what is returned, it may be used in a variety of contexts, such as using the function output as a section or list.
 
 &nbsp; *Template:*
 
