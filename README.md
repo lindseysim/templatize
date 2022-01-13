@@ -438,13 +438,11 @@ Total (w/ tax): {{addTax::$.2f}}
   }, 
   salesTax: 0.05, 
   total: function() {
-    var sum = 0;
-    this.order.forEach(item => {
-      sum += this.prices[item]*(1.0+this.salesTax);
-    });
-    return sum;
+    return this.order.reduce((total, item) => total + this.prices[item], 0);
   }, 
-  addTax: function() { return this.total()*(1+this.salesTax); }
+  addTax: function() {
+    return this.total()*(1+this.salesTax);
+  }
 }
 ```
 
@@ -489,6 +487,6 @@ Time to address the elephant in the room. Why recreate what Mustache.js (basical
 &nbsp;
 
 
-### Acknowledgments ###
+### Acknowledgments
 
 Number formatting utilizes the [d3-format](https://github.com/d3/d3-format) module, which is Copyright under Mike Bostock. [The full license can be found here](https://github.com/d3/d3-format/blob/master/LICENSE).
