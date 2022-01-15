@@ -1,6 +1,5 @@
 const webpack  = require('webpack'), 
-      path     = require('path'), 
-      fs       = require('fs');
+      path     = require('path');
 
 module.exports = {
     mode: 'production', 
@@ -8,12 +7,14 @@ module.exports = {
         'Templatize': './templatize.js'
     }, 
     output: {
-        library: '[name]', 
-        libraryTarget: 'umd', 
-        libraryExport: 'default', 
+        library: {
+            name:    '[name]', 
+            target:  'umd', 
+            export:  'default'
+        }, 
         globalObject: 'this', 
-        path: path.resolve(__dirname), 
-        filename: '[name].min.js'
+        path:         path.resolve(__dirname), 
+        filename:     '[name].min.js'
     },
     module: {
         rules: [
@@ -21,9 +22,7 @@ module.exports = {
                 test:    /\.js$/,
                 exclude: /(node_modules)/,
                 loader:  'babel-loader', 
-                options: {
-                    presets: ['@babel/preset-env']
-                }
+                options: {presets: ['@babel/preset-env']}
             }
         ]
     }, 
