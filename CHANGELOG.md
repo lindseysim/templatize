@@ -1,10 +1,11 @@
 # Changelog
 
-## v2.0.6
+## v2.1.0
 **2022-01-15**
 
 * Reformat webpack `output.library` parameters to new standard.
 * Add changelog.
+* Pretty stable as this point, bump number of update in second position as v2.1.0.
 
 ## v2.0.5
 **2022-01-13**
@@ -52,4 +53,5 @@
 ## v2.0.0
 **2021-03-25**
 
-* Major overhaul completed, splitting as version 2.
+* Major overhaul completed, fairly stable, splitting as v2.0.0.
+* 

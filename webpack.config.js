@@ -4,13 +4,13 @@ const webpack  = require('webpack'),
 module.exports = {
     mode: 'production', 
     entry: {
-        'Templatize': './templatize.js'
+        templatize: './templatize.js'
     }, 
     output: {
         library: {
-            name:    '[name]', 
-            target:  'umd', 
-            export:  'default'
+            name:   'Templatize', 
+            type:   'umd', 
+            export: 'default'
         }, 
         globalObject: 'this', 
         path:         path.resolve(__dirname), 
