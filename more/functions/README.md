@@ -2,7 +2,7 @@
 
 Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via `this`) and given the argument of the root data.
 
-As the behavior of the function depends on what is returned, it may be used in a variety of contexts.
+As the behavior of the function depends on what is returned, it may be used in conjunction with other directives.
 
 &nbsp; *Template:*
 
@@ -19,7 +19,7 @@ As the behavior of the function depends on what is returned, it may be used in a
     last: "Belcher"
   }, 
   fullname: function(root) {
-    // in this case, this/root will refer to the same
+    // as used in this example, this/root will refer to the same
     return this.name.first + " " + root.name.last;
   }, 
   relations: [
@@ -44,7 +44,7 @@ Bob Belcher's friends include Teddy and Mort.
 
 ### Error handling
 
-By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `errorOnFuncFailure` flag to `true` in the [options](../../#options).
+By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `errorOnFuncFailure` flag to true in the [options](../../#options).
 
 &nbsp; 
 
@@ -135,9 +135,9 @@ Louise Belcher (9 years old)
 
 ### Function evaluation and caching
 
-As demonstrated earlier, functions can return almost anything and be appropriately handled from there. However, functions that return a function will continue to be re-evaluated until it returns a non-function value. Or it will error if it begins to detect an infinite loop (the max. iterations is kept quite strict at 12).
+As demonstrated earlier, functions can return almost anything and be appropriately handled from there. However, functions that return a function will continue to be re-evaluated until it returns a non-function value. Or it will error if it begins to detect an infinite recursion (the max. number of recursions or stack overflow limit is kept quite strict at 99).
 
-Functions are evaluated when they are first called (or never if they are not). After the first call however, the returned value from the first evaluation is cached. If the function is passed to a context however, it is considered dynamic and re-evaluated each time (even if the same context).
+Functions are evaluated when they are first called (or never if they are not). After the first call however, the returned value from the first evaluation is cached. If the function is passed to a context however, it is considered dynamic and re-evaluated each time (even if the same context). In such a way, this is a shortcut to bypass caching, by passing a context when calling the function, even if that context is not used.
 
 &nbsp; *Template:*
 

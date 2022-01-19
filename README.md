@@ -35,7 +35,7 @@ import Templatize from '@lawrencesim/templatize';
 
 The most basic use-case will simply call the `Templatize.render()` function.
 
-*Templatize*.**render**(*template*, *bindings*[, *options*])
+<a href="templatize-from" name="templatize-from">#</a> *Templatize*.**render**(*template*, *bindings*[, *options*])
 
 | Name | Type | Description |
 | --- | --- | :--- |
@@ -56,15 +56,15 @@ var myTemplatizer = Templatize.from(myTemplate, {evalZeroAsTrue: true});
 var rendered = myTemplatizer.render(bindings);
 ```
 
-*Templatize*.**from**(*template*[, *options*])
+<a href="templatize-from" name="templatize-from">#</a> *Templatize*.**from**(*template*[, *options*])
 
-&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (Interface) An instance of the Templatize rendering interface based off this template.
+&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** An instance of the Templatize rendering interface based off this template.
 
-*Interface*.prototype.**render**(*bindings*[, *options*])
+<a href="templatize-instance-render" name="templatize-instance-render">#</a> *Interface*.prototype.**render**(*bindings*[, *options*])
 
-&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
+&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** The rendered template string.
 
-##### Options
+### Options
 
 * **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings. Only available in *Templatize*.**from()** when creating a new instance off a preprocessed template.
 * **`errorOnFuncFailure`** - (*default:* `false`) If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated.
@@ -100,8 +100,8 @@ Variables are the most basic use-case, where the tag will render the data-bindin
 
 ```javascript
 {
-  age: 46, 
-  name: { first: "Bob" }
+  name: { first: "Bob" }, 
+  age: 46
 }
 ```
 
@@ -112,6 +112,8 @@ Bob is 46 years old.
 ```
 
 The default behavior is to treat missing bindings as empty. You may also throw an exception when encounter a missing binding by setting the `errorOnMissingTags` parameter in [the render options](#options).
+
+&nbsp; 
 
 ### Comments and escaping
 
@@ -127,8 +129,8 @@ Both comments and escaping is done with a bang directive (`!`). For comments, pl
 
 ```javascript
 {
-  age: 46, 
-  name: { first: "Bob" }
+  name: { first: "Bob" }, 
+  age: 46
 }
 ```
 
@@ -138,11 +140,13 @@ Both comments and escaping is done with a bang directive (`!`). For comments, pl
 Bob is {{age}} years old.
 ```
 
+&nbsp; 
+
 ### Naming restrictions
 
 **Restrictions for property names**
 
-* `_display` is a special keyword. While it is meant to be set (see the [`_display` parameter](./more/sections/#the-_display-parameter)), it should only be done when specifically calling said functionality.
+* `_display` is a special keyword. While it is meant to be set (see the [_display parameter](./more/sections/#the-_display-parameter)), it should only be done when specifically calling said functionality.
 * Any property name with a leading bang (`!`) will be treated as an [comment](#comments-and-escaping) in the template code.
 * Any property name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
 * Ending a property name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
@@ -159,21 +163,21 @@ Bob is {{age}} years old.
 
 ## Lists
 
-Lists are marked with an ampersand (`&`) and can take in an array (or a function that returns an array). The output is grammatically formatted with appropriate use of commas and/or the 'and'-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.
+Lists are marked with an ampersand (`&`) and can take in an array (or a function that returns an array). The output is grammatically formatted with appropriate use of commas and/or the 'and'-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list, and values within the array should be strings or numbers only for best results.
 
 One special case exists with the list functionality, the combination of the list and section directive (`&#`) which can be used to [grammatically list repeating sections](./more/sections#repeating-list-sections).
 
 &nbsp; *Template:*
 
 ```
-{{&name::capitalize}} sells {{&sells}} with {{&with}}. 
+{{&name}} sells {{&sells}} with {{&with}}. 
 ```
 
 &nbsp; *Bindings:*
 
 ```javascript
 {
-  name: ["bob"], 
+  name: ["Bob"], 
   sells: ["burgers", "sodas", "fries"], 
   with: ["his wife", "kids"]
 }
@@ -193,7 +197,7 @@ Bob sells burgers, sodas, and fries with his wife and kids.
 
 ## Sections
 
-Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) with a caret (`^`). Such sections will only be displayed if the section is evaluated to `false`.
+Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) with a caret (`^`). Such sections will only be displayed if the section is evaluated to false.
 
 Data may be put inside of a section, whether from elsewhere or the same data-binding.
 
@@ -226,11 +230,11 @@ Bob has no pets.
 
 ### Section value evaluation
 
-The data bound to a section tag is evaluated for 'truthiness'. Values of `None`, an empty string or a string composed only of whitespace, an empty list, and `0` evaluate as false (though in certain cases you may want to [treat 0-values as true](./more/sections/#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
+The data bound to a section tag is evaluated for 'truthiness'. Null values, an empty string or a string composed only of whitespace, an empty list, and `0` evaluate as false (though in certain cases you may want to [treat 0-values as true](./more/sections/#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
 
 &nbsp;
 
-##### More on sections
+### More on sections
 
 See additional documentation for more on [sections](./more/sections/), including [section value evaluation](./more/sections/#section-value-evaluation), the [`_display` parameter](./more/sections/#the-_display-parameter), and more.
 
@@ -266,7 +270,7 @@ Note that each item is also treated to the same [section value evaluation](./mor
 
 &nbsp;
 
-##### More on repeating sections
+### More on repeating sections
 
 See additional documentation for more on [repeating sections](./more/sections/#repeating-sections).
 
@@ -307,7 +311,7 @@ Friends: {{#friends}}{{.}} {{/friends}}
 Friends: Teddy Mort
 ```
 
-Note however that line 2 does not render as the reference to `first` is not specified as under the `name` context or given an in-context directive, and the property `first` does not exist under the root binding object.
+Note that line 2 does not render as the reference to `first` is not specified as under the `name` context via dot notation nor given an in-context directive, and the property `first` does not exist under the root binding object.
 
 
 &nbsp;
@@ -315,7 +319,7 @@ Note however that line 2 does not render as the reference to `first` is not spec
 
 ## Functions
 
-Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via `this`) and given the argument of the root data.
+Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (accessed via `this`) and given the argument of the full/root data-binding object.
 
 As the behavior of the function depends on what is returned, it may be used in a variety of contexts, such as using the function output as a section or list.
 
@@ -355,13 +359,15 @@ As the behavior of the function depends on what is returned, it may be used in a
 Bob Belcher's friends include Teddy and Mort.
 ```
 
+&nbsp;
+
 ### Error handling
 
 By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `errorOnFuncFailure` flag to `true` in the [options](../README.md#options).
 
 &nbsp;
 
-##### More on functions
+### More on functions
 
 Functions are arguably the most powerful (and sometimes frustrating) aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions). This section only covers the most superficial use of functions.
 
