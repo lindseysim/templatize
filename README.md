@@ -33,7 +33,7 @@ Once installed, import the source or minified javascript. If installed via NPM, 
 import Templatize from '@lawrencesim/templatize';
 ```
 
-The most basic use-case will simply call the `Templatize.render()` function.
+The most basic use-case is to simply call the `Templatize.render()` function.
 
 <a href="templatize-from" name="templatize-from">#</a> *Templatize*.**render**(*template*, *bindings*[, *options*])
 
@@ -49,7 +49,7 @@ The most basic use-case will simply call the `Templatize.render()` function.
 var rendered = Templatize.render(myTemplate, bindings);
 ```
 
-However, this will not take advantage of caching the processed template. If reusing the template, first clone a rendering instance from said template using `Templatize.from()`, then call the render function on that.
+However this will not take advantage of template caching. If reusing the template, one can first clone a rendering instance from said template using `Templatize.from()`, then call the render function on that instance.
 
 ```javascript
 var myTemplatizer = Templatize.from(myTemplate, {evalZeroAsTrue: true});
@@ -80,9 +80,9 @@ var rendered = myTemplatizer.render(bindings);
 
 ## The Basics
 
-Templates are strings in which tags define where the text will be dynamically replaced and updated. By default, tags use the double-curly-braces delimiters (e.g. `{{likeThis}}`). The value inside the tag is the key, which may be supplemented by special characters called directives, which instruct for special-case use or handling of the tag.
+Templates are strings in which tags define where the text will be dynamically replaced and updated. By default, tags use the double-curly-braces delimiters (e.g. `{{likeThis}}`). The value inside the tag is the key, which may be supplemented by special characters called directives that instruct special-case use or handling of the tag.
 
-Whitespace between the delimiters and the inner key (and directives) are generally trimmed, but as a general rule, either use no whitespaces or only between the delimiters and key, not within the key value itself -- e.g. `{{likeThis}}` or `{{ likeThis }}` but `{{ not like this }}`.
+Whitespace between the delimiters and the inner key (and directives) are generally trimmed and ignored by the renderer, but as a general rule, either use no whitespaces or only between the delimiters and key, not within the key value itself -- e.g. `{{likeThis}}` or `{{ likeThis }}` but `{{ not like this }}`.
 
 &nbsp;
 
@@ -117,7 +117,7 @@ The default behavior is to treat missing bindings as empty. You may also throw a
 
 ### Comments and escaping
 
-Both comments and escaping is done with a bang directive (`!`). For comments, place the bang within the opening delimiter. For escaping, place the bang just outside the opening delimiter.
+Both commenting and escaping are done with a bang directive (`!`). For comments, place the bang within the opening delimiter. For escaping, place the bang just outside the opening delimiter.
 
 &nbsp; *Template:*
 
@@ -146,7 +146,7 @@ Bob is {{age}} years old.
 
 **Restrictions for property names**
 
-* `_display` is a special keyword. While it is meant to be set (see the [_display parameter](./more/sections/#the-_display-parameter)), it should only be done when specifically calling said functionality.
+* `_display` is a special keyword. While it can be set (see the [_display parameter](./more/sections/#the-_display-parameter)), it should only be done when specifically calling said functionality.
 * Any property name with a leading bang (`!`) will be treated as an [comment](#comments-and-escaping) in the template code.
 * Any property name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
 * Ending a property name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
@@ -197,9 +197,7 @@ Bob sells burgers, sodas, and fries with his wife and kids.
 
 ## Sections
 
-Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) with a caret (`^`). Such sections will only be displayed if the section is evaluated to false.
-
-Data may be put inside of a section, whether from elsewhere or the same data-binding.
+Section start at tags with the `#`-directive and end at the corresponding tags with the `/`-directive. If the data bound to the tag evaluates as true, the content between the section tags will be shown. Conversely, it will be hidden if it evaluates to false. You may also inverse the rules for showing and hiding a section by replacing the hash (`#`) with a caret (`^`) in the section start tag.
 
 &nbsp; *Template:*
 
@@ -230,7 +228,7 @@ Bob has no pets.
 
 ### Section value evaluation
 
-The data bound to a section tag is evaluated for 'truthiness'. Null values, an empty string or a string composed only of whitespace, an empty list, and `0` evaluate as false (though in certain cases you may want to [treat 0-values as true](./more/sections/#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
+The data bound to a section tag is evaluated for 'truthiness'. Null values, an empty string or composed only of whitespace, an empty list, and `0` evaluate as false (though in certain cases you may want to [treat 0-values as true](./more/sections/#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
 
 &nbsp;
 
@@ -280,7 +278,7 @@ See additional documentation for more on [repeating sections](./more/sections/#r
 
 ## Scoping and the context directive
 
-All keys in template tags must provide the full path to the data-binding, even if within a section. However, one way to shortcut to the inner-most context is by prefacing the tag key with the context directive (`.`). A naked context tag (`{{.}}`) is particular useful for repeating sections with flat values.
+All keys in template tags must provide the full path to the data-binding, even if within a section. However, one way to shortcut to the inner-most context is by prefacing the tag key with the context directive (`.`). A naked context tag (`{{.}}`) is particularly useful for repeating sections with flat values.
 
 &nbsp; *Template:*
 
@@ -311,7 +309,7 @@ Friends: {{#friends}}{{.}} {{/friends}}
 Friends: Teddy Mort
 ```
 
-Note that line 2 does not render as the reference to `first` is not specified as under the `name` context via dot notation nor given an in-context directive, and the property `first` does not exist under the root binding object.
+Note that line 2 does not render as the reference to `first` is not specified a context and no mapping for `first` is in the root data bindings. This could be fixed by giving the `name` context via dot notation or, as is the case in line 3, using the shorthand in-context directive.
 
 
 &nbsp;
@@ -319,9 +317,9 @@ Note that line 2 does not render as the reference to `first` is not specified as
 
 ## Functions
 
-Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (accessed via `this`) and given the argument of the full/root data-binding object.
+Functions are evaluated and uses the returned value as the data-binding to the specified key. As the behavior of the function depends on what is returned, it may be used in a variety of contexts, such as using the function output as a section or list.
 
-As the behavior of the function depends on what is returned, it may be used in a variety of contexts, such as using the function output as a section or list.
+The function is called within the context of the data-binding object where it resides (accessed via `this`) and given the argument of the full/root data-binding object.
 
 &nbsp; *Template:*
 
@@ -338,7 +336,7 @@ As the behavior of the function depends on what is returned, it may be used in a
     last: "Belcher"
   }, 
   fullname: function(root) {
-    // in this case, this/root will refer to the same
+    // in this case, `this` and `root` will refer to the same
     return this.name.first + " " + root.name.last;
   }, 
   relations: [
@@ -379,7 +377,7 @@ See additional documentation for more on [functions](./more/functions/).
 
 ## Formatting
 
-Formatting options are also available by suffixing the property name in the template code with a double-colon (`::`) and format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the [d3-format library](https://github.com/d3/d3-format), which handles many number formats. See documentation there for various formatting options.
+Formatting options are also available by suffixing the property name in the template code with a double-colon (`::`) and following with a format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the [d3-format library](https://github.com/d3/d3-format), which handles many number formats. See documentation there for various formatting options.
 
 
 * **html** - If the [option](#options) `escapeAll` is set true, this directive sets the output not to escape HTML special characters.
@@ -391,13 +389,13 @@ Formatting options are also available by suffixing the property name in the temp
 * **lower** - Transforms all alphabetical characters to lowercase.
 * **capitalize** - Capitalizes the first letter in each word.
 
-Additionally, you can short-hand the encode formatting by suffixing a semi-colon (`;`) to the end of the tag name.
+Additionally, you can shorthand the encode formatting by suffixing a semi-colon (`;`) to the end of the tag name.
 
 &nbsp; *Template:*
 
 ```
 {{name::capitalize}} lives in {{locale::capitalize}} and sells burgers for {{price.burger::$.2f}}.
-{{break}}{{break::encode}}{{break::upper;}}{{break;}}
+{{break}}{{break::encode}}{{break;}}{{break::upper;}}
 ```
 
 &nbsp; *Bindings:*
@@ -415,7 +413,7 @@ Additionally, you can short-hand the encode formatting by suffixing a semi-colon
 
 ```
 Bob lives in New England and sells burgers for $5.00.
-<br /><BR /><br />
+<br /><br /><BR />
 ```
 
 Formatting also works for [lists](#lists) and [functions](#functions).
@@ -423,7 +421,7 @@ Formatting also works for [lists](#lists) and [functions](#functions).
 &nbsp; *Template:*
 
 ```
-Order: {{&order}}<br />
+Order: {{&order::lower}}<br />
 Prices: {{&ticket::$.2f}}<br />
 Sale tax: {{salesTax::.0%}}<br />
 Total: {{total::$.2f}}<br />
@@ -455,7 +453,7 @@ Total (w/ tax): {{addTax::$.2f}}
 &nbsp; *Outputs:*
 
 ```
-Order: BURGER and FRIES
+Order: burger and fries
 Prices: $5.00 and $2.00
 Sale tax: 5%
 Total: $7.00
