@@ -1,14 +1,18 @@
 ## Sections
 
-Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) with a caret (`^`). Such sections will only be displayed if the section is evaluated to false.
+Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. 
+
+You may also use an inverse section by replacing the hash (`#`) with a caret (`^`). Such sections will only be displayed if the section is evaluated to false.
 
 Data may be put inside of a section, whether from elsewhere or the same data-binding.
 
 &nbsp; *Template:*
 
 ```
-Bob is {{#married}}married{{/married}}{{#single}}single{{/single}}.<br />
-{{#spouse}}Bob is married to {{spouse}}.{{/spouse}}<br />
+Bob is {{#married}}married{{/married}}{{#single}}single{{/single}}.
+<br />
+{{#spouse}}Bob is married to {{spouse}}.{{/spouse}}
+<br />
 Bob has {{^haspets}}no pets{{/haspets}}{{#haspets}}pets{{/haspets}}.
 ```
 
@@ -63,6 +67,8 @@ Using the above, one common pattern is to use the same data-binding for both the
 Occupation: Chef
 ```
 
+&nbsp; 
+
 With the [context directive](../../#scoping-and-the-context-directive), this can be even further simplified in the template.
 
 &nbsp; *Template:*
@@ -70,6 +76,8 @@ With the [context directive](../../#scoping-and-the-context-directive), this can
 ```
 {{#job}}Occupation: {{.}}{{/job}}
 ```
+
+&nbsp; 
 
 An alternative approach is to use an object for the section data.
 
@@ -163,7 +171,7 @@ Occupation:
 Bob is a chef.
 ```
 
-Note in the above that `_display` does not reverse the behavior of inverse sections (the section `{{^job}}Unemployed{/job}}` is still hidden as `job` itself is not evaluated to false). Also, nested section data may still be accessed and rendered outside of the section, even if the section itself is set not to display.
+Note in the above that `_display` does not reverse the behavior of inverse sections. Also, nested section data may still be accessed and rendered outside of the section, even if the section itself is set not to display.
 
 
 &nbsp;
@@ -173,7 +181,7 @@ Note in the above that `_display` does not reverse the behavior of inverse secti
 
 If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array. 
 
-Within the context of the repeating section, the same tag is temporarily bound to the value of each item during each iteration. Thus the below section tag key and value key are the same for this array of flat values.
+Within the context of the repeating section (that is, between the opening and closing section tags), the same tag key is temporarily bound to the value of each item during each iteration. Thus, the tag key can be used within the section context to access the inner values as it iterates through the array.
 
 &nbsp; *Template:*
 
@@ -197,7 +205,9 @@ Child: Louise
 
 Note that each item is also treated to the same [section value evaluation](#section-value-evaluation) to determine whether it is rendered.
 
-Arrays may contain objects or functions as well. In objects, you can use the `_display` parameter to hide a particular item, same as you would for a section. Below, we also take advantage of the [in-context directive](../../README.md#scoping-and-the context-directive).
+&nbsp;
+
+Arrays may contain objects or functions as well. In objects, you can use the `_display` parameter to hide a particular item, same as you would for a section. Below, we also take advantage of the [in-context directive](../../README.md#scoping-and-the-context-directive).
 
 &nbsp; *Template:*
 
@@ -225,6 +235,8 @@ Child: Tina
 Child: Gene
 Child: Louise
 ```
+
+&nbsp;
 
 Finally, note that data within an array cannot be accessed outside of a section. However, the array itself will attempt to render if called as a variable.
 
@@ -329,6 +341,8 @@ Gene Belcher's hobbies include music and farts.
 Louise Belcher's hobbies include mischief.
 ```
 
+&nbsp;
+
 For standard sections, nesting sections, even within itself, adds no major complication as sections are simply treated as on/off tags. However, when dealing with repeating sections or sections created with dynamic data (e.g. [mixing pass-to-function directing in a section tag](../advanced/#mixing-directives-in-a-section-tag)), the inner context will be specific to the nested section in which it is called.
 
 &nbsp; *Template:*
@@ -358,6 +372,8 @@ For standard sections, nesting sections, even within itself, adds no major compl
 ```
 
 Note the first output is `3` due to being in two nested blocks where the contexts are called and incremented. However, when `n` is called again outside the nesting, the value of `n` is unchanged outside of the previous contexts.
+
+&nbsp;
 
 This gets particularly confusing with repeating contexts but makes sense when you consider the context changes inside each nested section.
 

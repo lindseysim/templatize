@@ -2,7 +2,7 @@
 
 Basic templating code. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements (and also just personal curiosity on where I could take it) turned it into a powerful templating library of its own.
 
-Lawrence Sim © 2022
+Lawrence Sim © 2023
 
 ## Contents
 
@@ -35,7 +35,18 @@ import Templatize from '@lawrencesim/templatize';
 
 The most basic use-case is to simply call the `Templatize.render()` function.
 
-<a href="templatize-from" name="templatize-from">#</a> *Templatize*.**render**(*template*, *bindings*[, *options*])
+```javascript
+var rendered = Templatize.render(myTemplate, bindings);
+```
+
+However this will not take advantage of template caching. If reusing the template, one can first create a rendering instance from said template using `Templatize.from()`, then call the render function on that instance.
+
+```javascript
+var templateOne = Templatize.from(myTemplate, {evalZeroAsTrue: true});
+var rendered = templateOne.render(bindings);
+```
+
+<a href="templatize-render" name="templatize-render">#</a> *Templatize*.**render**(*template*, *bindings*[, *options*])
 
 | Name | Type | Description |
 | --- | --- | :--- |
@@ -44,17 +55,6 @@ The most basic use-case is to simply call the `Templatize.render()` function.
 | `options` | Object | See [options](#options). |
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
-
-```javascript
-var rendered = Templatize.render(myTemplate, bindings);
-```
-
-However this will not take advantage of template caching. If reusing the template, one can first clone a rendering instance from said template using `Templatize.from()`, then call the render function on that instance.
-
-```javascript
-var myTemplatizer = Templatize.from(myTemplate, {evalZeroAsTrue: true});
-var rendered = myTemplatizer.render(bindings);
-```
 
 <a href="templatize-from" name="templatize-from">#</a> *Templatize*.**from**(*template*[, *options*])
 
@@ -80,9 +80,11 @@ var rendered = myTemplatizer.render(bindings);
 
 ## The Basics
 
-Templates are strings in which tags define where the text will be dynamically replaced and updated. By default, tags use the double-curly-braces delimiters (e.g. `{{likeThis}}`). The value inside the tag is the key, which may be supplemented by special characters called directives that instruct special-case use or handling of the tag.
+Templates are strings in which tags define where the text will be dynamically replaced and updated. By default, tags use the double-curly-braces delimiters (e.g. `{{likeThis}}`). The value inside the tag is the key or key name, which may be supplemented by special characters called directives that instruct special-case use or handling of the tag.
 
 Whitespace between the delimiters and the inner key (and directives) are generally trimmed and ignored by the renderer, but as a general rule, either use no whitespaces or only between the delimiters and key, not within the key value itself -- e.g. `{{likeThis}}` or `{{ likeThis }}` but `{{ not like this }}`.
+
+The data-binding for a tag is the data, identified by the tag key, that will be supplanted in the tag's place.
 
 &nbsp;
 
@@ -144,18 +146,18 @@ Bob is {{age}} years old.
 
 ### Naming restrictions
 
-**Restrictions for property names**
+**Restrictions for tag key names**
 
 * `_display` is a special keyword. While it can be set (see the [_display parameter](./more/sections/#the-_display-parameter)), it should only be done when specifically calling said functionality.
-* Any property name with a leading bang (`!`) will be treated as an [comment](#comments-and-escaping) in the template code.
-* Any property name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
-* Ending a property name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
+* Any key name with a leading bang (`!`) will be treated as an [comment](#comments-and-escaping) in the template code.
+* Any key name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
+* Ending a key name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
 * Using in any place a double-colon (`::`), which is a [formatting](#formatting) directive, or an arrow operator (`->`), which is used for [passing context to functions](./more/functions/#passing-context-to-functions), will be interpreted as their respective directives.
 
-**Things to avoid in property names**
+**Things to avoid in tag key names**
 
-* While whitespaces can be part of the property name, it is generally not good practice. At the very least avoid using it as leading or trailing characters. Templatize will generally handle trimming and adjust in cases where it does exist, but proper behavior cannot be fully guaranteed.
-* While dots (`.`) can mostly be used in the property name without failing (though a few edge-cases may still result in odd behavior), it is generally to be avoided to reduce naming confusion.
+* While whitespaces can be part of the key name, it is generally not good practice. At the very least avoid using it as leading or trailing characters. Templatize will generally handle trimming and adjust in cases where it does exist, but proper behavior cannot be fully guaranteed.
+* While dots (`.`) can mostly be used in the key name without failing (though a few edge-cases may still result in odd behavior), it is generally to be avoided to reduce naming confusion.
 
 
 &nbsp;
@@ -170,7 +172,7 @@ One special case exists with the list functionality, the combination of the list
 &nbsp; *Template:*
 
 ```
-{{&name}} sells {{&sells}} with {{&with}}. 
+{{&name}} sells {{&sells}} with his {{&with}}. 
 ```
 
 &nbsp; *Bindings:*
@@ -179,7 +181,7 @@ One special case exists with the list functionality, the combination of the list
 {
   name: ["Bob"], 
   sells: ["burgers", "sodas", "fries"], 
-  with: ["his wife", "kids"]
+  with: ["wife", "kids"]
 }
 ```
 
@@ -197,13 +199,17 @@ Bob sells burgers, sodas, and fries with his wife and kids.
 
 ## Sections
 
-Section start at tags with the `#`-directive and end at the corresponding tags with the `/`-directive. If the data bound to the tag evaluates as true, the content between the section tags will be shown. Conversely, it will be hidden if it evaluates to false. You may also inverse the rules for showing and hiding a section by replacing the hash (`#`) with a caret (`^`) in the section start tag.
+Section start at tags with the `#`-directive and end at the corresponding tags with the `/`-directive. If the data bound to the tag evaluates as true, the content between the section tags will be shown. Conversely, it will be hidden if it evaluates to false. 
+
+You may also inverse the rules for showing and hiding a section by replacing the hash (`#`) with a caret (`^`) in the section start tag.
 
 &nbsp; *Template:*
 
 ```
-Bob is {{#married}}married{{/married}}{{#single}}single{{/single}}.<br />
-{{#spouse}}Bob is married to {{spouse}}.{{/spouse}}<br />
+Bob is {{#married}}married{{/married}}{{#single}}single{{/single}}.
+<br />
+{{#spouse}}Bob is married to {{spouse}}.{{/spouse}}
+<br />
 Bob has {{^haspets}}no pets{{/haspets}}{{#haspets}}pets{{/haspets}}.
 ```
 
@@ -242,7 +248,7 @@ See additional documentation for more on [sections](./more/sections/), including
 
 If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array. 
 
-Within the context of the repeating section, the same tag is temporarily bound to the value of each item during each iteration. Thus the below section tag key and value key are the same for this array of flat values.
+Within the context of the repeating section (that is, between the opening and closing section tags), the same tag key is temporarily bound to the value of each item during each iteration. Thus, the tag key can be used within the section context to access the inner values as it iterates through the array.
 
 &nbsp; *Template:*
 
@@ -309,7 +315,9 @@ Friends: {{#friends}}{{.}} {{/friends}}
 Friends: Teddy Mort
 ```
 
-Note that line 2 does not render as the reference to `first` is not specified a context and no mapping for `first` is in the root data bindings. This could be fixed by giving the `name` context via dot notation or, as is the case in line 3, using the shorthand in-context directive.
+In the above, we try to access `name.first` in three ways. Using the full binding path (1) works in almost any case. However, using `first` without giving a context (2), fails as it tries to find a binding for `first` from the root, which does not exist. We can fix this by providing the context directive (3), which begins the search from the given context, with is within the section (and corresponding data-binding for) `name`.
+
+The naked context tag (`{{.}}`) in the final line is equivalent to the tag `{{friends}}`, which in-context of a repeating section, accesses each iterated value in the list.
 
 
 &nbsp;
@@ -377,7 +385,7 @@ See additional documentation for more on [functions](./more/functions/).
 
 ## Formatting
 
-Formatting options are also available by suffixing the property name in the template code with a double-colon (`::`) and following with a format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the [d3-format library](https://github.com/d3/d3-format), which handles many number formats. See documentation there for various formatting options.
+Formatting options are also available by suffixing the key name in the template code with a double-colon (`::`) and following with a format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the [d3-format library](https://github.com/d3/d3-format), which handles many number formats. See documentation there for various formatting options.
 
 
 * **html** - If the [option](#options) `escapeAll` is set true, this directive sets the output not to escape HTML special characters.
