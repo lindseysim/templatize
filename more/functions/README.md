@@ -1,8 +1,8 @@
 ## Functions
 
-Functions are evaluated to determine the returned value. The function is called within the context of the data-binding object where it resides (and may access the context via `this`) and given the argument of the root data.
+Functions are evaluated and uses the returned value as the data-binding to the specified tag. As the behavior of the function depends on what is returned, it may be used in a variety of contexts, such as using the function output as a section or list.
 
-As the behavior of the function depends on what is returned, it may be used in conjunction with other directives.
+The function is called within the context of the data-binding object where it resides (accessed via `this`) and given the argument of the full/root data-binding object.
 
 &nbsp; *Template:*
 
@@ -19,7 +19,6 @@ As the behavior of the function depends on what is returned, it may be used in c
     last: "Belcher"
   }, 
   fullname: function(root) {
-    // as used in this example, this/root will refer to the same
     return this.name.first + " " + root.name.last;
   }, 
   relations: [
@@ -39,6 +38,8 @@ As the behavior of the function depends on what is returned, it may be used in c
 ```
 Bob Belcher's friends include Teddy and Mort.
 ```
+
+Note, since none of the tags were called in context, for the functions called, `this` and `root` will refer to the same (the root data-binding).
 
 &nbsp; 
 
@@ -83,6 +84,8 @@ Fries - $2.00.
 Soda - $2.00.
 ```
 
+Functions outputs are cached after their first evaluation. As such, calling `menu` repeatedly will not result in wasted processing calling the `menu` function. This is covered later in the section [function evaluation and caching](#function-evaluation-and-caching).
+
 &nbsp;
 
 ### Passing context to functions
@@ -109,15 +112,15 @@ When in a passed context, the `this` context for the function will the be the da
   }, 
   familyName: "Belcher", 
   children: [
-    {name: "Tina", born: 2008}, 
-    {name: "Gene", born: 2010}, 
-    {name: "Louise", born: 2012}
+    {name: "Tina", born: 2010}, 
+    {name: "Gene", born: 2012}, 
+    {name: "Louise", born: 2014}
   ], 
   fullname: function(root) {
     return this.name + " " + root.familyName;
   },
   age: function() {
-    return 2021 - this.born;
+    return 2023 - this.born;
   }
 }
 ```
@@ -135,16 +138,16 @@ Louise Belcher (9 years old)
 
 ### Function evaluation and caching
 
-As demonstrated earlier, functions can return almost anything and be appropriately handled from there. However, functions that return a function will continue to be re-evaluated until it returns a non-function value. Or it will error if it begins to detect an infinite recursion (the max. number of recursions or stack overflow limit is kept quite strict at 99).
+As demonstrated earlier, functions can return almost anything and be appropriately handled from there. However, functions that return a function will continue to be re-evaluated until it returns a non-function value. Or it will error if it begins to detect an infinite recursion (the max. number of recursions or overflow limit is set to 99).
 
-Functions are evaluated when they are first called (or never if they are not). After the first call however, the returned value from the first evaluation is cached. If the function is passed to a context however, it is considered dynamic and re-evaluated each time (even if the same context). In such a way, this is a shortcut to bypass caching, by passing a context when calling the function, even if that context is not used.
+Functions are evaluated when they are first called (or never if they are not). After the first call however, the returned value from the first evaluation is cached. If the function is passed to a context however, it is considered dynamic and re-evaluated each time (even if the same context). In such a way, this is a shortcut to bypass caching even if the passed context is not used.
 
 &nbsp; *Template:*
 
 ```
-{{count}}, 
-{{.->count}}-{{i}}, 
-{{count}}-{{i}}, 
+{{   count}}-{{i}}<br />
+{{.->count}}-{{i}}<br />
+{{   count}}-{{i}}<br />
 {{.->count}}-{{i}}
 ```
 
@@ -153,19 +156,22 @@ Functions are evaluated when they are first called (or never if they are not). A
 ```javascript
 {
   i: 0, 
-  count: function(root) { return ++root.i; }
+  count: root => ++root.i
 }
 ```
 
 &nbsp; *Outputs:*
 
 ```
-1, 2-2, 1-2, 3-2
+1-1
+2-1
+1-1
+3-1
 ```
 
-Note in the above, any call to `{{count}}` will render "1" as that was value returned at first render. However, by passing a context, we can force the function to re-evaluate, which we do for the repeating section. That said, calling `{{count}}` again after these context calls will still return the cached value. 
+Note in the above, any call to `{{count}}` will render "1" as that was value returned at first render. However, by passing a context, we can force the function to re-evaluate, which is what is done on every other line. That said, calling `{{count}}` again after these context calls will still return the cached value of "1". 
 
-Additionally the value of `i` is not evaluated until it is first called (when it equals "2" since the function `count` has been evaluated twice), but after that point, all tags referencing `i` use the now cached value ("2"), even when future evaluations of `count` modify `i`.
+Additionally the value of `i` is not evaluated until it is first called (when it equals "1" since the function `count` has been called once and incremented `i`), but after that point, all tags referencing `i` use the now cached value ("1"), even when future evaluations of `count` modify `i`.
 
 **In general, it is highly discouraged for functions to modify the data binding or return different results depending on number of times called** as the results may be quite unintuitive between the caching strategy and rendering optimizations built into Templatize. For an even weirder example, see the documentation on [function evaluation and modifying binding data](../advanced/#function-evaluation-and-modifying-binding-data).
 

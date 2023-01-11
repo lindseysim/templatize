@@ -325,7 +325,7 @@ The naked context tag (`{{.}}`) in the final line is equivalent to the tag `{{fr
 
 ## Functions
 
-Functions are evaluated and uses the returned value as the data-binding to the specified key. As the behavior of the function depends on what is returned, it may be used in a variety of contexts, such as using the function output as a section or list.
+Functions are evaluated and uses the returned value as the data-binding to the specified tag. As the behavior of the function depends on what is returned, it may be used in a variety of contexts, such as using the function output as a section or list.
 
 The function is called within the context of the data-binding object where it resides (accessed via `this`) and given the argument of the full/root data-binding object.
 
@@ -344,7 +344,6 @@ The function is called within the context of the data-binding object where it re
     last: "Belcher"
   }, 
   fullname: function(root) {
-    // in this case, `this` and `root` will refer to the same
     return this.name.first + " " + root.name.last;
   }, 
   relations: [
@@ -364,6 +363,8 @@ The function is called within the context of the data-binding object where it re
 ```
 Bob Belcher's friends include Teddy and Mort.
 ```
+
+Note, since none of the tags were called in context, for the functions called, `this` and `root` will refer to the same (the root data-binding).
 
 &nbsp;
 
@@ -385,10 +386,10 @@ See additional documentation for more on [functions](./more/functions/).
 
 ## Formatting
 
-Formatting options are also available by suffixing the key name in the template code with a double-colon (`::`) and following with a format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format directive as an input to the [d3-format library](https://github.com/d3/d3-format), which handles many number formats. See documentation there for various formatting options.
+Formatting options are also available by suffixing the key name in the template code with a double-colon (`::`) and following with a format key. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize uses the format key as an input to the [d3-format library](https://github.com/d3/d3-format), which handles many number formats. See documentation there for various formatting options.
 
 
-* **html** - If the [option](#options) `escapeAll` is set true, this directive sets the output not to escape HTML special characters.
+* **html** - If the [option](#options) `escapeAll` is set true, this key sets the output not to escape HTML special characters.
     * **raw** - Same as above.
 * **encode** - Encodes HTML special characters in rendered output.
 * **upper** - Transforms all alphabetical characters to uppercase.
@@ -397,13 +398,15 @@ Formatting options are also available by suffixing the key name in the template 
 * **lower** - Transforms all alphabetical characters to lowercase.
 * **capitalize** - Capitalizes the first letter in each word.
 
-Additionally, you can shorthand the encode formatting by suffixing a semi-colon (`;`) to the end of the tag name.
+Additionally, you can shorthand the **encode** format directive and key by suffixing a semi-colon (`;`) to the end of the tag name. It may even be combined with another format directive.
 
 &nbsp; *Template:*
 
 ```
-{{name::capitalize}} lives in {{locale::capitalize}} and sells burgers for {{price.burger::$.2f}}.
-{{break}}{{break::encode}}{{break;}}{{break::upper;}}
+{{name::capitalize}} lives in {{locale::capitalize}} 
+    and sells burgers for {{price.burger::$.2f}}.
+{{break}}
+{{break::encode}}{{break;}}{{break::upper;}}
 ```
 
 &nbsp; *Bindings:*

@@ -40,9 +40,9 @@ After the `=>` we further enter that item as another section -- in this case a r
 
 Note that in the first line, after the split, "0" is not printed as the default behavior is to treat zero-values as false, hence skipping that iteration of the repeating section (an example where we would want to [treat 0-values as true](../sections/#treating-zero-values-as-true)). And in the third line, nothing prints after the split since the array is empty.
 
-**Another wrinkle**
+&nbsp; 
 
-We could in fact use all naked-context tags. The below template produces the same output. 
+We also could use all naked-context tags. The below template produces the same output. 
 
 ```
 {{#a}}
@@ -126,7 +126,7 @@ Note however that the above functions only make sense within the context of an i
 
 #### Passing a function to itself
 
-When passing a function as a context to itself, the function will first be evaluated as is until it returns a valid context (that is, a non-function), then pass to itself as a function. Normally, this is kind of pointless or results in weird behavior, but it might be worth knowing as an edge case.
+When passing a function as a context to itself, the function will first be evaluated as-is until it returns a valid context (that is, a non-function), then pass to itself as a function. Normally, this is kind of pointless or results in weird behavior, but it might be worth knowing as an edge case.
 
 &nbsp; *Template:*
 
@@ -197,6 +197,8 @@ Available toppings:
     - tomato
 ```
 
+&nbsp;
+
 Ensure when using in-context directives as section tags that the closing tag appears *exactly* as shown in the opening tag. The below template would result in an error, even if the section tags refer to the same binding.
 
 ```
@@ -205,6 +207,8 @@ Ensure when using in-context directives as section tags that the closing tag app
   {{#.toppings}}{{spacer}}- {{.}}<br />{{/burger.toppings}}
 {{/burger}} 
 ```
+
+&nbsp;
 
 When using a context-passed-to-function as the section tag, this will create the appropriate dynamic context for any tags with in-context directives directly inside this section. Note that the closing tag does not need to mimic the pass-to-function part of the opening tag.
 
