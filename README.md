@@ -14,6 +14,7 @@ Lawrence Sim © 2023
     * [Scoping and context](#scoping-and-the-context-directive)
     * [Functions](#functions)
     * [Formatting](#formatting)
+    * [Partials](#partials)
 * [More Topics (including comparison with Mustache)](#more-topics)
 * [Acknowledgments](#acknowledgments)
 
@@ -71,6 +72,9 @@ var rendered = templateOne.render(bindings);
 * **`evalZeroAsTrue`** - (*default:* `false`) If true, zero-values are treated as a real value for section evaluation. See [section value evaluation](#section-value-evaluation).
 * **`escapeAll`** - (*default:* `false`) If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [formatting](#formatting).
 * **`errorOnMissingTags`** - (*default:* `false`) If true, throw exceptions when a data-binding called by the template is missing. Otherwise, simply warns in the console and returns empty.
+* **`partials`** - (*default:* `{}`) A map of partial templates by name. Used to refer to [partials](#partials).
+
+Options given in a `render()` call will overwrite those set in an interface created with `Templatize.from()`.
 
 ----------
 
@@ -471,7 +475,63 @@ Total: $7.00
 Total (w/ tax): $7.35
 ```
 
+
+&nbsp;
+
+
+## Partials
+
+Partials are reusable, sub-templates. Partial templates are supplied in the [options](#options) and called with the partial directive (`>`). 
+
+The partial template will render using the data context where it was called. However, by suffixing with a caret (`^`), the context will be forced back to the root.
+
+&nbsp; *Template:*
+
+```
+1. {{>fullname}}<br />
+{{#wife}}
+  2. {{>fullname}}<br />
+  3. {{>fullname^}}
+{{/wife}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  name: {
+    first: "Bob", 
+    last: "Belcher"
+  }, 
+  wife: {
+    name: {
+      first: "Linda", 
+      last: "Belcher"
+    }
+  }
+}
+```
+
+&nbsp; *Code:*
+
+```javascript
+var partials = {
+  fullname: "{{name.first}} {{name.last}}"
+};
+Templatize.render(template, bindings, {partials: partials});
+```
+
+&nbsp; *Outputs:*
+
+```
+1. Bob Belcher
+2. Linda Belcher
+3. Bob Belcher
+```
+
+
 &nbsp; 
+
 
 
 ## More Topics

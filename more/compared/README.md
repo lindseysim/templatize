@@ -6,12 +6,21 @@ It's not a competition, but it's worth mentioning why there's a big library that
 
 While the most basic usage is similar, there are a few minor syntactic and conceptual differences.
 
+**HTML escaping**
+
 Mustache pre-escapes all rendering content for HTML special characters, requiring the `&`-directive (or triple curly braces) to specifically not escape. Templatize, by default, does the opposite (not pre-escaping any render, unless specified to escape all in the options).
+
+**Lists**
 
 The `&`-directive is handled differently. In Mustache it is a formatting operator. In Templatize it is a [list](../../#lists) operator.
 
-Passing data to functions in Mustache means turning the function into a section tag and putting context in between. The function will then be passed the template text and rendering function inside the section, but not the actual data. In Templatize, functions bound to a section tag use the output of the function as the binding to the section tag (see [basic usage of functions](../../#functions)). Additionally, functions are called with the context of where they hierarchically exist in the data-binding. To pass data to functions, one can use the [pass-context-to-function directive](../functions/README.md#passing-context-to-functions).
+**Functions**
 
+Passing data to functions in Mustache means turning the function into a section tag and putting context in between. The function will then be passed the template text and rendering function inside the section, but not the actual data. 
+
+In Templatize, functions bound to a section tag use the output of the function as the binding to the section tag (see [basic usage of functions](../../#functions)). Functions are called with the context of where they hierarchically exist in the data-binding. 
+
+To pass data to functions, one can use the [pass-context-to-function directive](../functions/README.md#passing-context-to-functions). To pass the rendered content within a section to a function, one can [pass the section as context to the function](./functions/README.md#passing-sections-as-context).
 
 **Data context in sections**
 

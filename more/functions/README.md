@@ -136,6 +136,55 @@ Louise Belcher (9 years old)
 
 &nbsp;
 
+### Passing sections as context
+
+An inclusive section can be immediately paired with the pass-context-to-function directive, which uses the rendered text within the section as the context of the function.
+
+&nbsp; *Template:*
+
+```
+{{#->bold}}{{main->fullname}}'s{{/bold}} kids are:<br />
+{{#children}}
+  {{#->bold}}{{children->fullname}}{{/bold}} ({{children->age}} years old)<br />
+{{/children}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  main: {
+    name: "Bob"
+  }, 
+  familyName: "Belcher", 
+  children: [
+    {name: "Tina", born: 2010}, 
+    {name: "Gene", born: 2012}, 
+    {name: "Louise", born: 2014}
+  ], 
+  fullname: function(root) {
+    return this.name + " " + root.familyName;
+  },
+  age: function() {
+    return 2023 - this.born;
+  },
+  bold: function(root) {
+    return "<strong>"+this+"</strong>";
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+<pre>
+<strong>Bob Belcher's</strong> kids are:
+<strong>Tina Belcher</strong> (13 years old)
+<strong>Gene Belcher</strong> (11 years old)
+<strong>Louise Belcher</strong> (9 years old)
+</pre>
+
+&nbsp;
+
 ### Function evaluation and caching
 
 As demonstrated earlier, functions can return almost anything and be appropriately handled from there. However, functions that return a function will continue to be re-evaluated until it returns a non-function value. Or it will error if it begins to detect an infinite recursion (the max. number of recursions or overflow limit is set to 99).
