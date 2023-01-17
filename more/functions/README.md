@@ -99,9 +99,10 @@ An inclusive section can be immediately paired with the pass-context-to-function
 &nbsp; *Template:*
 
 ```
-{{#->bold}}{{main->fullname}}'s{{/bold}} kids are:<br />
+{{#->bold}}{{main->fullname}}'s{{/bold}} kids are: <br />
 {{#children}}
-  {{#->bold}}{{children->fullname}}{{/bold}} ({{children->age}} years old)<br />
+  {{#->bold}}{{children->fullname}}{{/bold}}
+  ({{children->age}} years old) <br />
 {{/children}}
 ```
 

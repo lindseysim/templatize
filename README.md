@@ -431,6 +431,8 @@ Bob lives in New England and sells burgers for $5.00.
 <br /><br /><BR />
 ```
 
+&nbsp;
+
 Formatting also works for [lists](#lists) and [functions](#functions).
 
 &nbsp; *Template:*
@@ -481,7 +483,7 @@ Total (w/ tax): $7.35
 
 ## Partials
 
-Partials are reusable, sub-templates. Partial templates are supplied in the [options](#options) and called with the partial directive (`>`). 
+Partials are reusable sub-templates that can be called from the main template. Partial templates are supplied in the [options](#options) and called with the partial directive (`>`). 
 
 The partial template will render using the data context where it was called. However, by suffixing with a caret (`^`), the context will be forced back to the root.
 
