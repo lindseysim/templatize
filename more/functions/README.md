@@ -94,51 +94,7 @@ To specify a specific context in which the function should be called, you may us
 
 When in a passed context, the `this` context for the function will the be the data-binding of the context, but the root will also be supplied as an argument.
 
-&nbsp; *Template:*
-
-```
-{{main->fullname}}'s kids are:<br />
-{{#children}}
-  {{children->fullname}} ({{children->age}} years old)<br />
-{{/children}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  main: {
-    name: "Bob"
-  }, 
-  familyName: "Belcher", 
-  children: [
-    {name: "Tina", born: 2010}, 
-    {name: "Gene", born: 2012}, 
-    {name: "Louise", born: 2014}
-  ], 
-  fullname: function(root) {
-    return this.name + " " + root.familyName;
-  },
-  age: function() {
-    return 2023 - this.born;
-  }
-}
-```
-
-&nbsp; *Outputs:*
-
-```
-Bob Belcher's kids are:
-Tina Belcher (13 years old)
-Gene Belcher (11 years old)
-Louise Belcher (9 years old)
-```
-
-&nbsp;
-
-### Passing sections as context
-
-An inclusive section can be immediately paired with the pass-context-to-function directive, which uses the rendered text within the section as the context of the function.
+An inclusive section can be immediately paired with the pass-context-to-function directive (`#->`), which uses the rendered template within the defined section as the `this` context of the function.
 
 &nbsp; *Template:*
 
@@ -156,6 +112,7 @@ An inclusive section can be immediately paired with the pass-context-to-function
   main: {
     name: "Bob"
   }, 
+  year: 2023, 
   familyName: "Belcher", 
   children: [
     {name: "Tina", born: 2010}, 
@@ -165,8 +122,8 @@ An inclusive section can be immediately paired with the pass-context-to-function
   fullname: function(root) {
     return this.name + " " + root.familyName;
   },
-  age: function() {
-    return 2023 - this.born;
+  age: function(root) {
+    return root.year - this.born;
   },
   bold: function(root) {
     return "<strong>"+this+"</strong>";

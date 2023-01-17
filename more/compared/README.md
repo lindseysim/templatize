@@ -2,7 +2,9 @@
 
 It's not a competition, but it's worth mentioning why there's a big library that emulates most of what [Mustache.js](https://github.com/janl/mustache.js/) does. While they are similar in many ways, there are enough differences to make switching between incompatible beyond the basic variables and sections.
 
-#### Differences
+&nbsp;
+
+### Differences
 
 While the most basic usage is similar, there are a few minor syntactic and conceptual differences.
 
@@ -47,7 +49,7 @@ However, in Templatize, all variables search from the root, even within a sectio
 
 &nbsp;
 
-#### Advantages to Templatize
+### Advantages to Templatize
 
 The support for grammatically formatted [lists](../../#lists) and built-in [formatters](../../#formatting) are unique to Templatize.
 
@@ -57,7 +59,7 @@ Templatize has [an option to evaluate zero-values as true](../../#options). Some
 
 &nbsp;
 
-#### Which is better?
+### Which is better?
 
 Both run quickly -- depending on input template and data of course -- the first pass render will be on the order of a one to a few milliseconds and subsequent passes on the same template (utilizing caching strategies on the parsed template) will be multiple times faster. But in general, Mustache.js is faster.
 
