@@ -94,7 +94,7 @@ To specify a specific context in which the function should be called, you may us
 
 When in a passed context, the `this` context for the function will the be the data-binding of the context, but the root will also be supplied as an argument.
 
-An inclusive section can be immediately paired with the pass-context-to-function directive (`#->`), which uses the rendered template within the defined section as the `this` context of the function.
+An inclusive section can be immediately paired with the pass-context-to-function directive (`#->`), which uses the rendered template within the defined section as the `this` context of the function. As it is treated like a template in the section, it must be paired to a closing section tag with the same function name (though the pass-context-to-function directive is not required on the closing tag).
 
 &nbsp; *Template:*
 
@@ -112,7 +112,6 @@ An inclusive section can be immediately paired with the pass-context-to-function
   main: {
     name: "Bob"
   }, 
-  year: 2023, 
   familyName: "Belcher", 
   children: [
     {name: "Tina", born: 2010}, 
@@ -122,6 +121,7 @@ An inclusive section can be immediately paired with the pass-context-to-function
   fullname: function(root) {
     return this.name + " " + root.familyName;
   },
+  year: 2023, 
   age: function(root) {
     return root.year - this.born;
   },

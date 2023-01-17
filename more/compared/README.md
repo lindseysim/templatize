@@ -22,7 +22,12 @@ Passing data to functions in Mustache means turning the function into a section 
 
 In Templatize, functions bound to a section tag use the output of the function as the binding to the section tag (see [basic usage of functions](../../#functions)). Functions are called with the context of where they hierarchically exist in the data-binding. 
 
-To pass data to functions, one can use the [pass-context-to-function directive](../functions/README.md#passing-context-to-functions). To pass the rendered content within a section to a function, one can [pass the section as context to the function](./functions/README.md#passing-sections-as-context).
+To pass data to functions, one can use the [pass-context-to-function directive](../functions/README.md#passing-context-to-functions), which passes the data binding specified to the function. Passing the (rendered) template within a section can be done with the special pass-section-as-context directive, by an inclusive section tag immediately to a pass-context-to-function directive.
+
+```
+{{context->function}}
+{{#->function}}pass this rendered as context{{/function}}
+```
 
 **Data context in sections**
 
