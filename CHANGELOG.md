@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.2.0
+**2023-??-??**
+
+* Readme edits.
+* Support for partials.
+* Support for sections passed as context.
+* Clean-up options handling.
+* Clean-up node class constructors and handling.
+
+## v2.1.1
+**2023-01-11**
+
+* Update libraries: 
+    * `@babel/core` (7.20.12)
+    * `@babel/preset-env` (7.20.2)
+    * `babel-loader` (9.1.2)
+    * `webpack` (5.75)
+    * `webpack-cli` (5.0.1)
+* Readme edits.
+* Update overflow limit to 99.
+
 ## v2.1.0
 **2022-01-15**
 
@@ -54,4 +75,3 @@
 **2021-03-25**
 
 * Major overhaul completed, fairly stable, splitting as v2.0.0.
-* 
