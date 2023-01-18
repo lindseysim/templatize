@@ -67,14 +67,16 @@ var rendered = templateOne.render(bindings);
 
 ### Options
 
-* **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings. Only available in *Templatize*.**from()** when creating a new instance off a preprocessed template.
+* **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings.
 * **`errorOnFuncFailure`** - (*default:* `false`) If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated.
 * **`evalZeroAsTrue`** - (*default:* `false`) If true, zero-values are treated as a real value for section evaluation. See [section value evaluation](#section-value-evaluation).
 * **`escapeAll`** - (*default:* `false`) If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [formatting](#formatting).
 * **`errorOnMissingTags`** - (*default:* `false`) If true, throw exceptions when a data-binding called by the template is missing. Otherwise, simply warns in the console and returns empty.
 * **`partials`** - (*default:* `{}`) A map of partial templates by name. Used to refer to [partials](#partials).
 
-Options given in a `render()` call will overwrite those set in an interface created with `Templatize.from()`.
+Options given in a `render()` call will overwrite those set in an interface created with `Templatize.from()`. 
+
+The one exception is custom delimiters for an interface created from `Templatize.from()`. In such a case, the original template is preprocessed, and thus new delimiters provided in the options to `render()` will not take effect on the original template or partials provided in the `from()` call. However, they will be used as the delimiters from any new/overwriting partials provided in the options to the `from()` call.
 
 ----------
 
