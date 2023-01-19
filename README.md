@@ -76,7 +76,7 @@ var rendered = templateOne.render(bindings);
 
 Options given in a `render()` call will overwrite those set in an interface created with `Templatize.from()`. 
 
-The one exception is custom delimiters for an interface created from `Templatize.from()`. In such a case, the original template is preprocessed, and thus new delimiters provided in the options to `render()` will not take effect on the original template or partials provided in the `from()` call. However, they will be used as the delimiters from any new/overwriting partials provided in the options to the `from()` call.
+The one exception is custom delimiters for an interface created from `Templatize.from()`. In such a case, the original template and any provided partials are preprocessed. NWhen calling `render()` on the interface with provided options, the delimiters will not take effect except on any newly provided partials with those options.
 
 ----------
 
@@ -380,6 +380,49 @@ By default, functions fail silently. If an error occurs during function call, ex
 
 &nbsp;
 
+### Passing context to functions
+
+To change the context of a function (accessed by the `this` keyword) when it is called, the tag may pair the key referencing a data context with the key for the function, using the pass-to-context directive (`->`) to separate them. The function will also be passed a `root` parameter that is always a reference to the data-binding at the top-most level.
+
+```
+The burger-of-the-day is:<br />
+"{{special.burger->getTodays}}"<br />
+{{special.price->getTodays}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  special: {
+    burger: {
+      sunday: "Yes I Cayenne Burger", 
+      monday: "So Many Fennel So Little Thyme Burger"
+    }, 
+    price: {
+      sunday: "$5.95", 
+      monday: "$5.50"
+    }
+  }, 
+  today: "sunday", 
+  getTodays: function(root) {
+    return this[root.today];
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+The burger-of-the-day is:
+"Yes I Cayenne Burger"
+$5.95
+```
+
+This functionality is covered in greater depth in the [additional function documentation](./more/functions/) under [passing-context-to-functions](./more/functions/#passing-context-to-functions)
+
+&nbsp;
+
 ### More on functions
 
 Functions are arguably the most powerful (and sometimes frustrating) aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions). This section only covers the most superficial use of functions.
@@ -485,7 +528,7 @@ Total (w/ tax): $7.35
 
 ## Partials
 
-Partials are reusable sub-templates that can be called from the main template. Partial templates are supplied in the [options](#options) and called with the partial directive (`>`). 
+Partials are reusable sub-templates that can be called from the main template. Partials are supplied in the [options](#options) and called in the template with the partial directive (`>`). 
 
 The partial template will render using the data context where it was called. However, by suffixing with a caret (`^`), the context will be forced back to the root.
 

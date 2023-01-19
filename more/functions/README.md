@@ -90,19 +90,72 @@ Functions outputs are cached after their first evaluation. As such, calling `men
 
 ### Passing context to functions
 
-To specify a specific context in which the function should be called, you may use the pass-context-to-function directive, by separating the context (first) and function to call it on (second) with an arrow directive (`->`).
-
-When in a passed context, the `this` context for the function will the be the data-binding of the context, but the root will also be supplied as an argument.
-
-An inclusive section can be immediately paired with the pass-context-to-function directive (`#->`), which uses the rendered template within the defined section as the `this` context of the function. As it is treated like a template in the section, it must be paired to a closing section tag with the same function name (though the pass-context-to-function directive is not required on the closing tag).
+To change the context of a function (accessed by the `this` keyword) when it is called, the tag may pair the key referencing a data context with the key for the function, using the pass-to-context directive (`->`) to separate them. The function will also be passed a `root` parameter that is always a reference to the data-binding at the top-most level.
 
 &nbsp; *Template:*
 
 ```
-{{#->bold}}{{main->fullname}}'s{{/bold}} kids are: <br />
+The burger-of-the-day is:<br />
+"{{special.burger->getTodays}}"<br />
+{{special.price->getTodays}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  special: {
+    burger: {
+      sunday: "Yes I Cayenne Burger", 
+      monday: "So Many Fennel So Little Thyme Burger"
+    }, 
+    price: {
+      sunday: "$5.95", 
+      monday: "$5.50"
+    }
+  }, 
+  today: "sunday", 
+  getTodays: function(root) {
+    return this[root.today];
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+The burger-of-the-day is:
+"Yes I Cayenne Burger"
+$5.95
+```
+
+In the function `getTodays()`, the data accessed by the `this` keyword changes depending on context passed to the function. But using the `root` parameter keeps the reference to `root.today` constant no matter the context in which the function was called.
+
+&nbsp;
+
+Chaining functions are not currently possible. The following template would result in an error.
+
+&nbsp; *Template:*
+
+```
+{{context->func1->func2}}
+```
+
+&nbsp;
+
+#### Passing sections as context
+
+A special type of section is denoted by the inclusive section directive combined with the pass-context-to-function directive (`#->`), as well as the typical closing section tag, with the tag key being a reference to a function.
+
+By combining the inclusive section directive with the pass-context-to-function directive (`#->`), the section's render text will be passed to whatever function follows. The closing section tag is given by the standard closing directive (`/`) and the same function.
+
+&nbsp; *Template:*
+
+```
+{{#->bold}}{{main->fullname}}'s{{/bold}} kids are:<br />
 {{#children}}
-  {{#->bold}}{{children->fullname}}{{/bold}}
-  ({{children->age}} years old) <br />
+  {{children->fullname}}
+  {{#->parenthesis}}{{children.age->bold}} years old{{/parenthesis}}<br />
 {{/children}}
 ```
 
@@ -115,19 +168,18 @@ An inclusive section can be immediately paired with the pass-context-to-function
   }, 
   familyName: "Belcher", 
   children: [
-    {name: "Tina", born: 2010}, 
-    {name: "Gene", born: 2012}, 
-    {name: "Louise", born: 2014}
+    {name: "Tina", age: 13}, 
+    {name: "Gene", age: 11}, 
+    {name: "Louise", age: 9}
   ], 
   fullname: function(root) {
     return this.name + " " + root.familyName;
   },
-  year: 2023, 
-  age: function(root) {
-    return root.year - this.born;
-  },
-  bold: function(root) {
+  bold: function() {
     return "<strong>"+this+"</strong>";
+  }, 
+  parenthesis: function() {
+    return "("+this+")";
   }
 }
 ```
@@ -136,9 +188,9 @@ An inclusive section can be immediately paired with the pass-context-to-function
 
 <pre>
 <strong>Bob Belcher's</strong> kids are:
-<strong>Tina Belcher</strong> (13 years old)
-<strong>Gene Belcher</strong> (11 years old)
-<strong>Louise Belcher</strong> (9 years old)
+Tina Belcher (13 years old)
+Gene Belcher (11 years old)
+Louise Belcher (9 years old)
 </pre>
 
 &nbsp;
