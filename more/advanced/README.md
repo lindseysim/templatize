@@ -2,6 +2,7 @@
 
 * [Mutli-dimensional arrays](#mutli-dimensional-arrays)
 * [Arrays of functions](#arrays-of-functions)
+* [Directives in chained functions](#directives-in-chained-functions)
 * [Passing a function to itself](#passing-a-function-to-itself)
 * [Mixing directives in a section tag](#mixing-directives-in-a-section-tag)
 * [Function evaluation and modifying binding data](#function-evaluation-and-modifying-binding-data)
@@ -123,6 +124,60 @@ Note however that the above functions only make sense within the context of an i
 *However* these functions are evaluated in the repeating section `{{#func}}`, using the raw context (in this case resolving to the root binding), wherein the if-statements do come into play. If the if-statements returned false (or 0 or whitespace), they would be excluded from the repeating section render. Thus they must return a truthy value (or 0 with [the option to treat zero-values as true](../sections/#treating-zero-values-as-true)).
 
 &nbsp;
+
+#### Directives in chained functions
+
+When chaining functions, each function key is separately considered, so it is allowed to use the in-context directive (`.`) and formatting directives within individual functions called in the chain.
+
+&nbsp; *Template:*
+
+```
+{{#belchers.children}}
+  {{#functions}}
+    {{belchers.children->.fullname->.label}}
+  {{/functions}}
+  <br />
+{{/belchers.children}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  belchers: {
+    familyName: "belcher", 
+    children: [
+      {name: "tina"}, 
+      {name: "gene"}, 
+      {name: "louise"}
+    ]
+  }, 
+  i: 0, 
+  alphabet: ['a', 'b', 'c'], 
+  functions: {
+    label: function(root) {
+      return root.alphabet[root.i++] + ". " + this;
+    }, 
+    fullname: function(root) {
+      return this.name + " " + root.belchers.familyName;
+    }
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+a. Tina Belcher
+b. Gene Belcher
+c. Louise Belcher
+```
+
+&nbsp;
+
+The functions `fullname` and `label` are called via shorthand with the in-context directive as they are within the section for `#functions`. Note that the value (passed as context) for `belchers.children` could be accessed via a naked in-context directive when directly under it's own section, however, it loses the context in the inner section for `#functions`, as the context for a tag refers to the most-direct section parent.
+
+The format directive, because it comes after calling `fullname`, does not capitalize the labels, because labeling happens further down the chain.
 
 #### Passing a function to itself
 

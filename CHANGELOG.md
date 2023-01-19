@@ -6,8 +6,10 @@
 * Readme edits.
 * Support for partials.
 * Support for sections passed as context.
+* Support for chaining functions.
 * Clean-up options handling.
 * Clean-up node class constructors and handling.
+* Split context object into own class.
 
 ## v2.1.1
 **2023-01-11**
@@ -26,7 +28,7 @@
 
 * Reformat webpack `output.library` parameters to new standard.
 * Add changelog.
-* Pretty stable as this point, bump number of update in second position as v2.1.0.
+* Pretty stable as this point, bump as minor update.
 
 ## v2.0.5
 **2022-01-13**

@@ -49,9 +49,11 @@ By default, functions fail silently. If an error occurs during function call, ex
 
 &nbsp; 
 
-### Functions as objects
+### Function returns and formatting
 
-If a function returns an object, it can be referenced into as if it were a normal object.
+The returned of a function is handled as appropriate for the type of value it is. (In the first example, a function returning an array used as a list was shown.) If a function returns an object, it can be referenced into as if it were a normal object, even if the property nesting is not resolved until the function is called. 
+
+Formatting directives can also be applied.
 
 &nbsp; *Template:*
 
@@ -90,7 +92,7 @@ Functions outputs are cached after their first evaluation. As such, calling `men
 
 ### Passing context to functions
 
-To change the context of a function (accessed by the `this` keyword) when it is called, the tag may pair the key referencing a data context with the key for the function, using the pass-to-context directive (`->`) to separate them. The function will also be passed a `root` parameter that is always a reference to the data-binding at the top-most level.
+To change the context of a function (accessed by the `this` keyword) when it is called, the tag may pair the key referencing a data context with the key for the function, using the pass-as-context directive (`->`) to separate them. The function will also be passed a `root` parameter that is always a reference to the data-binding at the top-most level.
 
 &nbsp; *Template:*
 
@@ -130,16 +132,6 @@ $5.95
 ```
 
 In the function `getTodays()`, the data accessed by the `this` keyword changes depending on context passed to the function. But using the `root` parameter keeps the reference to `root.today` constant no matter the context in which the function was called.
-
-&nbsp;
-
-Chaining functions are not currently possible. The following template would result in an error.
-
-&nbsp; *Template:*
-
-```
-{{context->func1->func2}}
-```
 
 &nbsp;
 
@@ -192,6 +184,34 @@ Tina Belcher (13 years old)
 Gene Belcher (11 years old)
 Louise Belcher (9 years old)
 </pre>
+
+&nbsp; 
+
+### Chaining functions
+
+Functions can be chained using multiple pass-as-context directives and will be evaluated left-to-right.
+
+&nbsp; *Template:*
+
+```
+{{value->log2->square}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  value: 128, 
+  log2: function() { return Math.log2(this); }, 
+  square: function() { return this*this; }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+49
+```
 
 &nbsp;
 
