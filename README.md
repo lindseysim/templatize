@@ -155,7 +155,8 @@ Bob is {{age}} years old.
 **Restrictions for tag key names**
 
 * `_display` is a special keyword. While it can be set (see the [_display parameter](./more/sections/#the-_display-parameter)), it should only be done when specifically calling said functionality.
-* Any key name with a leading bang (`!`) will be treated as an [comment](#comments-and-escaping) in the template code.
+* Any key name with a leading bang (`!`) will be treated as a [comment](#comments-and-escaping) in the template code.
+* Any key name with a leading period (`.`) will be treated as a [context directive](#scoping-and-the-context-directive) and not part of the key name.
 * Any key name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
 * Ending a key name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
 * Using in any place a double-colon (`::`), which is a [formatting](#formatting) directive, or an arrow operator (`->`), which is used for [passing context to functions](./more/functions/#passing-context-to-functions), will be interpreted as their respective directives.
@@ -530,15 +531,17 @@ Total (w/ tax): $7.35
 
 Partials are reusable sub-templates that can be called from the main template. Partials are supplied in the [options](#options) and called in the template with the partial directive (`>`). 
 
-The partial template will render using the data context where it was called. However, by suffixing with a caret (`^`), the context will be forced back to the root.
+The partial template will using the same data-bindings given for rendering the template. However, the in-context directive (`.`) may be prefixed before the key name to render the partial with data-bindings corresponding to the current data context.
+
+Partials cannot be used as sections or passed as context, but they can be given a formatting directive.
 
 &nbsp; *Template:*
 
 ```
-1. {{>fullname}}<br />
+1. {{>fullname}}
 {{#wife}}
-  2. {{>fullname}}<br />
-  3. {{>fullname^}}
+  2. {{>fullname::upper}}
+  3. {{>.fullname;}}
 {{/wife}}
 ```
 
@@ -563,7 +566,7 @@ The partial template will render using the data context where it was called. How
 
 ```javascript
 var partials = {
-  fullname: "{{name.first}} {{name.last}}"
+  fullname: "{{name.first}} {{name.last}}<br />"
 };
 Templatize.render(template, bindings, {partials: partials});
 ```
@@ -572,8 +575,8 @@ Templatize.render(template, bindings, {partials: partials});
 
 ```
 1. Bob Belcher
-2. Linda Belcher
-3. Bob Belcher
+2. BOB BELCHER
+3. Linda Belcher<br />
 ```
 
 
