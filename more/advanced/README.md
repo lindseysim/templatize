@@ -134,7 +134,7 @@ When chaining functions, each function key is separately considered, so it is al
 ```
 {{#belchers.children}}
   {{#functions}}
-    {{belchers.children->.fullname->.label}}
+    {{belchers.children->.fullname::capitalize->.label}}
   {{/functions}}
   <br />
 {{/belchers.children}}
@@ -177,7 +177,7 @@ c. Louise Belcher
 
 The functions `fullname` and `label` are called via shorthand with the in-context directive as they are within the section for `#functions`. Note that the value (passed as context) for `belchers.children` could be accessed via a naked in-context directive when directly under it's own section, however, it loses the context in the inner section for `#functions`, as the context for a tag refers to the most-direct section parent.
 
-The format directive, because it comes after calling `fullname`, does not capitalize the labels, because labeling happens further down the chain.
+The format directive for word capitalization, because it comes after calling `fullname`, does not capitalize the labels, because labeling happens further down the chain.
 
 #### Passing a function to itself
 
