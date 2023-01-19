@@ -28,6 +28,6 @@ module.exports = {
     }, 
     optimization: {
         concatenateModules: true, 
-        minimize: true
+        minimize: false
     }
 };
