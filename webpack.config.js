@@ -1,7 +1,10 @@
-const webpack  = require('webpack'), 
-      path     = require('path');
+import webpack from 'webpack';
+import path    from 'path';
+import url     from 'url';
 
-module.exports = {
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+
+export default {
     mode: 'production', 
     entry: {
         templatize: './templatize.js'

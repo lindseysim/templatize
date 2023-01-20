@@ -3,17 +3,19 @@
 ## v2.2.0
 **2023-??-??**
 
-* Readme edits.
 * New features:
     * Support for partials.
     * Support for sections passed as context.
     * Support for chaining functions.
+* Readme edits.
 * Clean-up options handling.
 * Clean-up node class constructors and handling.
 * Reworked context handling and hierarchy tracking.
     * Split context object into own class.
     * Unresolved checks for passed-to function(s).
     * Recursing outside-in rendering for sections preserves node hierarchy.
+* Make package an ES6 module.
+    * Last holdout was updating webpack config.
 * While backwards compatible, significant changes to internal workings, bump as minor update.
 
 ## v2.1.1
