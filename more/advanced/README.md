@@ -179,6 +179,35 @@ The functions `fullname` and `label` are called via shorthand with the in-contex
 
 The format directive for word capitalization, because it comes after calling `fullname`, does not capitalize the labels, because labeling happens further down the chain.
 
+&nbsp;
+
+Any part of the chain that has a format directive will be converted into a string – even if the directive doesn't really result in any apparent change to the value. If this is not considered when passed to a function down the chain, this may result in unexpected behavior or in the function failing.
+
+&nbsp; *Template:*
+
+```
+{{value->addTen::encode}}<br />
+{{value::encode->addTen}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  value: 1, 
+  addTen: function() { return this+10; }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+11
+110
+```
+
+&nbsp;
+
 #### Passing a function to itself
 
 When passing a function as a context to itself, the function will first be evaluated as-is until it returns a valid context (that is, a non-function), then pass to itself as a function. Normally, this is kind of pointless or results in weird behavior, but it might be worth knowing as an edge case.
