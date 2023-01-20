@@ -1,6 +1,6 @@
 ## Advanced usage, edge cases, and general weirdness
 
-* [Mutli-dimensional arrays](#mutli-dimensional-arrays)
+* [Multi-dimensional arrays](#multi-dimensional-arrays)
 * [Arrays of functions](#arrays-of-functions)
 * [Directives in chained functions](#directives-in-chained-functions)
 * [Passing a function to itself](#passing-a-function-to-itself)
@@ -9,7 +9,7 @@
 
 &nbsp; 
 
-#### Mutli-dimensional arrays
+#### Multi-dimensional arrays
 
 By using the in-context directive, you can access multi-dimensional arrays.
 
