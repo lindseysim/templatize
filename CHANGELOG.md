@@ -1,11 +1,41 @@
 # Changelog
 
+## v2.2.0
+**2023-??-??**
+
+* New features:
+    * Support for partials.
+    * Support for sections passed as context.
+    * Support for chaining functions.
+* Readme edits.
+* Clean-up options handling.
+* Clean-up node class constructors and handling.
+* Reworked context handling and hierarchy tracking.
+    * Split context object into own class.
+    * Unresolved checks for passed-to function(s).
+    * Recursing outside-in rendering for sections preserves node hierarchy.
+* Make package an ES6 module.
+    * Last holdout was updating webpack config.
+* While backwards compatible, significant changes to internal workings, bump as minor update.
+
+## v2.1.1
+**2023-01-11**
+
+* Update libraries: 
+    * `@babel/core` (7.20.12)
+    * `@babel/preset-env` (7.20.2)
+    * `babel-loader` (9.1.2)
+    * `webpack` (5.75)
+    * `webpack-cli` (5.0.1)
+* Readme edits.
+* Update overflow limit to 99.
+
 ## v2.1.0
 **2022-01-15**
 
 * Reformat webpack `output.library` parameters to new standard.
 * Add changelog.
-* Pretty stable as this point, bump number of update in second position as v2.1.0.
+* Pretty stable as this point, bump as minor update.
 
 ## v2.0.5
 **2022-01-13**
@@ -54,4 +84,3 @@
 **2021-03-25**
 
 * Major overhaul completed, fairly stable, splitting as v2.0.0.
-* 

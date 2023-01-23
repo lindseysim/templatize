@@ -1,14 +1,15 @@
 ## Advanced usage, edge cases, and general weirdness
 
-* [Mutli-dimensional arrays](#mutli-dimensional-arrays)
+* [Multi-dimensional arrays](#multi-dimensional-arrays)
 * [Arrays of functions](#arrays-of-functions)
+* [Directives in chained functions](#directives-in-chained-functions)
 * [Passing a function to itself](#passing-a-function-to-itself)
 * [Mixing directives in a section tag](#mixing-directives-in-a-section-tag)
 * [Function evaluation and modifying binding data](#function-evaluation-and-modifying-binding-data)
 
 &nbsp; 
 
-#### Mutli-dimensional arrays
+#### Multi-dimensional arrays
 
 By using the in-context directive, you can access multi-dimensional arrays.
 
@@ -121,6 +122,89 @@ Jimmy Pesto
 Note however that the above functions only make sense within the context of an item in `people`. Thus the if-statements returning 1 were added to each to protect against an error when traversing into an undefined property of the context. Because the functions are never used in the template outside the context of an item in `people`, the resulting "1" value is never printed. 
 
 *However* these functions are evaluated in the repeating section `{{#func}}`, using the raw context (in this case resolving to the root binding), wherein the if-statements do come into play. If the if-statements returned false (or 0 or whitespace), they would be excluded from the repeating section render. Thus they must return a truthy value (or 0 with [the option to treat zero-values as true](../sections/#treating-zero-values-as-true)).
+
+&nbsp;
+
+#### Directives in chained functions
+
+When chaining functions, each function key is separately considered, so it is allowed to use the in-context directive (`.`) and formatting directives within individual functions called in the chain.
+
+&nbsp; *Template:*
+
+```
+{{#belchers.children}}
+  {{#functions}}
+    {{belchers.children->.fullname::capitalize->.label}}
+  {{/functions}}
+  <br />
+{{/belchers.children}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  belchers: {
+    familyName: "belcher", 
+    children: [
+      {name: "tina"}, 
+      {name: "gene"}, 
+      {name: "louise"}
+    ]
+  }, 
+  i: 0, 
+  alphabet: ['a', 'b', 'c'], 
+  functions: {
+    label: function(root) {
+      return root.alphabet[root.i++] + ". " + this;
+    }, 
+    fullname: function(root) {
+      return this.name + " " + root.belchers.familyName;
+    }
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+a. Tina Belcher
+b. Gene Belcher
+c. Louise Belcher
+```
+
+&nbsp;
+
+The functions `fullname` and `label` are called via shorthand with the in-context directive as they are within the section for `#functions`. Note that the value (passed as context) for `belchers.children` could be accessed via a naked in-context directive when directly under it's own section, however, it loses the context in the inner section for `#functions`, as the context for a tag refers to the most-direct section parent.
+
+The format directive for word capitalization, because it comes after calling `fullname`, does not capitalize the labels, because labeling happens further down the chain.
+
+&nbsp;
+
+Any part of the chain that has a format directive will be converted into a string – even if the directive doesn't really result in any apparent change to the value. If this is not considered when passed to a function down the chain, this may result in unexpected behavior or in the function failing.
+
+&nbsp; *Template:*
+
+```
+{{value->addTen::encode}}<br />
+{{value::encode->addTen}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  value: 1, 
+  addTen: function() { return this+10; }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+11
+110
+```
 
 &nbsp;
 

@@ -14,6 +14,7 @@ Lawrence Sim © 2023
     * [Scoping and context](#scoping-and-the-context-directive)
     * [Functions](#functions)
     * [Formatting](#formatting)
+    * [Partials](#partials)
 * [More Topics (including comparison with Mustache)](#more-topics)
 * [Acknowledgments](#acknowledgments)
 
@@ -66,11 +67,16 @@ var rendered = templateOne.render(bindings);
 
 ### Options
 
-* **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings. Only available in *Templatize*.**from()** when creating a new instance off a preprocessed template.
+* **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings.
 * **`errorOnFuncFailure`** - (*default:* `false`) If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated.
 * **`evalZeroAsTrue`** - (*default:* `false`) If true, zero-values are treated as a real value for section evaluation. See [section value evaluation](#section-value-evaluation).
 * **`escapeAll`** - (*default:* `false`) If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [formatting](#formatting).
 * **`errorOnMissingTags`** - (*default:* `false`) If true, throw exceptions when a data-binding called by the template is missing. Otherwise, simply warns in the console and returns empty.
+* **`partials`** - (*default:* `{}`) A map of partial templates by name. Used to refer to [partials](#partials).
+
+Options given in a `render()` call will overwrite those set in an interface created with `Templatize.from()`. 
+
+The one exception is custom delimiters for an interface created from `Templatize.from()`. In such a case, the original template and any provided partials are preprocessed. NWhen calling `render()` on the interface with provided options, the delimiters will not take effect except on any newly provided partials with those options.
 
 ----------
 
@@ -149,7 +155,8 @@ Bob is {{age}} years old.
 **Restrictions for tag key names**
 
 * `_display` is a special keyword. While it can be set (see the [_display parameter](./more/sections/#the-_display-parameter)), it should only be done when specifically calling said functionality.
-* Any key name with a leading bang (`!`) will be treated as an [comment](#comments-and-escaping) in the template code.
+* Any key name with a leading bang (`!`) will be treated as a [comment](#comments-and-escaping) in the template code.
+* Any key name with a leading period (`.`) will be treated as a [context directive](#scoping-and-the-context-directive) and not part of the key name.
 * Any key name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
 * Ending a key name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
 * Using in any place a double-colon (`::`), which is a [formatting](#formatting) directive, or an arrow operator (`->`), which is used for [passing context to functions](./more/functions/#passing-context-to-functions), will be interpreted as their respective directives.
@@ -374,9 +381,52 @@ By default, functions fail silently. If an error occurs during function call, ex
 
 &nbsp;
 
+### Passing context to functions
+
+To change the context of a function (accessed by the `this` keyword) when it is called, the tag may pair the key referencing a data context with the key for the function, using the pass-as-context directive (`->`) to separate them. The function will also be passed a `root` parameter that is always a reference to the data-binding at the top-most level.
+
+```
+The burger-of-the-day is:<br />
+"{{special.burger->getTodays}}"<br />
+{{special.price->getTodays}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  special: {
+    burger: {
+      sunday: "Yes I Cayenne Burger", 
+      monday: "So Many Fennel So Little Thyme Burger"
+    }, 
+    price: {
+      sunday: "$5.95", 
+      monday: "$5.50"
+    }
+  }, 
+  today: "sunday", 
+  getTodays: function(root) {
+    return this[root.today];
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+The burger-of-the-day is:
+"Yes I Cayenne Burger"
+$5.95
+```
+
+This functionality is covered in greater depth in the [additional function documentation](./more/functions/) under [passing-context-to-functions](./more/functions/#passing-context-to-functions)
+
+&nbsp;
+
 ### More on functions
 
-Functions are arguably the most powerful (and sometimes frustrating) aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions). This section only covers the most superficial use of functions.
+Functions are arguably the most powerful (and sometimes frustrating) aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions) and [chaining functions](./more/functions/#chaining-functions). This section only covers the most superficial use of functions.
 
 See additional documentation for more on [functions](./more/functions/).
 
@@ -427,6 +477,8 @@ Bob lives in New England and sells burgers for $5.00.
 <br /><br /><BR />
 ```
 
+&nbsp;
+
 Formatting also works for [lists](#lists) and [functions](#functions).
 
 &nbsp; *Template:*
@@ -471,7 +523,65 @@ Total: $7.00
 Total (w/ tax): $7.35
 ```
 
+
+&nbsp;
+
+
+## Partials
+
+Partials are reusable sub-templates that can be called from the main template. Partials are supplied in the [options](#options) and called in the template with the partial directive (`>`). 
+
+The partial template will using the same data-bindings given for rendering the template. However, the in-context directive (`.`) may be prefixed before the key name to render the partial with data-bindings corresponding to the current data context.
+
+Partials cannot be used as sections or passed as context, but they can be given a formatting directive.
+
+&nbsp; *Template:*
+
+```
+1. {{>fullname}}
+{{#wife}}
+  2. {{>fullname::upper}}
+  3. {{>.fullname;}}
+{{/wife}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  name: {
+    first: "Bob", 
+    last: "Belcher"
+  }, 
+  wife: {
+    name: {
+      first: "Linda", 
+      last: "Belcher"
+    }
+  }
+}
+```
+
+&nbsp; *Code:*
+
+```javascript
+var partials = {
+  fullname: "{{name.first}} {{name.last}}<br />"
+};
+Templatize.render(template, bindings, {partials: partials});
+```
+
+&nbsp; *Outputs:*
+
+```
+1. Bob Belcher
+2. BOB BELCHER
+3. Linda Belcher<br />
+```
+
+
 &nbsp; 
+
 
 
 ## More Topics
@@ -485,7 +595,7 @@ The above only takes a cursory glance at some of the directives. Be sure to look
 
 #### Advanced usage, edge cases, and general weirdness
 
-That's all great, you may be thinking, but what about if I [pass a function to itself](./more/advanced/#passing-a-function-to-itself)? Or [use a context-pass-to-function directive in the section tag](./more/advanced/#mixing-directives-in-a-section-tag)? What about [multi-dimensional arrays](./more/advanced/#mutli-dimensional-arrays)? Did you think of all that?
+That's all great, you may be thinking, but what about if I [pass a function to itself](./more/advanced/#passing-a-function-to-itself)? Or [use a pass-as-context directive in the section tag](./more/advanced/#mixing-directives-in-a-section-tag)? What about [multi-dimensional arrays](./more/advanced/#multi-dimensional-arrays)? Did you think of all that?
 
 Well luckily for you, you sadist, we have such a section on [advanced usage, edge cases, and general weirdness](./more/advanced/).
 

@@ -49,9 +49,11 @@ By default, functions fail silently. If an error occurs during function call, ex
 
 &nbsp; 
 
-### Functions as objects
+### Function returns and formatting
 
-If a function returns an object, it can be referenced into as if it were a normal object.
+The returned of a function is handled as appropriate for the type of value it is. (In the first example, a function returning an array used as a list was shown.) If a function returns an object, it can be referenced into as if it were a normal object, even if the property nesting is not resolved until the function is called. 
+
+Formatting directives can also be applied.
 
 &nbsp; *Template:*
 
@@ -90,16 +92,62 @@ Functions outputs are cached after their first evaluation. As such, calling `men
 
 ### Passing context to functions
 
-To specify a specific context in which the function should be called, you may use the pass-context-to-function directive, by separating the context (first) and function to call it on (second) with an arrow directive (`->`).
-
-When in a passed context, the `this` context for the function will the be the data-binding of the context, but the root will also be supplied as an argument.
+To change the context of a function (accessed by the `this` keyword) when it is called, the tag may pair the key referencing a data context with the key for the function, using the pass-as-context directive (`->`) to separate them. The function will also be passed a `root` parameter that is always a reference to the data-binding at the top-most level.
 
 &nbsp; *Template:*
 
 ```
-{{main->fullname}}'s kids are:<br />
+The burger-of-the-day is:<br />
+"{{special.burger->getTodays}}"<br />
+{{special.price->getTodays}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  special: {
+    burger: {
+      sunday: "Yes I Cayenne Burger", 
+      monday: "So Many Fennel So Little Thyme Burger"
+    }, 
+    price: {
+      sunday: "$5.95", 
+      monday: "$5.50"
+    }
+  }, 
+  today: "sunday", 
+  getTodays: function(root) {
+    return this[root.today];
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+The burger-of-the-day is:
+"Yes I Cayenne Burger"
+$5.95
+```
+
+In the function `getTodays()`, the data accessed by the `this` keyword changes depending on context passed to the function. But using the `root` parameter keeps the reference to `root.today` constant no matter the context in which the function was called.
+
+&nbsp;
+
+#### Passing sections as context
+
+A special type of section is denoted by the inclusive section directive combined with the pass-context-to-function directive (`#->`), as well as the typical closing section tag, with the tag key being a reference to a function.
+
+By combining the inclusive section directive with the pass-context-to-function directive (`#->`), the section's render text will be passed to whatever function follows. The closing section tag is given by the standard closing directive (`/`) and the same function.
+
+&nbsp; *Template:*
+
+```
+{{#->bold}}{{main->fullname}}'s{{/bold}} kids are:<br />
 {{#children}}
-  {{children->fullname}} ({{children->age}} years old)<br />
+  {{children->fullname}}
+  {{#->parenthesis}}{{children.age->bold}} years old{{/parenthesis}}<br />
 {{/children}}
 ```
 
@@ -112,26 +160,57 @@ When in a passed context, the `this` context for the function will the be the da
   }, 
   familyName: "Belcher", 
   children: [
-    {name: "Tina", born: 2010}, 
-    {name: "Gene", born: 2012}, 
-    {name: "Louise", born: 2014}
+    {name: "Tina", age: 13}, 
+    {name: "Gene", age: 11}, 
+    {name: "Louise", age: 9}
   ], 
   fullname: function(root) {
     return this.name + " " + root.familyName;
   },
-  age: function() {
-    return 2023 - this.born;
+  bold: function() {
+    return "<strong>"+this+"</strong>";
+  }, 
+  parenthesis: function() {
+    return "("+this+")";
   }
 }
 ```
 
 &nbsp; *Outputs:*
 
-```
-Bob Belcher's kids are:
+<pre>
+<strong>Bob Belcher's</strong> kids are:
 Tina Belcher (13 years old)
 Gene Belcher (11 years old)
 Louise Belcher (9 years old)
+</pre>
+
+&nbsp; 
+
+### Chaining functions
+
+Functions can be chained using multiple pass-as-context directives and will be evaluated left-to-right.
+
+&nbsp; *Template:*
+
+```
+{{value->log2->square}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  value: 128, 
+  log2: function() { return Math.log2(this); }, 
+  square: function() { return this*this; }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+49
 ```
 
 &nbsp;
