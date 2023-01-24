@@ -37,13 +37,13 @@ import Templatize from '@lawrencesim/templatize';
 The most basic use-case is to simply call the `Templatize.render()` function.
 
 ```javascript
-var rendered = Templatize.render(myTemplate, bindings);
+var rendered = Templatize.render(myTemplate, bindings, options);
 ```
 
 However this will not take advantage of template caching. If reusing the template, one can first create a rendering instance from said template using `Templatize.from()`, then call the render function on that instance.
 
 ```javascript
-var templateOne = Templatize.from(myTemplate, {evalZeroAsTrue: true});
+var templateOne = Templatize.from(myTemplate, options);
 var rendered = templateOne.render(bindings);
 ```
 
@@ -67,12 +67,12 @@ var rendered = templateOne.render(bindings);
 
 ### Options
 
-* **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings.
-* **`errorOnFuncFailure`** - (*default:* `false`) If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated.
-* **`evalZeroAsTrue`** - (*default:* `false`) If true, zero-values are treated as a real value for section evaluation. See [section value evaluation](#section-value-evaluation).
-* **`escapeAll`** - (*default:* `false`) If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [formatting](#formatting).
-* **`errorOnMissingTags`** - (*default:* `false`) If true, throw exceptions when a data-binding called by the template is missing. Otherwise, simply warns in the console and returns empty.
-* **`partials`** - (*default:* `{}`) A map of partial templates by name. Used to refer to [partials](#partials).
+* **`delimiters`** - Set custom delimiters here as array of strings.
+* **`errorOnFuncFailure`** - If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated.
+* **`evalZeroAsTrue`** - If true, zero-values are treated as a real value for section evaluation. See [section value evaluation](#section-value-evaluation).
+* **`escapeAll`** - If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [formatting](#formatting).
+* **`errorOnMissingTags`** - If true, throw exceptions when a data-binding called by the template is missing. Otherwise, simply warns in the console and returns empty.
+* **`partials`** - A map of partial templates by name. Used to refer to [partials](#partials).
 
 Options given in a `render()` call will overwrite those set in an interface created with `Templatize.from()`. 
 
@@ -213,10 +213,8 @@ You may also inverse the rules for showing and hiding a section by replacing the
 &nbsp; *Template:*
 
 ```
-Bob is {{#married}}married{{/married}}{{#single}}single{{/single}}.
-<br />
-{{#spouse}}Bob is married to {{spouse}}.{{/spouse}}
-<br />
+Bob is {{#married}}married{{/married}}{{#single}}single{{/single}}.<br />
+{{#spouse}}Bob is married to {{spouse}}.{{/spouse}}<br />
 Bob has {{^haspets}}no pets{{/haspets}}{{#haspets}}pets{{/haspets}}.
 ```
 
@@ -244,10 +242,6 @@ Bob has no pets.
 The data bound to a section tag is evaluated for 'truthiness'. Null values, an empty string or composed only of whitespace, an empty list, and `0` evaluate as false (though in certain cases you may want to [treat 0-values as true](./more/sections/#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
 
 &nbsp;
-
-### More on sections
-
-See additional documentation for more on [sections](./more/sections/), including [section value evaluation](./more/sections/#section-value-evaluation), the [`_display` parameter](./more/sections/#the-_display-parameter), and more.
 
 &nbsp; 
 
@@ -281,9 +275,9 @@ Note that each item is also treated to the same [section value evaluation](./mor
 
 &nbsp;
 
-### More on repeating sections
+### More on sections
 
-See additional documentation for more on [repeating sections](./more/sections/#repeating-sections).
+See additional documentation for more on [sections](./more/sections/) and [repeating sections](./more/sections/#repeating-sections), including [section value evaluation](./more/sections/#section-value-evaluation), the [`_display` parameter](./more/sections/#the-_display-parameter), and more.
 
 
 &nbsp; 
@@ -298,8 +292,8 @@ All keys in template tags must provide the full path to the data-binding, even i
 ```
 {{#name}}1. {{name.first}}{{/name}}<br />
 {{#name}}2. {{first}}{{/name}}<br />
-{{#name}}3. {{.first}}{{/name}}
-<br /><br />
+{{#name}}3. {{.first}}{{/name}}<br />
+<br />
 Friends: {{#friends}}{{.}} {{/friends}}
 ```
 

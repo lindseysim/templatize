@@ -1,7 +1,7 @@
 # Changelog
 
 ## v2.2.0
-**2023-??-??**
+**2023-01-24**
 
 * New features:
     * Support for partials.

@@ -10,7 +10,7 @@ While the most basic usage is similar, there are a few minor syntactic and conce
 
 **HTML escaping**
 
-Mustache pre-escapes all rendering content for HTML special characters, requiring the `&`-directive (or triple curly braces) to specifically not escape. Templatize, by default, does the opposite (not pre-escaping any render, unless specified to escape all in the options). Escaping can be done with formatting directives, with the qucikest method being suffixing with a semicolon (`;`).
+Mustache pre-escapes all rendering content for HTML special characters, requiring the `&`-directive (or triple curly braces) to specifically not escape. Templatize, by default, does the opposite (not pre-escaping any render, unless specified to [escape all in the options](../../#options)). Escaping can be done with formatting directives, with the quickest method being suffixing with a semicolon (`;`).
 
 &nbsp; *in Mustache:*
 
