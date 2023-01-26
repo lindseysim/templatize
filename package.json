@@ -1,6 +1,6 @@
 {
   "name": "@lawrencesim/templatize",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "author": "Lawrence Sim",
   "license": "MIT",
   "homepage": "https://github.com/lawrencesim/templatize",
@@ -10,7 +10,8 @@
     "url": "git+https://github.com/lawrencesim/templatize.git"
   }, 
   "type": "module",
-  "main": "templatize.min.js",
+  "main": "templatize.umd.cjs",
+  "module": "templatize.es6.mjs",
   "devDependencies": {
     "@babel/core": "^7.20.12",
     "@babel/preset-env": "^7.20.2",

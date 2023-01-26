@@ -180,12 +180,11 @@
             inputBindings = document.querySelector("#input-bindings"), 
             output = document.querySelector("#output"), 
             bindings;
-        Templatize.errorOnFuncFailure = true;
         function render() {
           try {
             bindings = window.Function("let window=null;return "+inputBindings.value+";")();
             try {
-              output.innerHTML = Templatize.render(inputTemplate.value, bindings);
+              output.innerHTML = Templatize.render(inputTemplate.value, bindings, {errorOnFuncFailure: true});
             } catch(e) {
               console.error(e);
               output.innerHTML = "<span class='error'>"+(typeof e === "string" ? e : e.message)+"</span>";

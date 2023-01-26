@@ -26,12 +26,13 @@ Lawrence Sim © 2023
 
 ## Usage
 
-Templatize may be installed via NPM: `npm install @lawrencesim/templatize`.
+Templatize may be installed via NPM: `npm install @lawrencesim/templatize`
 
-Once installed, import the source or minified javascript. If installed via NPM, you can import it as shown below. If regular script import, automatically maps to name `Templatize`. 
+Once installed, the module can be imported or required as necessitate by your project. Otherwise, the file `templatize.min.js` may be sourced for direct use in webpages, which will create an object named `Templatize` into the global namespace.
 
 ```javascript
-import Templatize from '@lawrencesim/templatize';
+import Templatize from '@lawrencesim/templatize';       // for ES6 module import
+const Templatize = require('@lawrencesim/templatize');  // for CommonJS require
 ```
 
 The most basic use-case is to simply call the `Templatize.render()` function.
