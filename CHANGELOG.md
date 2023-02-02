@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.3.0
+**2023-02-02**
+
+* Better handling of hybrid ES6/CommonJS modes.
+    * Distributables moved to /dist folder with extra types.
+    * Default NPM package points to source.
+    * Fallback NPM package points to CommonJS distributable.
+* Bump minor version as importation of scripts may break for direct file sourcing or require(). 
+
+## v2.2.1
+**2023-01-25**
+
+* Split modes for ES6, CommonJS, and global importing.
+    * Adjust webpack config and output based on env.
+    * NPM package definition for `main` and `module`.
+
 ## v2.2.0
 **2023-01-24**
 

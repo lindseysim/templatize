@@ -6,6 +6,7 @@ Lawrence Sim © 2023
 
 ## Contents
 
+* [Installation](#installation)
 * [Usage](#usage)
 * [The Basics](#the-basics)
     * [Variables](#variables)
@@ -24,16 +25,25 @@ Lawrence Sim © 2023
 &nbsp; 
 
 
-## Usage
+## Installation
 
-Templatize may be installed via NPM: `npm install @lawrencesim/templatize`
+Templatize may be installed via NPM: `npm install @lawrencesim/templatize`. 
 
-Once installed, the module can be imported or required as necessitate by your project. Otherwise, the file `templatize.min.js` may be sourced for direct use in webpages, which will create an object named `Templatize` into the global namespace.
+Once installed, the module can be imported or required as necessitated by your project.
 
 ```javascript
-import Templatize from '@lawrencesim/templatize';       // for ES6 module import
-const Templatize = require('@lawrencesim/templatize');  // for CommonJS require
+// ES6 module import
+import Templatize from '@lawrencesim/templatize';
+// CommonJS require
+const Templatize = require('@lawrencesim/templatize').Templatize;
 ```
+
+Otherwise, the files in the folder `dist` can be directly sourced or copied. The `.cjs` and `.mjs` extensions for CommonJS and ES6 module imports respectively. The `min.js` and `umd.js` builds are minimized, with the former only being defined as a global import suitable for script tags in HTML.
+
+&nbsp; 
+
+
+## Usage
 
 The most basic use-case is to simply call the `Templatize.render()` function.
 
