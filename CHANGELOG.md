@@ -7,7 +7,7 @@
     * Distributables moved to /dist folder with extra types.
     * Default NPM package points to source.
     * Fallback NPM package points to CommonJS distributable.
-* Bump minor version as importation of scripts may break for direct file sourcing or require(). 
+* Bump minor version as importation of scripts may break for direct file sourcing. 
 
 ## v2.2.1
 **2023-01-25**
