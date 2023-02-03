@@ -66,15 +66,21 @@ var rendered = templateOne.render(bindings);
 | `bindings` | Object | The object literal of data-bindings. |
 | `options` | Object | See [options](#options). |
 
-&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
+&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** The rendered template string.
 
 <a href="templatize-from" name="templatize-from">#</a> *Templatize*.**from**(*template*[, *options*])
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** An instance of the Templatize rendering interface based off this template.
 
-<a href="templatize-instance-render" name="templatize-instance-render">#</a> *Interface*.prototype.**render**(*bindings*[, *options*])
+<a href="interface-render" name="interface-render">#</a> *Interface*.prototype.**render**(*bindings*[, *options*])
+
+Options given here will overwrite those set when the interface was created – with one exception. 
+
+Templates and partials are parsed immediately with the custom delimiters (if supplied) in the function they were called. Custom delimiters supplied here have no effect on templates or partials supplied in `Templatize.from()`. Likewise, custom delimiters must be defined here if needed for new partials also given here – even if the same custom delimiters given during interface creation.
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** The rendered template string.
+
+&nbsp;
 
 ### Options
 
@@ -84,10 +90,6 @@ var rendered = templateOne.render(bindings);
 * **`escapeAll`** - If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [formatting](#formatting).
 * **`errorOnMissingTags`** - If true, throw exceptions when a data-binding called by the template is missing. Otherwise, simply warns in the console and returns empty.
 * **`partials`** - A map of partial templates by name. Used to refer to [partials](#partials).
-
-Options given in a `render()` call will overwrite those set in an interface created with `Templatize.from()`. 
-
-The one exception is custom delimiters for an interface created from `Templatize.from()`. In such a case, the original template and any provided partials are preprocessed. When calling `render()` on the interface with provided options, the delimiters will not take effect except on any newly provided partials with those options.
 
 ----------
 
