@@ -5,14 +5,15 @@
     * [Example section design patterns](#example-section-design-patterns)
     * [Treating zero-values as true](#treating-zero-values-as-true)
     * [The `_display` parameter](#the-_display-parameter)
+    * [Passing sections as context to functions](#passing-sections-as-context-to-functions)
 * [Repeating Sections](#repeating-sections)
     * [Repeating list sections](#repeating-list-sections)
 * [Nested Sections](#nested-sections)
 * [More](#more)
 
-----------
 
 &nbsp; 
+
 
 ## Sections
 

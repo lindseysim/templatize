@@ -7,9 +7,9 @@
 * [Mixing directives in a section tag](#mixing-directives-in-a-section-tag)
 * [Function evaluation and modifying binding data](#function-evaluation-and-modifying-binding-data)
 
-----------
 
 &nbsp; 
+
 
 #### Multi-dimensional arrays
 

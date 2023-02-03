@@ -296,7 +296,7 @@ Note that each item is also treated to the same [section value evaluation](./mor
 
 ### More on sections
 
-See additional documentation for more on [sections](./more/sections/) and [repeating sections](./more/sections/#repeating-sections), including [section value evaluation](./more/sections/#section-value-evaluation), the [`_display` parameter](./more/sections/#the-_display-parameter), and more.
+See additional section documentation for more on [sections](./more/sections/) and [repeating sections](./more/sections/#repeating-sections), including [section value evaluation](./more/sections/#section-value-evaluation), the [`_display` parameter](./more/sections/#the-_display-parameter), and more.
 
 
 &nbsp; 
@@ -434,46 +434,6 @@ $5.95
 ```
 
 This functionality is covered in greater depth in the [additional function documentation](./more/functions/) under [passing-context-to-functions](./more/functions/#passing-context-to-functions)
-
-&nbsp;
-
-### Passing sections as context to functions
-
-By combining the inclusive section directive with the pass-context-to-function directive (`#->`), the section's render text will be passed to function named by the tag key. The closing section tag is given by the standard closing directive (`/`) and the same function name.
-
-&nbsp; *Template:*
-
-```
-{{#->bold}}{{main->fullname}}{{/bold}}
-{{#->parenthesis}}aged {{main.age}}{{/parenthesis}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  main: {
-    first: "Bob", 
-    last: "Belcher", 
-    age: 46
-  }, 
-  fullname: function(root) {
-    return this.first + " " + this.last;
-  },
-  bold: function() {
-    return "<strong>"+this+"</strong>";
-  }, 
-  parenthesis: function() {
-    return "("+this+")";
-  }
-}
-```
-
-&nbsp; *Outputs:*
-
-<pre>
-<strong>Bob Belcher</strong> (aged 46)
-</pre>
 
 &nbsp;
 
