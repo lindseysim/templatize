@@ -296,7 +296,7 @@ Note that each item is also treated to the same [section value evaluation](./mor
 
 ### More on sections
 
-See additional section documentation for more on [sections](./more/sections/) and [repeating sections](./more/sections/#repeating-sections), including [section value evaluation](./more/sections/#section-value-evaluation), the [`_display` parameter](./more/sections/#the-_display-parameter), and more.
+See additional section documentation for more on [sections](./more/sections/), including the [`_display` parameter](./more/sections/#the-_display-parameter), [treating zero values as true](./more/sections/#treating-zero-values-as-true), and more.
 
 
 &nbsp; 
@@ -433,7 +433,7 @@ The burger-of-the-day is:
 $5.95
 ```
 
-This functionality is covered in greater depth in the [additional function documentation](./more/functions/) under [passing-context-to-functions](./more/functions/#passing-context-to-functions)
+This functionality is covered in greater depth in the [additional function documentation](./more/functions/) under [passing-context-to-functions](./more/functions/#passing-context-to-functions).
 
 &nbsp;
 

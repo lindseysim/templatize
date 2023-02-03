@@ -186,12 +186,12 @@ By combining the inclusive section directive with the pass-context-to-function d
 
 ```
 {{#->louise-ify}}
-  {{#->highlight}}
+  {{#->stylize}}
     burger-of-the-day: 
     "new bacon-ings" 
     comes with bacon
     5.95
-  {{/highlight}}
+  {{/stylize}}
 {{/louise-ify}}
 ```
 
@@ -199,7 +199,7 @@ By combining the inclusive section directive with the pass-context-to-function d
 
 ```javascript
 {
-  highlight: function() {
+  stylize: function() {
     // split lines, ignore empties
     var lines = this.split(/\n/g).map(l => l.trim()).filter(l => l);
     lines = lines.map(l => {
