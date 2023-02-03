@@ -1,3 +1,18 @@
+## Functions Documentation
+
+* [Functions](#functions)
+    * [Error handling](#error-handling)
+    * [Function returns and formatting](#function-returns-and-formatting)
+    * [Passing context to functions](#passing-context-to-functions)
+      * [Passing sections as context](#passing-sections-as-context)
+    * [Chaining functions](#chaining-functions)
+    * [Function evaluation and caching](#function-evaluation-an- caching)
+* [More](#more)
+
+----------
+
+&nbsp; 
+
 ## Functions
 
 Functions are evaluated and uses the returned value as the data-binding to the specified tag. As the behavior of the function depends on what is returned, it may be used in a variety of contexts, such as using the function output as a section or list.

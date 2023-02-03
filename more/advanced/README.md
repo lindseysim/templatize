@@ -1,4 +1,4 @@
-## Advanced usage, edge cases, and general weirdness
+## Advanced Usage, Edge Cases, and General Weirdness
 
 * [Multi-dimensional arrays](#multi-dimensional-arrays)
 * [Arrays of functions](#arrays-of-functions)
@@ -6,6 +6,8 @@
 * [Passing a function to itself](#passing-a-function-to-itself)
 * [Mixing directives in a section tag](#mixing-directives-in-a-section-tag)
 * [Function evaluation and modifying binding data](#function-evaluation-and-modifying-binding-data)
+
+----------
 
 &nbsp; 
 

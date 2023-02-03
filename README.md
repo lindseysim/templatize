@@ -58,6 +58,8 @@ var templateOne = Templatize.from(myTemplate, options);
 var rendered = templateOne.render(bindings);
 ```
 
+&nbsp;
+
 <a href="templatize-render" name="templatize-render">#</a> *Templatize*.**render**(*template*, *bindings*[, *options*])
 
 | Name | Type | Description |
@@ -68,9 +70,13 @@ var rendered = templateOne.render(bindings);
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** The rendered template string.
 
+&nbsp;
+
 <a href="templatize-from" name="templatize-from">#</a> *Templatize*.**from**(*template*[, *options*])
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** An instance of the Templatize rendering interface based off this template.
+
+&nbsp;
 
 <a href="interface-render" name="interface-render">#</a> *Interface*.prototype.**render**(*bindings*[, *options*])
 
