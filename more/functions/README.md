@@ -137,9 +137,7 @@ In the function `getTodays()`, the data accessed by the `this` keyword changes d
 
 #### Passing sections as context
 
-A special type of section is denoted by the inclusive section directive combined with the pass-context-to-function directive (`#->`), as well as the typical closing section tag, with the tag key being a reference to a function.
-
-By combining the inclusive section directive with the pass-context-to-function directive (`#->`), the section's render text will be passed to whatever function follows. The closing section tag is given by the standard closing directive (`/`) and the same function.
+By combining the inclusive section directive with the pass-context-to-function directive (`#->`), the section's render text will be passed to function named by the tag key. The closing section tag is given by the standard closing directive (`/`) and the same function name.
 
 &nbsp; *Template:*
 

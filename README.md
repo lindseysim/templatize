@@ -87,7 +87,7 @@ var rendered = templateOne.render(bindings);
 
 Options given in a `render()` call will overwrite those set in an interface created with `Templatize.from()`. 
 
-The one exception is custom delimiters for an interface created from `Templatize.from()`. In such a case, the original template and any provided partials are preprocessed. NWhen calling `render()` on the interface with provided options, the delimiters will not take effect except on any newly provided partials with those options.
+The one exception is custom delimiters for an interface created from `Templatize.from()`. In such a case, the original template and any provided partials are preprocessed. When calling `render()` on the interface with provided options, the delimiters will not take effect except on any newly provided partials with those options.
 
 ----------
 
@@ -248,11 +248,11 @@ Bob is married to Linda.
 Bob has no pets.
 ```
 
+&nbsp;
+
 ### Section value evaluation
 
 The data bound to a section tag is evaluated for 'truthiness'. Null values, an empty string or composed only of whitespace, an empty list, and `0` evaluate as false (though in certain cases you may want to [treat 0-values as true](./more/sections/#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
-
-&nbsp;
 
 &nbsp; 
 
@@ -426,6 +426,46 @@ $5.95
 ```
 
 This functionality is covered in greater depth in the [additional function documentation](./more/functions/) under [passing-context-to-functions](./more/functions/#passing-context-to-functions)
+
+&nbsp;
+
+### Passing sections as context to functions
+
+By combining the inclusive section directive with the pass-context-to-function directive (`#->`), the section's render text will be passed to function named by the tag key. The closing section tag is given by the standard closing directive (`/`) and the same function name.
+
+&nbsp; *Template:*
+
+```
+{{#->bold}}{{main->fullname}}{{/bold}}
+{{#->parenthesis}}aged {{main.age}}{{/parenthesis}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  main: {
+    first: "Bob", 
+    last: "Belcher", 
+    age: 46
+  }, 
+  fullname: function(root) {
+    return this.first + " " + this.last;
+  },
+  bold: function() {
+    return "<strong>"+this+"</strong>";
+  }, 
+  parenthesis: function() {
+    return "("+this+")";
+  }
+}
+```
+
+&nbsp; *Outputs:*
+
+<pre>
+<strong>Bob Belcher</strong> (aged 46)
+</pre>
 
 &nbsp;
 
