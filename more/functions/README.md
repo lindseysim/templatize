@@ -207,7 +207,7 @@ By combining the inclusive section directive with the pass-context-to-function d
       // stylize price
       if(l.match(/[0-9]+(\.[0-9]+)?/)) return "$"+l;
       // stylize header
-      if(l === "BURGER-OF-THE-DAY:") return "<strong><u>"+l+"</strong></u>";
+      if(l === "BURGER-OF-THE-DAY:") return "<strong><u>"+l+"</u></strong>";
       // stylize 'comes with' line
       if(l.startsWith("COMES WITH")) return "<em>"+l+"</em>";
       return l;
@@ -228,7 +228,7 @@ By combining the inclusive section directive with the pass-context-to-function d
 <pre>
 <strong><u>BURGER-OF-THE-DAY:</u></strong>
 The Child Molester
-<em>comes with candy!</em>
+<em>comes with Candy!</em>
 $5.95
 </pre>
 

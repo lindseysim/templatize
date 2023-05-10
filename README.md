@@ -296,7 +296,7 @@ Note that each item is also treated to the same [section value evaluation](./mor
 
 ### More on sections
 
-See additional section documentation for more on [sections](./more/sections/), including the [`_display` parameter](./more/sections/#the-_display-parameter), [treating zero values as true](./more/sections/#treating-zero-values-as-true), and more.
+See [additional documentation for more on sections](./more/sections/), including [example sample design patterns](./more/sections/#example-section-design-patterns), using the [`_display` parameter](./more/sections/#the-_display-parameter), [treating zero values as true](./more/sections/#treating-zero-values-as-true), and more.
 
 
 &nbsp; 
@@ -400,23 +400,16 @@ To change the context of a function (accessed by the `this` keyword) when it is 
 
 ```
 The burger-of-the-day is:<br />
-"{{special.burger->getTodays}}"<br />
-{{special.price->getTodays}}
+"{{specials->getTodays}}"
 ```
 
 &nbsp; *Bindings:*
 
 ```javascript
 {
-  special: {
-    burger: {
-      sunday: "Yes I Cayenne Burger", 
-      monday: "So Many Fennel So Little Thyme Burger"
-    }, 
-    price: {
-      sunday: "$5.95", 
-      monday: "$5.50"
-    }
+  specials: {
+    sunday: "Yes I Cayenne Burger", 
+    monday: "So Many Fennel So Little Thyme Burger"
   }, 
   today: "sunday", 
   getTodays: function(root) {
@@ -430,7 +423,6 @@ The burger-of-the-day is:<br />
 ```
 The burger-of-the-day is:
 "Yes I Cayenne Burger"
-$5.95
 ```
 
 This functionality is covered in greater depth in the [additional function documentation](./more/functions/) under [passing-context-to-functions](./more/functions/#passing-context-to-functions).
@@ -439,9 +431,9 @@ This functionality is covered in greater depth in the [additional function docum
 
 ### More on functions
 
-Functions are arguably the most powerful (and sometimes frustrating) aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions) and [chaining functions](./more/functions/#chaining-functions). This section only covers the most superficial use of functions.
+Functions are the most powerful aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions) and [chaining functions](./more/functions/#chaining-functions). However, errors can be difficult to debug without understanding how functions work. This section only covers the most basic use of functions.
 
-See additional documentation for more on [functions](./more/functions/).
+See [additional documentation for more on functions](./more/functions/).
 
 
 &nbsp;

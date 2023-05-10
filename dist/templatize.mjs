@@ -1251,7 +1251,7 @@ class Interface {
      * _renderInsideOut(). However inner content referencing bindings not for repeating data should be 
      * handled. Tricky part is managing unresolved contexts as we parse through entire template.
      *
-     * @param root       - The root data domain.
+     * @param root       - The root node to process from
      * @param domain     - The current data domain.
      * @param processed  - Array of nodes to pass to return for next round of processing.
      * @param unresolved - Array of data domains in context that are unresolved (i.e. repeating).
@@ -1322,6 +1322,46 @@ class Interface {
         }
 
         return processed;
+    }
+
+    _section(node, context, processed, unresolved, dynamics) {
+        // Repeating sections and as-context sections (i.e. pass section as context) recurse inner content to 
+        // process any non-dynamic referencing tags, but also add node to processing array for final 
+        // processing in inside-out rendering.
+        if(context.isrepeating || node.passcontext) {
+            if(node.inclusive && (node.passcontext || context.length)) {
+                // Copy section node and replace any in-context shortcuts with full path as it will be handled
+                // later, potentially out of context.
+                var dynode = new SectionNode(node);
+                if(dynode.incontext) {
+                    dynode.key = context.domain.fullkey;
+                    dynode.incontext = false;
+                    dynode._finish();
+                }
+                dynode.func.forEach((fn, i) => {
+                    if(!fn.incontext) return;
+                    fn.key = context.func[i].fullkey;
+                    fn.incontext = false;
+                    fn._finish();
+                });
+                let domain = context.toDynamicDomain();
+                // Add to unresolved domains, recurse, pop unresolved domain, add to processing
+                unresolved.push(domain);
+                this._renderOutsideIn(node, domain, dynode, unresolved, dynamics);
+                unresolved.pop();
+                processed.inner.push(dynode);
+            }
+            return;
+        }
+        // Standard sections (or skip if not displayed)
+        let domain = context.toDynamicDomain();
+        if(this._display(node.inclusive, domain)) {
+            // copy and insert empty section node to preserve context/nesting hierarchy on normal sections
+            var processSection = new SectionNode(node);
+            processed.inner.push(processSection);
+            // recurse back into outside-in rendering for section
+            this._renderOutsideIn(node, domain, processSection, unresolved, dynamics);
+        }
     }
 
     /*
@@ -1417,46 +1457,6 @@ class Interface {
             }
         });
         return text;
-    }
-
-    _section(node, context, processed, unresolved) {
-        // Repeating sections and as-context sections (i.e. pass section as context) recurse inner content to 
-        // process any non-dynamic referencing tags, but also add node to processing array for final 
-        // processing in inside-out rendering.
-        if(context.isrepeating || node.passcontext) {
-            if(node.inclusive && (node.passcontext || context.length)) {
-                // Copy section node and replace any in-context shortcuts with full path as it will be handled
-                // later, potentially out of context.
-                var dynode = new SectionNode(node);
-                if(dynode.incontext) {
-                    dynode.key = context.domain.fullkey;
-                    dynode.incontext = false;
-                    dynode._finish();
-                }
-                dynode.func.forEach((fn, i) => {
-                    if(!fn.incontext) return;
-                    fn.key = context.func[i].fullkey;
-                    fn.incontext = false;
-                    fn._finish();
-                });
-                let domain = context.toDynamicDomain();
-                // Add to unresolved domains, recurse, pop unresolved domain, add to processing
-                unresolved.push(domain);
-                this._renderOutsideIn(node, domain, dynode, unresolved);
-                unresolved.pop();
-                processed.inner.push(dynode);
-            }
-            return;
-        }
-        // Standard sections (or skip if not displayed)
-        let domain = context.toDynamicDomain();
-        if(this._display(node.inclusive, domain)) {
-            // copy and insert empty section node to preserve context/nesting hierarchy on normal sections
-            var processSection = new SectionNode(node);
-            processed.inner.push(processSection);
-            // recurse back into outside-in rendering for section
-            this._renderOutsideIn(node, domain, processSection, unresolved);
-        }
     }
 
     _display(inclusive, domain) {

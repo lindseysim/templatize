@@ -127,5 +127,7 @@ export default (env => {
                 minimize: true
             }
         };
+    } else {
+        console.log("Environment/exposure type not specified or unrecognized (es6|cjs|umd|min)");
     }
 });
