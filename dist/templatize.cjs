@@ -35,6 +35,7 @@ var DIRECTIVES = {
   TO_VALUE: {}
 };
 var SYMBOLS = {
+  TAG_ESCAPE: "\\",
   COMMENT: "!",
   LIST: "&",
   LIST_SECTION: "&#",
@@ -56,19 +57,19 @@ for (var directives_name in SYMBOLS) {
 }
 /* harmony default export */ const directives = (DIRECTIVES);
 ;// CONCATENATED MODULE: ./lib/nodes.js
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 
 function isDirective(directive, slice) {
   var sym = directives.TO_SYMBOL[directive];
@@ -120,45 +121,40 @@ var Node = /*#__PURE__*/function () {
     this.key = key || ""; // data key of tag
     this.keysplit = []; // data key split by nested separators
   }
-  _createClass(Node, [{
+  return _createClass(Node, [{
     key: "_finish",
     value: function _finish() {
       this.keysplit = this.key.split(".");
     }
   }]);
-  return Node;
 }(); // root processing node, has no function except to nest nodes within
 var RootNode = /*#__PURE__*/function (_Node) {
-  _inherits(RootNode, _Node);
-  var _super = _createSuper(RootNode);
   function RootNode() {
     var _this;
     _classCallCheck(this, RootNode);
-    _this = _super.call(this);
+    _this = _callSuper(this, RootNode);
     _this.inner = []; // list of nested nodes
     return _this;
   }
+  _inherits(RootNode, _Node);
   return _createClass(RootNode);
 }(Node); // node representing raw text (for both template and rendered)
 var TextNode = /*#__PURE__*/function (_Node2) {
-  _inherits(TextNode, _Node2);
-  var _super2 = _createSuper(TextNode);
   function TextNode(text) {
     var _this2;
     _classCallCheck(this, TextNode);
-    _this2 = _super2.call(this);
+    _this2 = _callSuper(this, TextNode);
     _this2.text = text; // text node is just the string content
     return _this2;
   }
+  _inherits(TextNode, _Node2);
   return _createClass(TextNode);
 }(Node); // node representing a tag, both in the template and left as-is for basic tags
 var TagNode = /*#__PURE__*/function (_Node3) {
-  _inherits(TagNode, _Node3);
-  var _super3 = _createSuper(TagNode);
   function TagNode(raw, inner) {
     var _this3;
     _classCallCheck(this, TagNode);
-    _this3 = _super3.call(this);
+    _this3 = _callSuper(this, TagNode);
     _this3.raw = raw.trim(); // raw tag string (including delimiters)
     _this3.tagstr = inner.trim(); // tag string (trimming delimiters and whitespace)
     _this3.directive = 0; // primary tag type (of all major tag-type directives)
@@ -173,10 +169,10 @@ var TagNode = /*#__PURE__*/function (_Node3) {
     } else {
       _this3.key = _this3.tagstr;
       // first handle multi-character and other special directives
-      if (isDirective.call(_assertThisInitialized(_this3), directives.LIST_SECTION, true)) {
+      if (isDirective.call(_this3, directives.LIST_SECTION, true)) {
         // special case of list and section
         _this3.directive = directives.LIST_SECTION;
-      } else if (isDirective.call(_assertThisInitialized(_this3), directives.PASS_SECTION, true)) {
+      } else if (isDirective.call(_this3, directives.PASS_SECTION, true)) {
         // special case of section pass as context
         _this3.directive = directives.PASS_SECTION;
       } else {
@@ -200,7 +196,7 @@ var TagNode = /*#__PURE__*/function (_Node3) {
         }
       }
       // in-context-directive
-      if (isDirective.call(_assertThisInitialized(_this3), directives.IN_CONTEXT, true)) {
+      if (isDirective.call(_this3, directives.IN_CONTEXT, true)) {
         _this3.incontext = true;
       }
       // pass-as-context directive
@@ -222,10 +218,10 @@ var TagNode = /*#__PURE__*/function (_Node3) {
         });
       }
       // format directive
-      parseFormatDirectives.call(_assertThisInitialized(_this3));
+      parseFormatDirectives.call(_this3);
       // convert pass-to-function key to node
       _this3.func = _this3.func.map(function (fn) {
-        return new PassToFunctionNode(fn, _assertThisInitialized(_this3));
+        return new PassToFunctionNode(fn, _this3);
       });
     }
     // final key check
@@ -238,25 +234,24 @@ var TagNode = /*#__PURE__*/function (_Node3) {
     _this3._finish();
     return _this3;
   }
+  _inherits(TagNode, _Node3);
   return _createClass(TagNode);
 }(Node);
 ;
 
 // node representing the separated function in a pass-context-to-function tag
 var PassToFunctionNode = /*#__PURE__*/function (_Node4) {
-  _inherits(PassToFunctionNode, _Node4);
-  var _super4 = _createSuper(PassToFunctionNode);
   function PassToFunctionNode(key, contextNode) {
     var _this4;
     _classCallCheck(this, PassToFunctionNode);
     if (key instanceof PassToFunctionNode) {
       // copy only
-      _this4 = _super4.call(this, key.key);
+      _this4 = _callSuper(this, PassToFunctionNode, [key.key]);
       _this4.format = key.format;
       _this4.escape = key.escape;
       _this4.incontext = key.incontext;
     } else {
-      _this4 = _super4.call(this, key);
+      _this4 = _callSuper(this, PassToFunctionNode, [key]);
       _this4.format = "";
       _this4.escape = false;
       _this4.incontext = false;
@@ -270,22 +265,21 @@ var PassToFunctionNode = /*#__PURE__*/function (_Node4) {
       parseFormatDirectives.call(_assertThisInitialized(_this4));
     }
     _this4._finish();
-    return _possibleConstructorReturn(_this4);
+    return _assertThisInitialized(_this4);
   }
+  _inherits(PassToFunctionNode, _Node4);
   return _createClass(PassToFunctionNode);
 }(Node);
 ;
 
 // node representing a partial, build off the TagNode it came from
 var PartialNode = /*#__PURE__*/function (_Node5) {
-  _inherits(PartialNode, _Node5);
-  var _super5 = _createSuper(PartialNode);
   function PartialNode(tag) {
     var _this5;
     _classCallCheck(this, PartialNode);
     if (tag instanceof SectionNode) throw "Partial tag cannot be used as section at ".concat(tag.raw);
     if (tag.func.length) throw "Partial tag cannot be paired with pass-to-function directive at ".concat(tag.raw);
-    _this5 = _super5.call(this, tag.key);
+    _this5 = _callSuper(this, PartialNode, [tag.key]);
     _this5.raw = tag.raw;
     _this5.directive = directives.PARTIAL;
     _this5.tag = tag;
@@ -295,18 +289,17 @@ var PartialNode = /*#__PURE__*/function (_Node5) {
     _this5._finish();
     return _this5;
   }
+  _inherits(PartialNode, _Node5);
   return _createClass(PartialNode);
 }(Node);
 ;
 
 // node representing a section, build off the TagNode it came from
 var SectionNode = /*#__PURE__*/function (_Node6) {
-  _inherits(SectionNode, _Node6);
-  var _super6 = _createSuper(SectionNode);
   function SectionNode(tag, parent) {
     var _this6;
     _classCallCheck(this, SectionNode);
-    _this6 = _super6.call(this, tag.key);
+    _this6 = _callSuper(this, SectionNode, [tag.key]);
     _this6.raw = tag.raw;
     _this6.directive = tag.directive;
     _this6.tag = tag; // link to tag node from when parsed in template
@@ -335,6 +328,7 @@ var SectionNode = /*#__PURE__*/function (_Node6) {
     _this6._finish();
     return _this6;
   }
+  _inherits(SectionNode, _Node6);
   return _createClass(SectionNode);
 }(Node);
 
@@ -686,7 +680,7 @@ function defaultLocale(definition) {
 }
 
 ;// CONCATENATED MODULE: ./lib/misc.js
-function misc_typeof(obj) { "@babel/helpers - typeof"; return misc_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, misc_typeof(obj); }
+function misc_typeof(o) { "@babel/helpers - typeof"; return misc_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, misc_typeof(o); }
 
 var OVERFLOW = 99;
 var TYPES = {
@@ -776,11 +770,11 @@ function formatValue(value, format, escapehtml) {
 ;
 
 ;// CONCATENATED MODULE: ./lib/template.js
-function template_typeof(obj) { "@babel/helpers - typeof"; return template_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, template_typeof(obj); }
+function template_typeof(o) { "@babel/helpers - typeof"; return template_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, template_typeof(o); }
 function template_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, template_toPropertyKey(descriptor.key), descriptor); } }
 function template_createClass(Constructor, protoProps, staticProps) { if (protoProps) template_defineProperties(Constructor.prototype, protoProps); if (staticProps) template_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function template_toPropertyKey(arg) { var key = template_toPrimitive(arg, "string"); return template_typeof(key) === "symbol" ? key : String(key); }
-function template_toPrimitive(input, hint) { if (template_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (template_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+function template_toPropertyKey(t) { var i = template_toPrimitive(t, "string"); return "symbol" == template_typeof(i) ? i : i + ""; }
+function template_toPrimitive(t, r) { if ("object" != template_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != template_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function template_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 
@@ -790,7 +784,8 @@ var DEFAULT = {
 var Template = /*#__PURE__*/template_createClass(function Template(template, options) {
   template_classCallCheck(this, Template);
   this.root = new RootNode();
-  var delimiters = options && options.delimiters || DEFAULT.delimiters,
+  var cTagEscape = directives.TO_SYMBOL[directives.TAG_ESCAPE],
+    delimiters = options && options.delimiters || DEFAULT.delimiters,
     last = 0,
     search = 0,
     open = -1,
@@ -811,10 +806,12 @@ var Template = /*#__PURE__*/template_createClass(function Template(template, opt
     // update search position
     search = close + delimiters[1].length;
     // ignore escaped (remove directive character in template)
-    if (template[open - 1] === "!") {
-      template = template.slice(0, open - 1) + template.slice(open);
-      search -= 1;
-      continue;
+    if (open > 0 && template[open - 1] === cTagEscape) {
+      if (open == 1 || template[open - 2] != cTagEscape) {
+        template = template.slice(0, open - 1) + template.slice(open);
+        search -= 1;
+        continue;
+      }
     }
     // grab preceding content
     if (open && open > last) {
@@ -863,7 +860,7 @@ var Template = /*#__PURE__*/template_createClass(function Template(template, opt
 ;
 /* harmony default export */ const lib_template = (Template);
 ;// CONCATENATED MODULE: ./lib/domain.js
-function domain_typeof(obj) { "@babel/helpers - typeof"; return domain_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, domain_typeof(obj); }
+function domain_typeof(o) { "@babel/helpers - typeof"; return domain_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, domain_typeof(o); }
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
@@ -873,8 +870,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 function domain_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function domain_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, domain_toPropertyKey(descriptor.key), descriptor); } }
 function domain_createClass(Constructor, protoProps, staticProps) { if (protoProps) domain_defineProperties(Constructor.prototype, protoProps); if (staticProps) domain_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function domain_toPropertyKey(arg) { var key = domain_toPrimitive(arg, "string"); return domain_typeof(key) === "symbol" ? key : String(key); }
-function domain_toPrimitive(input, hint) { if (domain_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (domain_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+function domain_toPropertyKey(t) { var i = domain_toPrimitive(t, "string"); return "symbol" == domain_typeof(i) ? i : i + ""; }
+function domain_toPrimitive(t, r) { if ("object" != domain_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != domain_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 
 
 var Domain = /*#__PURE__*/function () {
@@ -911,7 +908,7 @@ var Domain = /*#__PURE__*/function () {
         break;
     }
   }
-  domain_createClass(Domain, [{
+  return domain_createClass(Domain, [{
     key: "reroot",
     value: function reroot() {
       return new Domain(this.data);
@@ -1076,16 +1073,15 @@ var Domain = /*#__PURE__*/function () {
       return this._search(node.key, _toConsumableArray(node.keysplit), onFuncError, !node.incontext, true);
     }
   }]);
-  return Domain;
 }();
 /* harmony default export */ const domain = (Domain);
 ;// CONCATENATED MODULE: ./lib/context.js
-function context_typeof(obj) { "@babel/helpers - typeof"; return context_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, context_typeof(obj); }
+function context_typeof(o) { "@babel/helpers - typeof"; return context_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, context_typeof(o); }
 function context_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function context_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, context_toPropertyKey(descriptor.key), descriptor); } }
 function context_createClass(Constructor, protoProps, staticProps) { if (protoProps) context_defineProperties(Constructor.prototype, protoProps); if (staticProps) context_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function context_toPropertyKey(arg) { var key = context_toPrimitive(arg, "string"); return context_typeof(key) === "symbol" ? key : String(key); }
-function context_toPrimitive(input, hint) { if (context_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (context_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+function context_toPropertyKey(t) { var i = context_toPrimitive(t, "string"); return "symbol" == context_typeof(i) ? i : i + ""; }
+function context_toPrimitive(t, r) { if ("object" != context_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != context_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 
 
 var Context = /*#__PURE__*/function () {
@@ -1131,7 +1127,7 @@ var Context = /*#__PURE__*/function () {
       })) throw "Context passed to non-function at ".concat(this.node.raw);
     }
   }
-  context_createClass(Context, [{
+  return context_createClass(Context, [{
     key: "_resolveFuncs",
     value: function _resolveFuncs(value, rootDomain) {
       var _this2 = this;
@@ -1199,16 +1195,15 @@ var Context = /*#__PURE__*/function () {
       return this.domain.dynamic.create(fnchain, this.value);
     }
   }]);
-  return Context;
 }();
 /* harmony default export */ const context = (Context);
 ;// CONCATENATED MODULE: ./lib/interface.js
 function interface_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function interface_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, interface_toPropertyKey(descriptor.key), descriptor); } }
 function interface_createClass(Constructor, protoProps, staticProps) { if (protoProps) interface_defineProperties(Constructor.prototype, protoProps); if (staticProps) interface_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function interface_toPropertyKey(arg) { var key = interface_toPrimitive(arg, "string"); return interface_typeof(key) === "symbol" ? key : String(key); }
-function interface_toPrimitive(input, hint) { if (interface_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (interface_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-function interface_typeof(obj) { "@babel/helpers - typeof"; return interface_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, interface_typeof(obj); }
+function interface_toPropertyKey(t) { var i = interface_toPrimitive(t, "string"); return "symbol" == interface_typeof(i) ? i : i + ""; }
+function interface_toPrimitive(t, r) { if ("object" != interface_typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != interface_typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function interface_typeof(o) { "@babel/helpers - typeof"; return interface_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, interface_typeof(o); }
 
 
 
@@ -1258,7 +1253,7 @@ var Interface = /*#__PURE__*/function () {
     this._options = {};
     this._errorHandler = null;
   }
-  interface_createClass(Interface, [{
+  return interface_createClass(Interface, [{
     key: "errorOnFuncFailure",
     get: function get() {
       return 'errorOnFuncFailure' in this._options ? this._options.errorOnFuncFailure : this._errorOnFuncFailure;
@@ -1668,7 +1663,6 @@ var Interface = /*#__PURE__*/function () {
       return formatValue(value, format, escape);
     }
   }]);
-  return Interface;
 }();
 ;
 /* harmony default export */ const lib_interface = (Interface);

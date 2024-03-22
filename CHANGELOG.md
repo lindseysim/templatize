@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.4.0
+**2024-03-22**
+
+* Change syntax for escaping tags from bang to single backslash.
+* Update libraries.
+
 ## v2.3.0
 **2023-02-02**
 

@@ -24,7 +24,7 @@ var __webpack_exports__ = {};
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  "Z": () => (/* binding */ templatize)
+  A: () => (/* binding */ templatize)
 });
 
 ;// CONCATENATED MODULE: ./lib/directives.js
@@ -33,6 +33,7 @@ const DIRECTIVES = {
     TO_VALUE: {}
 };
 let SYMBOLS = {
+    TAG_ESCAPE:   "\\", 
     COMMENT:      "!", 
     LIST:         "&", 
     LIST_SECTION: "&#", 
@@ -736,7 +737,8 @@ const DEFAULT = {delimiters: ["{{","}}"]};
 class Template {
     constructor(template, options) {
         this.root      = new RootNode();
-        let delimiters = (options && options.delimiters) || DEFAULT.delimiters, 
+        let cTagEscape = directives.TO_SYMBOL[directives.TAG_ESCAPE], 
+            delimiters = (options && options.delimiters) || DEFAULT.delimiters, 
             last       = 0, 
             search     = 0, 
             open       = -1, 
@@ -756,10 +758,12 @@ class Template {
             // update search position
             search = close + delimiters[1].length;
             // ignore escaped (remove directive character in template)
-            if(template[open-1] === "!") {
-                template = template.slice(0, open-1) + template.slice(open);
-                search -= 1;
-                continue;
+            if(open > 0 && template[open-1] === cTagEscape) {
+                if(open == 1 || template[open-2] != cTagEscape) {
+                    template = template.slice(0, open-1) + template.slice(open);
+                    search -= 1;
+                    continue;
+                }
             }
             // grab preceding content
             if(open && open > last) {
@@ -1562,5 +1566,5 @@ class Interface {
         return new lib_interface(new lib_template(template, options), options);
     }
 });
-var __webpack_exports__default = __webpack_exports__.Z;
+var __webpack_exports__default = __webpack_exports__.A;
 export { __webpack_exports__default as default };

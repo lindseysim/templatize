@@ -2,7 +2,7 @@
 
 Basic templating code. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements (and also just personal curiosity on where I could take it) turned it into a powerful templating library of its own.
 
-Lawrence Sim © 2023
+Lawrence Sim © 2024
 
 ## Contents
 
@@ -60,25 +60,25 @@ var rendered = templateOne.render(bindings);
 
 &nbsp;
 
-<a href="templatize-render" name="templatize-render">#</a> *Templatize*.**render**(*template*, *bindings*[, *options*])
+<a href="#templatize-render" name="templatize-render">#</a> *Templatize*.**render**(*template*, *bindings*[, *options*])
 
 | Name | Type | Description |
 | --- | --- | :--- |
-| `template` | String | The template. |
-| `bindings` | Object | The object literal of data-bindings. |
-| `options` | Object | See [options](#options). |
+| `template` | *String* | The template. |
+| `bindings` | *Object* | The object literal of data-bindings. |
+| `options` | *Object* | See [options](#options). |
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** The rendered template string.
 
 &nbsp;
 
-<a href="templatize-from" name="templatize-from">#</a> *Templatize*.**from**(*template*[, *options*])
+<a href="#templatize-from" name="templatize-from">#</a> *Templatize*.**from**(*template*[, *options*])
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** An instance of the Templatize rendering interface based off this template.
 
 &nbsp;
 
-<a href="interface-render" name="interface-render">#</a> *Interface*.prototype.**render**(*bindings*[, *options*])
+<a href="#interface-render" name="interface-render">#</a> *Interface*.prototype.**render**(*bindings*[, *options*])
 
 Options given here will overwrite those set when the interface was created – with one exception. 
 
@@ -144,12 +144,12 @@ The default behavior is to treat missing bindings as empty. You may also throw a
 
 ### Comments and escaping
 
-Both commenting and escaping are done with a bang directive (`!`). For comments, place the bang within the opening delimiter. For escaping, place the bang just outside the opening delimiter.
+Comments are done by placing a bang directive (`!`) within the opening delimiter. For escaping, place a single backslash (`\`) before the tag. A double backslash (`\\`), however, will not be read as escaping the tag.
 
 &nbsp; *Template:*
 
 ```
-{{name.first}} is !{{age}} years old. {{! note to self: is this the right age? }}
+{{name.first}} is \{{age}} years old. {{! note to self: is this the right age? }}
 ```
 
 &nbsp; *Bindings:*
