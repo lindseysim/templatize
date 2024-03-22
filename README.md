@@ -174,9 +174,10 @@ Bob is {{age}} years old.
 **Restrictions for tag key names**
 
 * `_display` is a special keyword. While it can be set (see the [_display parameter](./more/sections/#the-_display-parameter)), it should only be done when specifically calling said functionality.
-* Any key name with a leading bang (`!`) will be treated as a [comment](#comments-and-escaping) in the template code.
-* Any key name with a leading period (`.`) will be treated as a [context directive](#scoping-and-the-context-directive) and not part of the key name.
-* Any key name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
+* Any key name starting with a reserved directive including:
+    * A leading bang (`!`) will be treated as a [comment](#comments-and-escaping) in the template code.
+    * A leading period (`.`) will be treated as a [context directive](#scoping-and-the-context-directive) and not part of the key name.
+    * A leading ampersand (`&`), hash (`#`), or caret (`^`) will be treated as one of the directives for [lists](#lists) and [sections](#sections).
 * Ending a key name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
 * Using in any place a double-colon (`::`), which is a [formatting](#formatting) directive, or an arrow operator (`->`), which is used for [passing context to functions](./more/functions/#passing-context-to-functions), will be interpreted as their respective directives.
 
@@ -217,7 +218,7 @@ One special case exists with the list functionality, the combination of the list
 Bob sells burgers, sodas, and fries with his wife and kids.
 ```
 
-*Note, the Oxford-comma is the default -- and only -- behavior, as the universe intended.*
+*Note, the Oxford-comma is the default – and only – behavior, as the universe intended.*
 
 
 &nbsp; 
@@ -337,7 +338,7 @@ Friends: Teddy Mort
 
 In the above, we try to access `name.first` in three ways. Using the full binding path (1) works in almost any case. However, using `first` without giving a context (2), fails as it tries to find a binding for `first` from the root, which does not exist. We can fix this by providing the context directive (3), which begins the search from the given context, with is within the section (and corresponding data-binding for) `name`.
 
-The naked context tag (`{{.}}`) in the final line is equivalent to the tag `{{friends}}`, which in-context of a repeating section, accesses each iterated value in the list.
+The naked context tag (`{{.}}`) in the final line is equivalent to the tag `{{friends}}`, which in-context of a repeating section accesses each iterated value in the list.
 
 
 &nbsp;
