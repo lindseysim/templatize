@@ -24,7 +24,7 @@ var __webpack_exports__ = {};
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  "Z": () => (/* binding */ templatize)
+  A: () => (/* binding */ templatize)
 });
 
 ;// CONCATENATED MODULE: ./lib/directives.js
@@ -33,6 +33,7 @@ const DIRECTIVES = {
     TO_VALUE: {}
 };
 let SYMBOLS = {
+    TAG_ESCAPE:   "\\", 
     COMMENT:      "!", 
     LIST:         "&", 
     LIST_SECTION: "&#", 
@@ -736,7 +737,8 @@ const DEFAULT = {delimiters: ["{{","}}"]};
 class Template {
     constructor(template, options) {
         this.root      = new RootNode();
-        let delimiters = (options && options.delimiters) || DEFAULT.delimiters, 
+        let cTagEscape = directives.TO_SYMBOL[directives.TAG_ESCAPE], 
+            delimiters = (options && options.delimiters) || DEFAULT.delimiters, 
             last       = 0, 
             search     = 0, 
             open       = -1, 
@@ -756,10 +758,12 @@ class Template {
             // update search position
             search = close + delimiters[1].length;
             // ignore escaped (remove directive character in template)
-            if(template[open-1] === "!") {
-                template = template.slice(0, open-1) + template.slice(open);
-                search -= 1;
-                continue;
+            if(open > 0 && template[open-1] === cTagEscape) {
+                if(open == 1 || template[open-2] != cTagEscape) {
+                    template = template.slice(0, open-1) + template.slice(open);
+                    search -= 1;
+                    continue;
+                }
             }
             // grab preceding content
             if(open && open > last) {
@@ -1251,7 +1255,7 @@ class Interface {
      * _renderInsideOut(). However inner content referencing bindings not for repeating data should be 
      * handled. Tricky part is managing unresolved contexts as we parse through entire template.
      *
-     * @param root       - The root data domain.
+     * @param root       - The root node to process from
      * @param domain     - The current data domain.
      * @param processed  - Array of nodes to pass to return for next round of processing.
      * @param unresolved - Array of data domains in context that are unresolved (i.e. repeating).
@@ -1322,6 +1326,46 @@ class Interface {
         }
 
         return processed;
+    }
+
+    _section(node, context, processed, unresolved, dynamics) {
+        // Repeating sections and as-context sections (i.e. pass section as context) recurse inner content to 
+        // process any non-dynamic referencing tags, but also add node to processing array for final 
+        // processing in inside-out rendering.
+        if(context.isrepeating || node.passcontext) {
+            if(node.inclusive && (node.passcontext || context.length)) {
+                // Copy section node and replace any in-context shortcuts with full path as it will be handled
+                // later, potentially out of context.
+                var dynode = new SectionNode(node);
+                if(dynode.incontext) {
+                    dynode.key = context.domain.fullkey;
+                    dynode.incontext = false;
+                    dynode._finish();
+                }
+                dynode.func.forEach((fn, i) => {
+                    if(!fn.incontext) return;
+                    fn.key = context.func[i].fullkey;
+                    fn.incontext = false;
+                    fn._finish();
+                });
+                let domain = context.toDynamicDomain();
+                // Add to unresolved domains, recurse, pop unresolved domain, add to processing
+                unresolved.push(domain);
+                this._renderOutsideIn(node, domain, dynode, unresolved, dynamics);
+                unresolved.pop();
+                processed.inner.push(dynode);
+            }
+            return;
+        }
+        // Standard sections (or skip if not displayed)
+        let domain = context.toDynamicDomain();
+        if(this._display(node.inclusive, domain)) {
+            // copy and insert empty section node to preserve context/nesting hierarchy on normal sections
+            var processSection = new SectionNode(node);
+            processed.inner.push(processSection);
+            // recurse back into outside-in rendering for section
+            this._renderOutsideIn(node, domain, processSection, unresolved, dynamics);
+        }
     }
 
     /*
@@ -1417,46 +1461,6 @@ class Interface {
             }
         });
         return text;
-    }
-
-    _section(node, context, processed, unresolved) {
-        // Repeating sections and as-context sections (i.e. pass section as context) recurse inner content to 
-        // process any non-dynamic referencing tags, but also add node to processing array for final 
-        // processing in inside-out rendering.
-        if(context.isrepeating || node.passcontext) {
-            if(node.inclusive && (node.passcontext || context.length)) {
-                // Copy section node and replace any in-context shortcuts with full path as it will be handled
-                // later, potentially out of context.
-                var dynode = new SectionNode(node);
-                if(dynode.incontext) {
-                    dynode.key = context.domain.fullkey;
-                    dynode.incontext = false;
-                    dynode._finish();
-                }
-                dynode.func.forEach((fn, i) => {
-                    if(!fn.incontext) return;
-                    fn.key = context.func[i].fullkey;
-                    fn.incontext = false;
-                    fn._finish();
-                });
-                let domain = context.toDynamicDomain();
-                // Add to unresolved domains, recurse, pop unresolved domain, add to processing
-                unresolved.push(domain);
-                this._renderOutsideIn(node, domain, dynode, unresolved);
-                unresolved.pop();
-                processed.inner.push(dynode);
-            }
-            return;
-        }
-        // Standard sections (or skip if not displayed)
-        let domain = context.toDynamicDomain();
-        if(this._display(node.inclusive, domain)) {
-            // copy and insert empty section node to preserve context/nesting hierarchy on normal sections
-            var processSection = new SectionNode(node);
-            processed.inner.push(processSection);
-            // recurse back into outside-in rendering for section
-            this._renderOutsideIn(node, domain, processSection, unresolved);
-        }
     }
 
     _display(inclusive, domain) {
@@ -1562,5 +1566,5 @@ class Interface {
         return new lib_interface(new lib_template(template, options), options);
     }
 });
-var __webpack_exports__default = __webpack_exports__.Z;
+var __webpack_exports__default = __webpack_exports__.A;
 export { __webpack_exports__default as default };

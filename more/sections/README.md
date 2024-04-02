@@ -1,3 +1,20 @@
+## Sections Documentation
+
+* [Sections](#sections)
+    * [Section value evaluation](#section-value-evaluation)
+    * [Example section design patterns](#example-section-design-patterns)
+    * [Treating zero-values as true](#treating-zero-values-as-true)
+    * [The `_display` parameter](#the-_display-parameter)
+    * [Passing sections as context to functions](#passing-sections-as-context-to-functions)
+* [Repeating Sections](#repeating-sections)
+    * [Repeating list sections](#repeating-list-sections)
+* [Nested Sections](#nested-sections)
+* [More](#more)
+
+
+&nbsp; 
+
+
 ## Sections
 
 Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. 
@@ -172,6 +189,14 @@ Bob is a chef.
 ```
 
 Note in the above that `_display` does not reverse the behavior of inverse sections. Also, nested section data may still be accessed and rendered outside of the section, even if the section itself is set not to display.
+
+&nbsp;
+
+### Passing sections as context to functions
+
+By combining the inclusive section directive with the pass-context-to-function directive (`#->`), the section's render text will be passed to function named by the tag key. The closing section tag is given by the standard closing directive (`/`) and the same function name.
+
+For more, see [passing sections as context](../functions#passing-sections-as-context) in the functions documentation.
 
 
 &nbsp;

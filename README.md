@@ -2,7 +2,7 @@
 
 Basic templating code. It originally started as needing a very simplistic template library, hence creating my own version, before snowballing requirements (and also just personal curiosity on where I could take it) turned it into a powerful templating library of its own.
 
-Lawrence Sim © 2023
+Lawrence Sim © 2024
 
 ## Contents
 
@@ -58,23 +58,35 @@ var templateOne = Templatize.from(myTemplate, options);
 var rendered = templateOne.render(bindings);
 ```
 
-<a href="templatize-render" name="templatize-render">#</a> *Templatize*.**render**(*template*, *bindings*[, *options*])
+&nbsp;
+
+<a href="#templatize-render" name="templatize-render">#</a> *Templatize*.**render**(*template*, *bindings*[, *options*])
 
 | Name | Type | Description |
 | --- | --- | :--- |
-| `template` | String | The template. |
-| `bindings` | Object | The object literal of data-bindings. |
-| `options` | Object | See [options](#options). |
+| `template` | *String* | The template. |
+| `bindings` | *Object* | The object literal of data-bindings. |
+| `options` | *Object* | See [options](#options). |
 
-&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (String) The rendered template.
+&nbsp; &nbsp; &nbsp; &nbsp;**Returns:** The rendered template string.
 
-<a href="templatize-from" name="templatize-from">#</a> *Templatize*.**from**(*template*[, *options*])
+&nbsp;
+
+<a href="#templatize-from" name="templatize-from">#</a> *Templatize*.**from**(*template*[, *options*])
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** An instance of the Templatize rendering interface based off this template.
 
-<a href="templatize-instance-render" name="templatize-instance-render">#</a> *Interface*.prototype.**render**(*bindings*[, *options*])
+&nbsp;
+
+<a href="#interface-render" name="interface-render">#</a> *Interface*.prototype.**render**(*bindings*[, *options*])
+
+Options given here will overwrite those set when the interface was created – with one exception. 
+
+Templates and partials are parsed immediately with the custom delimiters (if supplied) in the function they were called. Custom delimiters supplied here have no effect on templates or partials supplied in `Templatize.from()`. Likewise, custom delimiters must be defined here if needed for new partials also given here – even if the same custom delimiters given during interface creation.
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** The rendered template string.
+
+&nbsp;
 
 ### Options
 
@@ -84,10 +96,6 @@ var rendered = templateOne.render(bindings);
 * **`escapeAll`** - If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [formatting](#formatting).
 * **`errorOnMissingTags`** - If true, throw exceptions when a data-binding called by the template is missing. Otherwise, simply warns in the console and returns empty.
 * **`partials`** - A map of partial templates by name. Used to refer to [partials](#partials).
-
-Options given in a `render()` call will overwrite those set in an interface created with `Templatize.from()`. 
-
-The one exception is custom delimiters for an interface created from `Templatize.from()`. In such a case, the original template and any provided partials are preprocessed. NWhen calling `render()` on the interface with provided options, the delimiters will not take effect except on any newly provided partials with those options.
 
 ----------
 
@@ -136,12 +144,12 @@ The default behavior is to treat missing bindings as empty. You may also throw a
 
 ### Comments and escaping
 
-Both commenting and escaping are done with a bang directive (`!`). For comments, place the bang within the opening delimiter. For escaping, place the bang just outside the opening delimiter.
+Comments are done by placing a bang directive (`!`) within the opening delimiter. For escaping, place a single backslash (`\`) before the tag. A double backslash (`\\`), however, will not be read as escaping the tag.
 
 &nbsp; *Template:*
 
 ```
-{{name.first}} is !{{age}} years old. {{! note to self: is this the right age? }}
+{{name.first}} is \{{age}} years old. {{! note to self: is this the right age? }}
 ```
 
 &nbsp; *Bindings:*
@@ -166,9 +174,10 @@ Bob is {{age}} years old.
 **Restrictions for tag key names**
 
 * `_display` is a special keyword. While it can be set (see the [_display parameter](./more/sections/#the-_display-parameter)), it should only be done when specifically calling said functionality.
-* Any key name with a leading bang (`!`) will be treated as a [comment](#comments-and-escaping) in the template code.
-* Any key name with a leading period (`.`) will be treated as a [context directive](#scoping-and-the-context-directive) and not part of the key name.
-* Any key name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
+* Any key name starting with a reserved directive including:
+    * A leading bang (`!`) will be treated as a [comment](#comments-and-escaping) in the template code.
+    * A leading period (`.`) will be treated as a [context directive](#scoping-and-the-context-directive) and not part of the key name.
+    * A leading ampersand (`&`), hash (`#`), or caret (`^`) will be treated as one of the directives for [lists](#lists) and [sections](#sections).
 * Ending a key name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
 * Using in any place a double-colon (`::`), which is a [formatting](#formatting) directive, or an arrow operator (`->`), which is used for [passing context to functions](./more/functions/#passing-context-to-functions), will be interpreted as their respective directives.
 
@@ -209,7 +218,7 @@ One special case exists with the list functionality, the combination of the list
 Bob sells burgers, sodas, and fries with his wife and kids.
 ```
 
-*Note, the Oxford-comma is the default -- and only -- behavior, as the universe intended.*
+*Note, the Oxford-comma is the default – and only – behavior, as the universe intended.*
 
 
 &nbsp; 
@@ -248,11 +257,11 @@ Bob is married to Linda.
 Bob has no pets.
 ```
 
+&nbsp;
+
 ### Section value evaluation
 
 The data bound to a section tag is evaluated for 'truthiness'. Null values, an empty string or composed only of whitespace, an empty list, and `0` evaluate as false (though in certain cases you may want to [treat 0-values as true](./more/sections/#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
-
-&nbsp;
 
 &nbsp; 
 
@@ -288,7 +297,7 @@ Note that each item is also treated to the same [section value evaluation](./mor
 
 ### More on sections
 
-See additional documentation for more on [sections](./more/sections/) and [repeating sections](./more/sections/#repeating-sections), including [section value evaluation](./more/sections/#section-value-evaluation), the [`_display` parameter](./more/sections/#the-_display-parameter), and more.
+See [additional documentation for more on sections](./more/sections/), including [example sample design patterns](./more/sections/#example-section-design-patterns), using the [`_display` parameter](./more/sections/#the-_display-parameter), [treating zero values as true](./more/sections/#treating-zero-values-as-true), and more.
 
 
 &nbsp; 
@@ -329,7 +338,7 @@ Friends: Teddy Mort
 
 In the above, we try to access `name.first` in three ways. Using the full binding path (1) works in almost any case. However, using `first` without giving a context (2), fails as it tries to find a binding for `first` from the root, which does not exist. We can fix this by providing the context directive (3), which begins the search from the given context, with is within the section (and corresponding data-binding for) `name`.
 
-The naked context tag (`{{.}}`) in the final line is equivalent to the tag `{{friends}}`, which in-context of a repeating section, accesses each iterated value in the list.
+The naked context tag (`{{.}}`) in the final line is equivalent to the tag `{{friends}}`, which in-context of a repeating section accesses each iterated value in the list.
 
 
 &nbsp;
@@ -392,23 +401,16 @@ To change the context of a function (accessed by the `this` keyword) when it is 
 
 ```
 The burger-of-the-day is:<br />
-"{{special.burger->getTodays}}"<br />
-{{special.price->getTodays}}
+"{{specials->getTodays}}"
 ```
 
 &nbsp; *Bindings:*
 
 ```javascript
 {
-  special: {
-    burger: {
-      sunday: "Yes I Cayenne Burger", 
-      monday: "So Many Fennel So Little Thyme Burger"
-    }, 
-    price: {
-      sunday: "$5.95", 
-      monday: "$5.50"
-    }
+  specials: {
+    sunday: "Yes I Cayenne Burger", 
+    monday: "So Many Fennel So Little Thyme Burger"
   }, 
   today: "sunday", 
   getTodays: function(root) {
@@ -422,18 +424,17 @@ The burger-of-the-day is:<br />
 ```
 The burger-of-the-day is:
 "Yes I Cayenne Burger"
-$5.95
 ```
 
-This functionality is covered in greater depth in the [additional function documentation](./more/functions/) under [passing-context-to-functions](./more/functions/#passing-context-to-functions)
+This functionality is covered in greater depth in the [additional function documentation](./more/functions/) under [passing-context-to-functions](./more/functions/#passing-context-to-functions).
 
 &nbsp;
 
 ### More on functions
 
-Functions are arguably the most powerful (and sometimes frustrating) aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions) and [chaining functions](./more/functions/#chaining-functions). This section only covers the most superficial use of functions.
+Functions are the most powerful aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions) and [chaining functions](./more/functions/#chaining-functions). However, errors can be difficult to debug without understanding how functions work. This section only covers the most basic use of functions.
 
-See additional documentation for more on [functions](./more/functions/).
+See [additional documentation for more on functions](./more/functions/).
 
 
 &nbsp;

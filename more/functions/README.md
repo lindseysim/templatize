@@ -1,3 +1,18 @@
+## Functions Documentation
+
+* [Functions](#functions)
+    * [Error handling](#error-handling)
+    * [Function returns and formatting](#function-returns-and-formatting)
+    * [Chaining functions](#chaining-functions)
+    * [Passing context to functions](#passing-context-to-functions)
+      * [Passing sections as context](#passing-sections-as-context)
+    * [Function evaluation and caching](#function-evaluation-and-caching)
+* [More](#more)
+
+
+&nbsp; 
+
+
 ## Functions
 
 Functions are evaluated and uses the returned value as the data-binding to the specified tag. As the behavior of the function depends on what is returned, it may be used in a variety of contexts, such as using the function output as a section or list.
@@ -90,6 +105,34 @@ Functions outputs are cached after their first evaluation. As such, calling `men
 
 &nbsp;
 
+### Chaining functions
+
+Functions can be chained using multiple pass-as-context directives and will be evaluated left-to-right.
+
+&nbsp; *Template:*
+
+```
+{{value->log2->square}}
+```
+
+&nbsp; *Bindings:*
+
+```javascript
+{
+  value: 128, 
+  log2: function() { return Math.log2(this); }, 
+  square: function() { return this*this; }
+}
+```
+
+&nbsp; *Outputs:*
+
+```
+49
+```
+
+&nbsp;
+
 ### Passing context to functions
 
 To change the context of a function (accessed by the `this` keyword) when it is called, the tag may pair the key referencing a data context with the key for the function, using the pass-as-context directive (`->`) to separate them. The function will also be passed a `root` parameter that is always a reference to the data-binding at the top-most level.
@@ -137,41 +180,45 @@ In the function `getTodays()`, the data accessed by the `this` keyword changes d
 
 #### Passing sections as context
 
-A special type of section is denoted by the inclusive section directive combined with the pass-context-to-function directive (`#->`), as well as the typical closing section tag, with the tag key being a reference to a function.
-
-By combining the inclusive section directive with the pass-context-to-function directive (`#->`), the section's render text will be passed to whatever function follows. The closing section tag is given by the standard closing directive (`/`) and the same function.
+By combining the inclusive section directive with the pass-context-to-function directive (`#->`), the section's render text will be passed to function named by the tag key. The closing section tag is given by the standard closing directive (`/`) and the same function name.
 
 &nbsp; *Template:*
 
 ```
-{{#->bold}}{{main->fullname}}'s{{/bold}} kids are:<br />
-{{#children}}
-  {{children->fullname}}
-  {{#->parenthesis}}{{children.age->bold}} years old{{/parenthesis}}<br />
-{{/children}}
+{{#->louise-ify}}
+  {{#->stylize}}
+    burger-of-the-day: 
+    "new bacon-ings" 
+    comes with bacon
+    5.95
+  {{/stylize}}
+{{/louise-ify}}
 ```
 
 &nbsp; *Bindings:*
 
 ```javascript
 {
-  main: {
-    name: "Bob"
+  stylize: function() {
+    // split lines, ignore empties
+    var lines = this.split(/\n/g).map(l => l.trim()).filter(l => l);
+    lines = lines.map(l => {
+      l = l.toUpperCase();
+      // stylize price
+      if(l.match(/[0-9]+(\.[0-9]+)?/)) return "$"+l;
+      // stylize header
+      if(l === "BURGER-OF-THE-DAY:") return "<strong><u>"+l+"</u></strong>";
+      // stylize 'comes with' line
+      if(l.startsWith("COMES WITH")) return "<em>"+l+"</em>";
+      return l;
+    });
+    // add line breaks
+    return lines.join("<br />");
   }, 
-  familyName: "Belcher", 
-  children: [
-    {name: "Tina", age: 13}, 
-    {name: "Gene", age: 11}, 
-    {name: "Louise", age: 9}
-  ], 
-  fullname: function(root) {
-    return this.name + " " + root.familyName;
-  },
-  bold: function() {
-    return "<strong>"+this+"</strong>";
-  }, 
-  parenthesis: function() {
-    return "("+this+")";
+  'louise-ify': function() {
+    // cause mischief
+    return this.replace(/"[a-z\- ]+"/i, "The Child Molester")
+               .replace(/comes with [a-z ]+/gi, "comes with Candy!");
   }
 }
 ```
@@ -179,39 +226,11 @@ By combining the inclusive section directive with the pass-context-to-function d
 &nbsp; *Outputs:*
 
 <pre>
-<strong>Bob Belcher's</strong> kids are:
-Tina Belcher (13 years old)
-Gene Belcher (11 years old)
-Louise Belcher (9 years old)
+<strong><u>BURGER-OF-THE-DAY:</u></strong>
+The Child Molester
+<em>comes with Candy!</em>
+$5.95
 </pre>
-
-&nbsp; 
-
-### Chaining functions
-
-Functions can be chained using multiple pass-as-context directives and will be evaluated left-to-right.
-
-&nbsp; *Template:*
-
-```
-{{value->log2->square}}
-```
-
-&nbsp; *Bindings:*
-
-```javascript
-{
-  value: 128, 
-  log2: function() { return Math.log2(this); }, 
-  square: function() { return this*this; }
-}
-```
-
-&nbsp; *Outputs:*
-
-```
-49
-```
 
 &nbsp;
 

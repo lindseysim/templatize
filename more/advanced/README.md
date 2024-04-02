@@ -1,4 +1,4 @@
-## Advanced usage, edge cases, and general weirdness
+## Advanced Usage, Edge Cases, and General Weirdness
 
 * [Multi-dimensional arrays](#multi-dimensional-arrays)
 * [Arrays of functions](#arrays-of-functions)
@@ -7,7 +7,9 @@
 * [Mixing directives in a section tag](#mixing-directives-in-a-section-tag)
 * [Function evaluation and modifying binding data](#function-evaluation-and-modifying-binding-data)
 
+
 &nbsp; 
+
 
 #### Multi-dimensional arrays
 
@@ -340,9 +342,11 @@ Available add-ons:
 
 #### Function evaluation and modifying binding data
 
-**DO NOT DO THIS** and here's why. Along with the caching issue ([covered in the function section](../functions/#function-evaluation-and-caching)) with nested sections, and especially with repeating sections, Templatize takes some optimization strategies to best render the template with the least amount of rendering calls. While it takes certain edge cases to cause this behavior to become pronounced, when it does, it can appear very unpredictable.
+**DO NOT DO THIS** and here's why. Along with the caching issue ([covered in the function section](../functions/#function-evaluation-and-caching)), Templatize takes some optimization strategies to render the template with the least amount of work. While it takes certain edge cases to cause quirks from this strategy to become pronounced, when it does it can appear very unpredictable.
 
-In the below, the `count` function is always passed to a context to force re-evaluation. However, even then, the results are not intuitive.
+Templatize first renders normal sections from the outside-in. Thus, if a section is not to be displayed, it can skip the section entirely and avoiding unnecessary computation on any of the inner content. Certain types of tags are not processed in the first pass. (E.g. repeating sections are superficially handled, rendering only the tags within that are not bound to the repeating data, but not yet handling iteration of the content.) Templatize then renders all remaining tags not yet processed from the inside-out. This includes sections passed as context (as they require the inner content to be rendered first) and the repetition of repeating sections. This ensures that nested repeating sections are rendered in a way that minimizes number of iterations and redundant render computations.
+
+In the below example, the content of arrays `outer` and `inner` do not matter except just to induce iterations, and the `count` function is always passed to a context to force re-evaluation.
 
 &nbsp; *Template:*
 
@@ -381,11 +385,11 @@ In the below, the `count` function is always passed to a context to force re-eva
 1 - 10 - 8 9
 ```
 
-To understand what's happening here it's worth overviewing the Templatize rendering procedure. Templatize first renders normal sections from the outside-in. This allows optimization in the case where a hidden section is encountered, by skipping the section entirely and avoiding computing of all interior content (which will not be displayed). It then renders all repeating sections from the inside-out to avoid redundancy. The interior of repeating sections are checked in their first pass to render tags bound to (assumedly) non-dynamic content unrelated to the repeating section in the hopes of preventing the redundant calling the same thing multiple times.
+Because the context differs within the nested sections, context affects when each `{{.->count}}` tag gets rendered. Essentially, the numbers output represent the order in which each `{{.->count}}` tag was rendered. With repeated values meaning the tag was rendered once at that time, then later just duplicated as text.
 
-So in the first pass, the `{{#section}}` section and the inner call to `count` therein are handled, first putting the value of '1' as the first part of the `{{#outer}}` repeating section. The other calls to `count` require the dynamic context of the repeating sections (since the context `.` in each is the repeating section data, which changes with each repeat rendering). So these tag are not rendered in this first pass.
+In the first, outside-in pass, the `{{#section}}` section and the call to `count` inside it are handled, first putting the value of '1' as the first part of the `{{#outer}}` repeating section, thus with this number repeats with each line. It can be rendered on the first pass because here the context (`.`) is bound to data for `section`, which is not dynamic. The other calls to `count` require data bound to the repeating sections since the contexts in each are now the iterating data of `outer` or `inner`. So these tag are not rendered in this first pass.
 
-On the next pass, the repeating sections are rendered. The first part has been pre-rendered (as '1'), which is why it repeats at the start of each line. Because the optimization renders repeating sections from the inside out, the `{{#inner}}` section is rendered first, evaluating the inner calls to `count` there, then the outer call to `count` next, even if it occurs before the inner section.
+On the second pass, the repeating sections are rendered. Because the second pass renders from the inside out, the `{{#inner}}` section is rendered first, evaluating the inner calls to `count` there, then the outer call to `count` next, even if it occurs before the inner section. Hence, for each row, the middle number between the hyphens is actually rendered after (thus greater in value than) the last two numbers.
 
 I'm sure someone could construe a scenario in which this pattern could be taken advantage of, but it's hard to imagine. Thus as a general rule, **avoid functions that modifying the data bindings or return different values depending on the number of times called.**
 
